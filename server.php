@@ -60,15 +60,7 @@ $server = new DAV\Server($rootDirectory);
 // correct information
 $server->setBaseUri('/dolibarr/htdocs/cdav/index.php');
 
-// The lock manager is reponsible for making sure users don't overwrite
-// each others changes.
-$lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
-$lockPlugin = new DAV\Locks\Plugin($lockBackend);
-$server->addPlugin($lockPlugin);
 
-// This ensures that we get a pretty index in the browser, but it is
-// optional. 
-$server->addPlugin(new DAV\Browser\Plugin());
 
 // Authentication
 use Sabre\DAV\Auth;
@@ -78,6 +70,8 @@ $authBackend = new Auth\Backend\BasicCallBack(function ($username, $password)
 	global $user;
 	$user = new User($db);
 	$user->fetch('',$username);
+	print_r($user);
+	exit;
 	return ($user->login==$username && $user->pass==$password);
 });
 
@@ -87,6 +81,18 @@ $authPlugin = new Auth\Plugin($authBackend,'Dolibarr');
 
 // Adding the plugin to the server
 $server->addPlugin($authPlugin);
+
+
+
+// The lock manager is reponsible for making sure users don't overwrite
+// each others changes.
+$lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
+$lockPlugin = new DAV\Locks\Plugin($lockBackend);
+$server->addPlugin($lockPlugin);
+
+// This ensures that we get a pretty index in the browser, but it is
+// optional. 
+$server->addPlugin(new DAV\Browser\Plugin());
 
 // All we need to do now, is to fire up the server
 $server->exec();
