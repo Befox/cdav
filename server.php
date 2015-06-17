@@ -44,6 +44,10 @@ require '../main.inc.php';	// Load $user and permissions
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
 
+function exception_error_handler($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+}
+set_error_handler("exception_error_handler");
 
 use Sabre\DAV;
 
@@ -64,35 +68,23 @@ $user=false;
 
 
 // Authentication
-use Sabre\DAV\Auth;
-$authBackend = new Auth\Backend\BasicCallBack(function ($username, $password)
+$authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
 	global $db;
 	global $user;
 	$user = new User($db);
 	$user->fetch('',$username);
-	print_r($user);
-	exit;
 	return ($user->login==$username && $user->pass==$password);
 });
-
-// Creating the plugin. We're assuming that the realm
-// name is called 'Dolibarr'.
-$authPlugin = new Auth\Plugin($authBackend,'Dolibarr');
-
-// Adding the plugin to the server
-$server->addPlugin($authPlugin);
-
 
 
 // The lock manager is reponsible for making sure users don't overwrite
 // each others changes.
 $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
-$lockPlugin = new DAV\Locks\Plugin($lockBackend);
-$server->addPlugin($lockPlugin);
 
-// This ensures that we get a pretty index in the browser, but it is
-// optional. 
+
+$server->addPlugin(new DAV\Auth\Plugin($authBackend, 'SabreDAV'));
+$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
 // All we need to do now, is to fire up the server
