@@ -73,7 +73,7 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	$user = new User($db);
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
-	die('fkjgldfksglskj');
+	file_put_contents('/tmp/doute.txt','bah alors');
 	return true;
 });
 $authBackend->setRealm('Dolibarr');
