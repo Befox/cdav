@@ -67,7 +67,7 @@ use
 
 	// If your server is not on your webroot, make sure the following line has the
 	// correct information
-	$server->setBaseUri('/dolibarr/htdocs/cdav/');
+	$server->setBaseUri('/dolibarr/htdocs/cdav/index.php');
 
 	// The lock manager is reponsible for making sure users don't overwrite
 	// each others changes.
