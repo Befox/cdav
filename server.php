@@ -37,9 +37,6 @@ function llxHeader() { }
 function llxFooter() { }
 
 require '../main.inc.php';	// Load $user and permissions
-//require_once DOL_DOCUMENT_ROOT.'/cdav/core/modules/modCDav.class.php';
-
-//$module_cdav = new modCDav($db);
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
@@ -76,7 +73,7 @@ function check_user_pass($username, $password)
 	$user = new User($db);
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
-	return false;
+	return true;
 }
 
 $authBackend = new DAV\Auth\Backend\BasicCallBack("check_user_pass");
@@ -89,7 +86,7 @@ $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
 
 $server->addPlugin(new DAV\Auth\Plugin($authBackend));
-//$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
+$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
 // All we need to do now, is to fire up the server
