@@ -89,7 +89,7 @@ $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
 
 $server->addPlugin(new DAV\Auth\Plugin($authBackend));
-$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
+//$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
 // All we need to do now, is to fire up the server
