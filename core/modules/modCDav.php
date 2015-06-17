@@ -94,7 +94,7 @@ class modCDav extends DolibarrModules
 		$this->dirs = array();
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-		$this->config_page_url = array("setup.php@cdav");
+		$this->config_page_url = array();
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module
@@ -103,7 +103,7 @@ class modCDav extends DolibarrModules
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
 		$this->phpmin = array(5,4);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,7);	// Minimum version of Dolibarr required by module
-		$this->langfiles = array("langfile@cdav");
+		$this->langfiles = array();
 
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
