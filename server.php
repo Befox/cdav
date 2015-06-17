@@ -76,7 +76,7 @@ function check_user_pass($username, $password)
 	$user = new User($db);
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
-	return true;
+	return false;
 }
 
 $authBackend = new DAV\Auth\Backend\BasicCallBack("check_user_pass");
