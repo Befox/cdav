@@ -85,7 +85,7 @@ $authBackend->setRealm('Dolibarr');
 $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
 
-//$server->addPlugin(new DAV\Auth\Plugin($authBackend));
+$server->addPlugin(new DAV\Auth\Plugin($authBackend));
 $server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
