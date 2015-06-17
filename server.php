@@ -72,7 +72,7 @@ $server->addPlugin(new DAV\Browser\Plugin());
 
 // Authentication
 use Sabre\DAV\Auth;
-$authBackend = new \BasicCallBack(function ($username, $password)
+$authBackend = new Auth\Backend\BasicCallBack(function ($username, $password)
 {
 	global $db;
 	global $user;
