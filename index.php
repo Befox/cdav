@@ -69,7 +69,7 @@ if ($user->societe_id > 0) $socid = $user->societe_id;
  * View
  */
 
-print_r($user);
+print_r($user2);
 
 exit;
 
