@@ -97,7 +97,7 @@ $server->exec();
 
 
 
-if (is_object($db)) $db->close();
+//if (is_object($db)) $db->close();
 
 
 /*
