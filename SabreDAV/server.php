@@ -23,7 +23,7 @@ use
 	$server->addPlugin($lockPlugin);
 
 	// This ensures that we get a pretty index in the browser, but it is
-	// optional.
+	// optional. 
 	$server->addPlugin(new DAV\Browser\Plugin());
 
 	// All we need to do now, is to fire up the server
