@@ -36,13 +36,13 @@ function llxHeader() { }
  */
 function llxFooter() { }
 
-require '../main.inc.php';	// Load $user and permissions
+//require '../main.inc.php';	// Load $user and permissions
 //require_once DOL_DOCUMENT_ROOT.'/cdav/core/modules/modCDav.class.php';
 
 //$module_cdav = new modCDav($db);
 
-if(!$conf->cdav->enabled)
-	die('module CDav not enabled !'); 
+//if(!$conf->cdav->enabled)
+//	die('module CDav not enabled !'); 
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
