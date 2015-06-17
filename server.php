@@ -60,6 +60,7 @@ $server = new DAV\Server($rootDirectory);
 // correct information
 $server->setBaseUri('/dolibarr/htdocs/cdav/index.php');
 
+$user=false;
 
 
 // Authentication
