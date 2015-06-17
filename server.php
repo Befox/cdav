@@ -22,10 +22,6 @@
     $_SERVER['PHP_AUTH_PW'] = strip_tags($password);
 }*/
 
-phpinfo();
-exit;
-
-
 
 define('NOTOKENRENEWAL',1); // Disables token renewal
 // Pour autre que bittorrent, on charge environnement + info issus de logon (comme le user)
