@@ -83,7 +83,7 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
 
-$server->addPlugin(new DAV\Auth\Plugin($authBackend, 'SabreDAV'));
+//$server->addPlugin(new DAV\Auth\Plugin($authBackend, 'Dolibarr'));
 $server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
