@@ -62,7 +62,7 @@ $server = new DAV\Server($rootDirectory);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
-$server->setBaseUri('/dolibarr/htdocs/cdav/index.php');
+$server->setBaseUri('/dolibarr/htdocs/cdav/server.php');
 
 $user=false;
 
