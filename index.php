@@ -17,7 +17,7 @@
 
 define('NOTOKENRENEWAL',1); // Disables token renewal
 // Pour autre que bittorrent, on charge environnement + info issus de logon (comme le user)
-//if (! defined('NOLOGIN')) define('NOLOGIN','1');
+if (! defined('NOLOGIN')) define('NOLOGIN','1');
 if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK','1');	// We accept to go on this page from external web site.
 if (! defined('NOREQUIREMENU')) define('NOREQUIREMENU','1');
 if (! defined('NOREQUIREHTML')) define('NOREQUIREHTML','1');
@@ -50,6 +50,9 @@ $entity=GETPOST('entity')?GETPOST('entity','int'):$conf->entity;
 */
 // Security check
 //if (empty($modulepart)) accessforbidden('Bad value for parameter modulepart');
+
+$user2 = new User($db);
+$user2->fetch('','jpmorfin');
 
 $socid=0;
 if ($user->societe_id > 0) $socid = $user->societe_id;
