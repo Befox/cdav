@@ -1,7 +1,7 @@
 <?php
 /******************************************************************
  * cdav is a Dolibarr module
- * It allow to caldav and carddav clients to sync with Dolibarr
+ * It allows caldav and carddav clients to sync with Dolibarr
  * calendars and contacts.
  *
  * cdav is distributed under GNU/GPLv3 license
