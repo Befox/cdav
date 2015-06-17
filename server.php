@@ -70,12 +70,15 @@ $user=false;
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
+	/*
 	global $db;
 	global $user;
 	$user = new User($db);
 	$user->fetch('',$username);
-	return ($user->login==$username && $user->pass==$password);
+	return ($user->login==$username && $user->pass==$password);*/
+	return true;
 });
+$authBackend->setRealm('Dolibarr');
 
 
 // The lock manager is reponsible for making sure users don't overwrite
@@ -83,7 +86,7 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
 
-$server->addPlugin(new DAV\Auth\Plugin($authBackend, 'Dolibarr'));
+$server->addPlugin(new DAV\Auth\Plugin($authBackend));
 $server->addPlugin(new DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new DAV\Browser\Plugin());
 
