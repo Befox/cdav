@@ -36,13 +36,13 @@ function llxHeader() { }
  */
 function llxFooter() { }
 
-//require '../main.inc.php';	// Load $user and permissions
+require '../main.inc.php';	// Load $user and permissions
 //require_once DOL_DOCUMENT_ROOT.'/cdav/core/modules/modCDav.class.php';
 
 //$module_cdav = new modCDav($db);
 
-//if(!$conf->cdav->enabled)
-//	die('module CDav not enabled !'); 
+if(!$conf->cdav->enabled)
+	die('module CDav not enabled !'); 
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
@@ -68,7 +68,7 @@ $user=false;
 
 
 // Authentication
-$authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
+function check_user_pass($username, $password)
 {
 	/*
 	global $db;
@@ -77,7 +77,9 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
 	return true;
-});
+}
+
+$authBackend = new DAV\Auth\Backend\BasicCallBack("check_user_pass");
 $authBackend->setRealm('Dolibarr');
 
 
