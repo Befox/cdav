@@ -65,7 +65,7 @@ $user=false;
 
 
 // Authentication
-function check_user_pass($username, $password)
+$authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
 	/*
 	global $db;
@@ -74,9 +74,7 @@ function check_user_pass($username, $password)
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
 	return true;
-}
-
-$authBackend = new DAV\Auth\Backend\BasicCallBack("dlgfkdqslk");
+});
 $authBackend->setRealm('Dolibarr');
 
 
