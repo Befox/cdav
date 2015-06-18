@@ -69,7 +69,7 @@ $authBackend->setRealm('Dolibarr');
 $lockBackend = new DAV\Locks\Backend\File($dolibarr_main_data_root.'/cdav/.locks');
 
 // Principals Backend
-// $principalBackend = new DAVACL\PrincipalBackend\PDO($pdo);
+$principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
 
 // CardDav & CalDav Backend
 // $carddavBackend   = new Sabre\CardDAV\Backend\PDO($pdo);
@@ -78,7 +78,7 @@ $lockBackend = new DAV\Locks\Backend\File($dolibarr_main_data_root.'/cdav/.locks
 // Setting up the directory tree //
 $nodes = array(
     // /principals
-	// new DAVACL\PrincipalCollection($principalBackend),
+	new DAVACL\PrincipalCollection($principalBackend),
     // /addressbook
     // new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
     // /calendars
