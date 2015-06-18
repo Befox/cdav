@@ -49,6 +49,7 @@ use Sabre\DAVACL;
 // The autoloader
 require 'lib/SabreDAV/vendor/autoload.php';
 require 'class/PrincipalsDolibarr.php';
+require 'class/CardDAVDolibarr.php';
 
 $user = new User($db);
 $user->fetch('',$_SERVER['PHP_AUTH_USER']);
@@ -72,7 +73,7 @@ $lockBackend = new DAV\Locks\Backend\File($dolibarr_main_data_root.'/cdav/.locks
 $principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
 
 // CardDav & CalDav Backend
-// $carddavBackend   = new Sabre\CardDAV\Backend\PDO($pdo);
+$carddavBackend   = new Sabre\CardDAV\Backend\Dolibarr($user,$db,$langs);
 // $caldavBackend    = new Sabre\CalDAV\Backend\PDO($pdo);
 
 // Setting up the directory tree //
