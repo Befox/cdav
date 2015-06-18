@@ -14,16 +14,16 @@
  *
  ******************************************************************/
 
-// HTTP auth workaround for php fast-cgi see .htaccess
-if( isset($_SERVER['HTTP_AUTHORIZATION']) )
+// HTTP auth workaround for php in fastcgi mode HTTP_AUTHORIZATION set by rewrite engine in .htaccess
+if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
+	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
 {
     list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
 		explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
 }
 
 
-define('NOTOKENRENEWAL',1); // Disables token renewal
-// Pour autre que bittorrent, on charge environnement + info issus de logon (comme le user)
+define('NOTOKENRENEWAL',1); 								// Disables token renewal
 if (! defined('NOLOGIN')) define('NOLOGIN','1');
 if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK','1');	// We accept to go on this page from external web site.
 if (! defined('NOREQUIREMENU')) define('NOREQUIREMENU','1');
@@ -43,10 +43,10 @@ function llxHeader() { }
  */
 function llxFooter() { }
 
-//require '../main.inc.php';	// Load $user and permissions
+require '../main.inc.php';	// Load $user and permissions
 
-//if(!$conf->cdav->enabled)
-//	die('module CDav not enabled !'); 
+if(!$conf->cdav->enabled)
+	die('module CDav not enabled !'); 
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
@@ -102,19 +102,5 @@ $server->exec();
 
 
 
-//if (is_object($db)) $db->close();
+if (is_object($db)) $db->close();
 
-
-/*
- * Action
- */
-
-// None
-
-
-/*
- * View
- */
-
-
-exit;
