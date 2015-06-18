@@ -14,13 +14,12 @@
  *
  ******************************************************************/
 
-//sett http auth headers for Webfaction workaround
-/*if(isset($_GET['Authorization']) && preg_match('/Basic\s+(.*)$/i', $_GET['Authorization'], $matches))
+// HTTP auth workaround for php fast-cgi see .htaccess
+if( isset($_SERVER['HTTP_AUTHORIZATION']) )
 {
-    list($name, $password) = explode(':', base64_decode($matches[1]));
-    $_SERVER['PHP_AUTH_USER'] = strip_tags($name);
-    $_SERVER['PHP_AUTH_PW'] = strip_tags($password);
-}*/
+    list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
+		explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+}
 
 
 define('NOTOKENRENEWAL',1); // Disables token renewal
@@ -81,7 +80,6 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	$user = new User($db);
 	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);*/
-	file_put_contents('/tmp/doute.txt','bah alors');
 	return true;
 });
 $authBackend->setRealm('Dolibarr');
