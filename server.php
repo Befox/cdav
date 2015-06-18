@@ -48,10 +48,10 @@ use Sabre\DAVACL;
 
 // The autoloader
 require 'lib/SabreDAV/vendor/autoload.php';
+require 'class/PrincipalsDolibarr.php';
 
 $user = new User($db);
 $user->fetch('',$_SERVER['PHP_AUTH_USER']);
-
 
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
