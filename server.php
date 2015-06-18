@@ -47,7 +47,7 @@ use Sabre\DAV;
 use Sabre\DAVACL;
 
 // The autoloader
-require 'SabreDAV/vendor/autoload.php';
+require 'lib/SabreDAV/vendor/autoload.php';
 
 
 $user=false;
@@ -68,7 +68,7 @@ $authBackend->setRealm('Dolibarr');
 
 // The lock manager is reponsible for making sure users don't overwrite
 // each others changes.
-$lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
+$lockBackend = new DAV\Locks\Backend\File($dolibarr_main_data_root.'/cdav/.locks');
 
 // Principals Backend
 // $principalBackend = new DAVACL\PrincipalBackend\PDO($pdo);
@@ -86,7 +86,7 @@ $nodes = array(
     // /calendars
     // new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
     // / 
-	new DAV\FS\Directory('SabreDAV/public')
+	new DAV\FS\Directory($dolibarr_main_data_root.'/cdav/public')
 );
 
 
