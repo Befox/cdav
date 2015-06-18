@@ -49,8 +49,8 @@ use Sabre\DAVACL;
 // The autoloader
 require 'lib/SabreDAV/vendor/autoload.php';
 
-
-$user=false;
+$user = new User($db);
+$user->fetch('',$_SERVER['PHP_AUTH_USER']);
 
 
 // Authentication
@@ -58,8 +58,6 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 {
 	global $db;
 	global $user;
-	$user = new User($db);
-	$user->fetch('',$username);
 	return ($user->login==$username && $user->pass==$password);
 });
 
