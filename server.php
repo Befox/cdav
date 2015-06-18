@@ -21,7 +21,6 @@ if( isset($_SERVER['HTTP_AUTHORIZATION']) &&
     list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
 		explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
 }
-phpinfo();
 
 define('NOTOKENRENEWAL',1); 								// Disables token renewal
 if (! defined('NOLOGIN')) define('NOLOGIN','1');
@@ -29,18 +28,7 @@ if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK','1');	// We accept to go on t
 if (! defined('NOREQUIREMENU')) define('NOREQUIREMENU','1');
 if (! defined('NOREQUIREHTML')) define('NOREQUIREHTML','1');
 if (! defined('NOREQUIREAJAX')) define('NOREQUIREAJAX','1');
-
-/**
- * Header empty
- *
- * @return	void
- */
 function llxHeader() { }
-/**
- * Footer empty
- *
- * @return	void
- */
 function llxFooter() { }
 
 require '../main.inc.php';	// Load $user and permissions
@@ -53,20 +41,14 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 }
 set_error_handler("exception_error_handler");
 
+// Sabre/dav configuration
+
 use Sabre\DAV;
+use Sabre\DAVACL;
 
 // The autoloader
 require 'SabreDAV/vendor/autoload.php';
 
-// Now we're creating a whole bunch of objects
-$rootDirectory = new DAV\FS\Directory('SabreDAV/public');
-
-// The server object is responsible for making sense out of the WebDAV protocol
-$server = new DAV\Server($rootDirectory);
-
-// If your server is not on your webroot, make sure the following line has the
-// correct information
-$server->setBaseUri('/dolibarr/htdocs/cdav/server.php/');
 
 $user=false;
 
@@ -88,10 +70,41 @@ $authBackend->setRealm('Dolibarr');
 // each others changes.
 $lockBackend = new DAV\Locks\Backend\File('SabreDAV/data/locks');
 
+// Principals Backend
+// $principalBackend = new DAVACL\PrincipalBackend\PDO($pdo);
 
-$server->addPlugin(new DAV\Auth\Plugin($authBackend));
-$server->addPlugin(new DAV\Locks\Plugin($lockBackend));
-$server->addPlugin(new DAV\Browser\Plugin());
+// CardDav & CalDav Backend
+// $carddavBackend   = new Sabre\CardDAV\Backend\PDO($pdo);
+// $caldavBackend    = new Sabre\CalDAV\Backend\PDO($pdo);
+
+// Setting up the directory tree //
+$nodes = array(
+    // /principals
+	// new DAVACL\PrincipalCollection($principalBackend),
+    // /addressbook
+    // new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
+    // /calendars
+    // new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
+    // / 
+	new DAV\FS\Directory('SabreDAV/public')
+);
+
+
+// The server object is responsible for making sense out of the WebDAV protocol
+$server = new DAV\Server($nodes);
+
+// If your server is not on your webroot, make sure the following line has the
+// correct information
+$server->setBaseUri('/dolibarr/htdocs/cdav/server.php/');
+
+
+$server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
+$server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
+$server->addPlugin(new \Sabre\DAV\Browser\Plugin());
+//$server->addPlugin(new \Sabre\CalDAV\Plugin());
+//$server->addPlugin(new \Sabre\CardDAV\Plugin());
+//$server->addPlugin(new \Sabre\DAVACL\Plugin());
+$server->addPlugin(new \Sabre\DAV\Sync\Plugin());
 
 // All we need to do now, is to fire up the server
 $server->exec();
