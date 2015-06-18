@@ -132,16 +132,6 @@ class Dolibarr extends AbstractBackend implements CreatePrincipalSupport {
 	 * @return array
 	 */
 	function getPrincipalByPath($path) {
-		$fields = [
-			'id',
-			'uri',
-		];
-
-		foreach ($this->fieldMap as $key => $value) {
-			$fields[] = $value['dbField'];
-		}
-		$stmt = $this->pdo->prepare('SELECT ' . implode(',', $fields) . '  FROM ' . $this->tableName . ' WHERE uri = ?');
-		$stmt->execute([$path]);
 
 		foreach ($this->allprincipals as $row) {
 			if($row['uri']==$path) {
