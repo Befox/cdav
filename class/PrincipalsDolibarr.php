@@ -52,7 +52,7 @@ class Dolibarr extends AbstractBackend implements CreatePrincipalSupport {
 		 * This property can be used to display the users' real name.
 		 */
 		'{DAV:}displayname' => [
-			'dbField' => 'login',
+			'dbField' => 'displayname',
 		],
 
 		/**
