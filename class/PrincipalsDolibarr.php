@@ -77,7 +77,7 @@ class Dolibarr extends AbstractBackend implements CreatePrincipalSupport {
 			array('id'=>$user->id*10,  'uri'=>'principals/'.$user->login,'email'=>$user->email,'displayname'=>trim($user->firstname.' '.$user->lastname)),
 			array('id'=>$user->id*10+1,'uri'=>'principals/'.$user->login.'/calendar-proxy-read','email'=>null,'displayname'=>null),
 			array('id'=>$user->id*10+2,'uri'=>'principals/'.$user->login.'/calendar-proxy-write','email'=>null,'displayname'=>null),
-		)
+		);
 
 
 	}
@@ -146,16 +146,17 @@ class Dolibarr extends AbstractBackend implements CreatePrincipalSupport {
 		foreach ($this->allprincipals as $row) {
 			if($row['uri']==$path) {
 
-			$principal = [
-				'id'  => $row['id'],
-				'uri' => $row['uri'],
-			];
-			foreach ($this->fieldMap as $key => $value) {
-				if ($row[$value['dbField']]) {
-					$principal[$key] = $row[$value['dbField']];
+				$principal = [
+					'id'  => $row['id'],
+					'uri' => $row['uri'],
+				];
+				foreach ($this->fieldMap as $key => $value) {
+					if ($row[$value['dbField']]) {
+						$principal[$key] = $row[$value['dbField']];
+					}
 				}
+				return $principal;
 			}
-			return $principal;
 		}
 	}
 
