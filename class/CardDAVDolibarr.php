@@ -181,7 +181,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			{
 				$cards[] = [
                     'carddata' = $this->_toVCard($obj);
-                    'uri' = 
+                    'uri' = $obj->id.'-'.
                 ];
 			}
 				
