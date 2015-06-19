@@ -200,7 +200,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="TEL;CELL;VOICE:".$obj->phone_mobile."\n";
 		$carddata.="TEL;FAX:".$obj->fax."\n";
 		$carddata.="EMAIL;PREF;INTERNET:".$obj->email."\n";
-		$carddata.="EMAIL;INTERNET:".$soc_email."\n";
+		$carddata.="EMAIL;INTERNET:".$obj->soc_email."\n";
 
    		$carddata.="REV:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
 		$carddata.="END:VCARD\n";
