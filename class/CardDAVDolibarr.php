@@ -31,15 +31,26 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	protected $db;
 
 	/**
+	 * Lang translation
+	 *
+	 * @var langs
+	 */
+	protected $langs;
+
+	/**
 	 * Sets up the object
 	 *
-	 * @param \PDO $pdo
+	 * @param user
+	 * @param db
+	 * @param langs
 	 */
 	function __construct($user, $db, $langs) {
 
 		$this->user = $user;
-		$this->db = $db;
-
+		$this->db = $langs;
+		$this->db = $langs;
+        $langs->load("companies");
+        $langs->load("suppliers");
 	}
 
 	/**
@@ -56,13 +67,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				AND (p.priv=0 OR (p.priv=1 AND p.fk_user_creat='.$this->user->id.'))';
 		$result = $this->db->query($sql);
 		$row = $this->db->fetch_array($result);
-		$lastupd = $row['lastupd'];
+		$lastupd = strtotime($row['lastupd']);
 
 		$addressBooks = [];
 
 		$addressBooks[] = [
 			'id'														  => $this->user->id,
-			'uri'														  => 'contacts-'.$this->user->id,
+			'uri'														  => $this->user->id.'-ab-'.CDAV_URI_KEY,
 			'principaluri'												  => $principalUri,
 			'{DAV:}displayname'											  => 'Dolibarr',
 			'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Contacts Dolibarr '.$this->user->login,
@@ -134,7 +145,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	protected function _getSqlContacts()
 	{
 		$sql = 'SELECT p.*, co.label country_label, GREATEST(s.tms, p.tms) lastupd,
-					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax, s.email soc_email,
+					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.email soc_email,
 					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, cl.label category_label
 				FROM '.MAIN_DB_PREFIX.'socpeople as p
 				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = p.fk_pays
@@ -146,6 +157,55 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				AND (p.priv=0 OR (p.priv=1 AND p.fk_user_creat='.$this->user->id.'))';
 				
 		return $sql;
+	}
+
+	/**
+	 * Convert contact row to VCard string
+	 * 
+     * @param row object
+	 * @return string
+	 */
+	protected function _toVCard($obj)
+	{
+        $categ = [];
+        if($obj->soc_client)
+            $categ[] = $this->langs->trans('Customer');
+        if($obj->soc_fournisseur)
+            $categ[] = $this->langs->trans('Supplier');
+        if(trim($obj->category_label)!='')
+            $categ[] = trim($obj->category_label);
+        
+        $soc_address=explode("\n",$obj->soc_address,2);
+        $soc_address[]='';
+        $soc_address[]='';
+        
+        $address=explode("\n",$obj->address,2);
+        $address[]='';
+        $address[]='';
+        
+		$carddata ="BEGIN:VCARD\n";
+		$carddata.="VERSION:3.0\n";
+		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
+        
+		$carddata.="UID:".$obj->id.'-ct-'.CDAV_URI_KEY."\n";
+		$carddata.="N;CHARSET=UTF-8:".$obj->lastname.";".$obj->firstname.";;\n";
+		$carddata.="FN;CHARSET=UTF-8:".$obj->lastname." ".$obj->firstname."\n";
+		$carddata.="ORG;CHARSET=UTF-8:".$obj->soc_nom.";\n";
+		$carddata.="TITLE;CHARSET=UTF-8:".$obj->poste."\n";
+		$carddata.="CATEGORIES;CHARSET=UTF-8:".implode(',',$categ)."\n";
+		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".$address[0].";".$address[1].";".$obj->town.";;".$obj->zip.";".$obj->country_label."\n";
+		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".$soc_address[0].";".$soc_address[1].";".$soc_town.";;".$soc_zip.";".$soc_country_label."\n";
+		$carddata.="TEL;WORK;VOICE:".$obj->phone."\n";
+		$carddata.="TEL;HOME;VOICE:".$obj->phone_perso."\n";
+		$carddata.="TEL;CELL;VOICE:".$obj->phone_mobile."\n";
+		$carddata.="TEL;FAX:".$obj->fax."\n";
+		$carddata.="EMAIL;PREF;INTERNET:".$obj->email."\n";
+		$carddata.="EMAIL;INTERNET:".$soc_email."\n";
+
+   		$carddata.="REV:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
+		$carddata.="END:VCARD\n";
+
+        return $carddata;
 	}
 
 	/**
@@ -170,31 +230,29 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	function getCards($addressbookId) {
 
 		$cards = [] ;
+
+		if($addressBookId != $this->user->id)
+			return false;
 		
 		$sql = $this->_getSqlContacts();
 		
 		$result = $this->db->query($sql);
 		if ($result)
 		{
-			$i=0;
 			while ($obj = $this->db->fetch_object($result))
 			{
-				$cards[] = [
-                    'carddata' = $this->_toVCard($obj);
-                    'uri' = $obj->id.'-'.
-                ];
-			}
+				$carddata = $this->_toVCard($obj);
 				
-		$stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, size FROM ' . $this->cardsTableName . ' WHERE addressbookid = ?');
-		$stmt->execute([$addressbookId]);
-
-		$result = [];
-		while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-			$row['etag'] = '"' . $row['etag'] . '"';
-			$result[] = $row;
+				$cards[] = [
+					// 'carddata' => $carddata,  not necessary because etag+size are present
+					'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+					'lastmodified' => strtotime($obj->lastupd),
+					'etag' => '"'.md5($carddata).'"',
+					'size' => strlen($carddata)
+				];
+			}
 		}
-		return $result;
-
+		return $cards;
 	}
 
 	/**
@@ -211,16 +269,29 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function getCard($addressBookId, $cardUri) {
 
-		$stmt = $this->pdo->prepare('SELECT id, carddata, uri, lastmodified, etag, size FROM ' . $this->cardsTableName . ' WHERE addressbookid = ? AND uri = ? LIMIT 1');
-		$stmt->execute([$addressBookId, $cardUri]);
+		if($addressBookId != $this->user->id)
+			return false;
 
-		$result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-		if (!$result) return false;
-
-		$result['etag'] = '"' . $result['etag'] . '"';
-		return $result;
-
+		$sql = $this->_getSqlContacts();
+		$sql.= ' AND p.id='.($cardUri*1);   // cardUri starts with contact id
+		
+		$result = $this->db->query($sql);
+		if ($result && $obj = $this->db->fetch_object($result))
+		{
+			$carddata = $this->_toVCard($obj);
+			
+			$card = [
+				'carddata' => $carddata,
+				'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+				'lastmodified' => strtotime($obj->lastupd),
+				'etag' => '"'.md5($carddata).'"',
+				'size' => strlen($carddata)
+			];
+			
+			return $card;
+		}
+		
+		return false;
 	}
 
 	/**
@@ -237,20 +308,35 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function getMultipleCards($addressBookId, array $uris) {
 
-		$query = 'SELECT id, uri, lastmodified, etag, size, carddata FROM ' . $this->cardsTableName . ' WHERE addressbookid = ? AND uri IN (';
-		// Inserting a whole bunch of question marks
-		$query .= implode(',', array_fill(0, count($uris), '?'));
-		$query .= ')';
+		$cards = [] ;
 
-		$stmt = $this->pdo->prepare($query);
-		$stmt->execute(array_merge([$addressBookId], $uris));
-		$result = [];
-		while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-			$row['etag'] = '"' . $row['etag'] . '"';
-			$result[] = $row;
+		if($addressBookId != $this->user->id || count($uris)<1)
+			return false;
+
+        $ids = [];
+        foreach($uris as $cardUri)
+            $ids[] = ($cardUri*1);   // cardUri starts with contact id
+		
+		$sql = $this->_getSqlContacts();
+        $sql.= ' AND p.id IN ('.implode(',', $ids).')';
+		
+		$result = $this->db->query($sql);
+		if ($result)
+		{
+			while ($obj = $this->db->fetch_object($result))
+			{
+				$carddata = $this->_toVCard($obj);
+				
+				$cards[] = [
+					'carddata' => $carddata,
+					'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+					'lastmodified' => strtotime($obj->lastupd),
+					'etag' => '"'.md5($carddata).'"',
+					'size' => strlen($carddata)
+				];
+			}
 		}
-		return $result;
-
+		return $cards;
 	}
 
 	/**
@@ -279,7 +365,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * @return string|null
 	 */
 	function createCard($addressBookId, $cardUri, $cardData) {
-
+        
+        // TODO
+        return null;
+        
+        /*
 		$stmt = $this->pdo->prepare('INSERT INTO ' . $this->cardsTableName . ' (carddata, uri, lastmodified, addressbookid, size, etag) VALUES (?, ?, ?, ?, ?, ?)');
 
 		$etag = md5($cardData);
@@ -296,7 +386,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$this->addChange($addressBookId, $cardUri, 1);
 
 		return '"' . $etag . '"';
-
+        */
 	}
 
 	/**
@@ -326,6 +416,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function updateCard($addressBookId, $cardUri, $cardData) {
 
+        // TODO
+        return null;
+        /*
 		$stmt = $this->pdo->prepare('UPDATE ' . $this->cardsTableName . ' SET carddata = ?, lastmodified = ?, size = ?, etag = ? WHERE uri = ? AND addressbookid =?');
 
 		$etag = md5($cardData);
@@ -341,7 +434,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$this->addChange($addressBookId, $cardUri, 2);
 
 		return '"' . $etag . '"';
-
+        */
 	}
 
 	/**
@@ -352,14 +445,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * @return bool
 	 */
 	function deleteCard($addressBookId, $cardUri) {
-
+    
+        // TODO disable
+        return false;
+        /*
 		$stmt = $this->pdo->prepare('DELETE FROM ' . $this->cardsTableName . ' WHERE addressbookid = ? AND uri = ?');
 		$stmt->execute([$addressBookId, $cardUri]);
 
 		$this->addChange($addressBookId, $cardUri, 3);
 
 		return $stmt->rowCount() === 1;
-
+        */
 	}
 
 	/**
@@ -420,7 +516,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function getChangesForAddressBook($addressBookId, $syncToken, $syncLevel, $limit = null) {
 
+        // TODO
+        return array();
+        
+        
+
 		// Current synctoken
+        /*
 		$stmt = $this->pdo->prepare('SELECT synctoken FROM ' . $this->addressBooksTableName . ' WHERE id = ?');
 		$stmt->execute([ $addressBookId ]);
 		$currentToken = $stmt->fetchColumn(0);
@@ -477,30 +579,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$result['added'] = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 		}
 		return $result;
+        */
 
 	}
 
-	/**
-	 * Adds a change record to the addressbookchanges table.
-	 *
-	 * @param mixed $addressBookId
-	 * @param string $objectUri
-	 * @param int $operation 1 = add, 2 = modify, 3 = delete
-	 * @return void
-	 */
-	protected function addChange($addressBookId, $objectUri, $operation) {
-
-		$stmt = $this->pdo->prepare('INSERT INTO ' . $this->addressBookChangesTableName . ' (uri, synctoken, addressbookid, operation) SELECT ?, synctoken, ?, ? FROM ' . $this->addressBooksTableName . ' WHERE id = ?');
-		$stmt->execute([
-			$objectUri,
-			$addressBookId,
-			$operation,
-			$addressBookId
-		]);
-		$stmt = $this->pdo->prepare('UPDATE ' . $this->addressBooksTableName . ' SET synctoken = synctoken + 1 WHERE id = ?');
-		$stmt->execute([
-			$addressBookId
-		]);
-
-	}
 }
