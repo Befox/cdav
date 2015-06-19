@@ -187,7 +187,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="VERSION:3.0\n";
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
         
-		$carddata.="UID:".$obj->id.'-ct-'.CDAV_URI_KEY."\n";
+		$carddata.="UID:".$obj->rowid.'-ct-'.CDAV_URI_KEY."\n";
 		$carddata.="N;CHARSET=UTF-8:".$obj->lastname.";".$obj->firstname.";;\n";
 		$carddata.="FN;CHARSET=UTF-8:".$obj->lastname." ".$obj->firstname."\n";
 		$carddata.="ORG;CHARSET=UTF-8:".$obj->soc_nom.";\n";
@@ -244,7 +244,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				
 				$cards[] = [
 					// 'carddata' => $carddata,  not necessary because etag+size are present
-					'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+					'uri' => $obj->rowid.'-ct-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($carddata).'"',
 					'size' => strlen($carddata)
@@ -272,7 +272,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return false;
 
 		$sql = $this->_getSqlContacts();
-		$sql.= ' AND p.id='.($cardUri*1);   // cardUri starts with contact id
+		$sql.= ' AND p.rowid='.($cardUri*1);   // cardUri starts with contact id
 		
 		$result = $this->db->query($sql);
 		if ($result && $obj = $this->db->fetch_object($result))
@@ -281,7 +281,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			
 			$card = [
 				'carddata' => $carddata,
-				'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+				'uri' => $obj->rowid.'-ct-'.CDAV_URI_KEY,
 				'lastmodified' => strtotime($obj->lastupd),
 				'etag' => '"'.md5($carddata).'"',
 				'size' => strlen($carddata)
@@ -317,7 +317,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
             $ids[] = ($cardUri*1);   // cardUri starts with contact id
 		
 		$sql = $this->_getSqlContacts();
-        $sql.= ' AND p.id IN ('.implode(',', $ids).')';
+        $sql.= ' AND p.rowid IN ('.implode(',', $ids).')';
 		
 		$result = $this->db->query($sql);
 		if ($result)
@@ -328,7 +328,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				
 				$cards[] = [
 					'carddata' => $carddata,
-					'uri' => $obj->id.'-ct-'.CDAV_URI_KEY,
+					'uri' => $obj->rowid.'-ct-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($carddata).'"',
 					'size' => strlen($carddata)
