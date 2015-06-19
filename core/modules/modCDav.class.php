@@ -111,7 +111,7 @@ class modCDav extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array(
-			0 => array('CDAV_URI_KEY', 'CDav uri key', substr(md5(time()),10),'URI unique part for this instance',1,'allentities',1),
+			0 => array('CDAV_URI_KEY', 'CDav uri key', substr(md5(time()),10),'URI unique part for this instance',1,'allentities',0),
 		);
 
 		// Array to add new pages in new tabs
