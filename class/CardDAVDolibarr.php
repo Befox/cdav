@@ -73,7 +73,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		$addressBooks[] = [
 			'id'														  => $this->user->id,
-			'uri'														  => $this->user->id.'-ab-'.CDAV_URI_KEY,
+			'uri'														  => $this->user->id.'-contacts',
 			'principaluri'												  => $principalUri,
 			'{DAV:}displayname'											  => 'Dolibarr',
 			'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Contacts Dolibarr '.$this->user->login,
