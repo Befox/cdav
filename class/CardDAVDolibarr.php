@@ -233,8 +233,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		if($addressbookId != $this->user->id)
 			return false;
+        
 		$sql = $this->_getSqlContacts();
-die($sql);
 		$result = $this->db->query($sql);
 		if ($result)
 		{
