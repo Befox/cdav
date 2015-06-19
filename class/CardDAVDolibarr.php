@@ -235,7 +235,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return false;
 		
 		$sql = $this->_getSqlContacts();
-		
+echo $sql;
+exit;		
 		$result = $this->db->query($sql);
 		if ($result)
 		{
