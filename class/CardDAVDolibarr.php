@@ -231,12 +231,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		$cards = [] ;
 
+echo "adbid=".$addressBookId;
+exit;		
+
 		if($addressBookId != $this->user->id)
 			return false;
 		
 		$sql = $this->_getSqlContacts();
-echo $sql;
-exit;		
 		$result = $this->db->query($sql);
 		if ($result)
 		{
