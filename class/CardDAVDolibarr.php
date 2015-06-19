@@ -48,9 +48,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		$this->user = $user;
 		$this->db = $langs;
-		$this->db = $langs;
-        $langs->load("companies");
-        $langs->load("suppliers");
+		$this->langs = $langs;
+        $this->langs->load("companies");
+        $this->langs->load("suppliers");
 	}
 
 	/**
