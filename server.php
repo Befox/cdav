@@ -81,7 +81,7 @@ $nodes = array(
     // /principals
 	new DAVACL\PrincipalCollection($principalBackend),
     // /addressbook
-    // new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
+    new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
     // /calendars
     // new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
     // / 

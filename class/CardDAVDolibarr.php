@@ -231,9 +231,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		$cards = [] ;
 
-echo "adbid=".$addressBookId;
-exit;		
-
 		if($addressBookId != $this->user->id)
 			return false;
 		
