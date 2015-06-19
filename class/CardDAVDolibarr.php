@@ -73,7 +73,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 		$addressBooks[] = [
 			'id'														  => $this->user->id,
-			'uri'														  => $this->user->id.'-contacts',
+			'uri'														  => 'default',
 			'principaluri'												  => $principalUri,
 			'{DAV:}displayname'											  => 'Dolibarr',
 			'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Contacts Dolibarr '.$this->user->login,
@@ -230,9 +230,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	function getCards($addressbookId) {
 
 		$cards = [] ;
-
-		if($addressbookId != $this->user->id)
-			return false;
         
 		$sql = $this->_getSqlContacts();
 		$result = $this->db->query($sql);
@@ -267,9 +264,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * @return array
 	 */
 	function getCard($addressBookId, $cardUri) {
-
-		if($addressBookId != $this->user->id)
-			return false;
 
 		$sql = $this->_getSqlContacts();
 		$sql.= ' AND p.rowid='.($cardUri*1);   // cardUri starts with contact id
@@ -308,9 +302,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	function getMultipleCards($addressBookId, array $uris) {
 
 		$cards = [] ;
-
-		if($addressBookId != $this->user->id || count($uris)<1)
-			return false;
 
         $ids = [];
         foreach($uris as $cardUri)
