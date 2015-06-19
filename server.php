@@ -103,8 +103,8 @@ $server->setBaseUri('/dolibarr/htdocs/cdav/server.php/');
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
 $server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
+$server->addPlugin(new \Sabre\CardDAV\Plugin());
 //$server->addPlugin(new \Sabre\CalDAV\Plugin());
-//$server->addPlugin(new \Sabre\CardDAV\Plugin());
 //$server->addPlugin(new \Sabre\DAVACL\Plugin());
 $server->addPlugin(new \Sabre\DAV\Sync\Plugin());
 
