@@ -36,9 +36,6 @@ require '../main.inc.php';	// Load $user and permissions
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
 
-echo CDAV_URI_KEY;
-exit;
-
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
