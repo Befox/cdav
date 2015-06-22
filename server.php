@@ -74,7 +74,7 @@ $principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
 
 // CardDav & CalDav Backend
 $carddavBackend   = new Sabre\CardDAV\Backend\Dolibarr($user,$db,$langs);
-// $caldavBackend    = new Sabre\CalDAV\Backend\PDO($pdo);
+$caldavBackend    = new Sabre\CalDAV\Backend\Dolibarr($user,$db,$langs);
 
 // Setting up the directory tree //
 $nodes = array(
@@ -83,13 +83,13 @@ $nodes = array(
     // /addressbook
     new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
     // /calendars
-    // new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
-    // / 
-	////////////// new DAV\FS\Directory($dolibarr_main_data_root. '/cdav/public')
+    new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
+    // / Public docs
+	new DAV\FS\Directory($dolibarr_main_data_root. '/cdav/public')
 );
 // admin can access all dolibarr documents
-//////////////if($user->admin)
-//////////////////	$nodes[] = new DAV\FS\Directory($dolibarr_main_data_root);
+if($user->admin)
+	$nodes[] = new DAV\FS\Directory($dolibarr_main_data_root);
 
 
 // The server object is responsible for making sense out of the WebDAV protocol
@@ -104,7 +104,7 @@ $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
 $server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
 $server->addPlugin(new \Sabre\CardDAV\Plugin());
-//$server->addPlugin(new \Sabre\CalDAV\Plugin());
+$server->addPlugin(new \Sabre\CalDAV\Plugin());
 $server->addPlugin(new \Sabre\DAVACL\Plugin());
 // $server->addPlugin(new \Sabre\DAV\Sync\Plugin());
 
