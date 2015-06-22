@@ -169,15 +169,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	{
         $categ = [];
         if($obj->soc_client)
-            $categ[] = $this->langs->trans('Customer');
+            $categ[] = $this->langs->transnoentitiesnoconv('Customer');
         if($obj->soc_fournisseur)
-            $categ[] = $this->langs->trans('Supplier');
+            $categ[] = $this->langs->transnoentitiesnoconv('Supplier');
         if(trim($obj->category_label)!='')
             $categ[] = trim($obj->category_label);
         if($obj->priv)
-            $categ[] = $this->langs->trans('ContactPrivate');
+            $categ[] = $this->langs->transnoentitiesnoconv('ContactPrivate');
         else
-            $categ[] = $this->langs->trans('ContactPublic');
+            $categ[] = $this->langs->transnoentitiesnoconv('ContactPublic');
 
         $soc_address=explode("\n",$obj->soc_address,2);
         $soc_address[]='';
