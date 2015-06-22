@@ -195,9 +195,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="N;CHARSET=UTF-8:".$obj->lastname.";".$obj->firstname.";;".$obj->civility."\n";
 		$carddata.="FN;CHARSET=UTF-8:".$obj->lastname." ".$obj->firstname."\n";
 		$carddata.="ORG;CHARSET=UTF-8:".$obj->soc_nom.";\n";
-		$carddata.="TITLE;CHARSET=UTF-8:".($obj->priv?'PRIVATE':'PUBLIC')."\n";
+		$carddata.="TITLE;CHARSET=UTF-8:".$obj->poste."\n";
 		$carddata.="CATEGORIES;CHARSET=UTF-8:".implode(',',$categ)."\n";
-		$carddata.="CLASS:".$obj->poste."\n";
+		$carddata.="CLASS:".($obj->priv?'PRIVATE':'PUBLIC')."\n";
 		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".$address[0].";".$address[1].";".$obj->town.";;".$obj->zip.";".$obj->country_label."\n";
 		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".$soc_address[0].";".$soc_address[1].";".$obj->soc_town.";;".$obj->soc_zip.";".$obj->soc_country_label."\n";
 		$carddata.="TEL;WORK;VOICE:".$obj->phone."\n";
