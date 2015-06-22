@@ -188,19 +188,21 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
         
 		$carddata.="UID:".$obj->rowid.'-ct-'.CDAV_URI_KEY."\n";
-		$carddata.="N;CHARSET=UTF-8:".$obj->lastname.";".$obj->firstname.";;\n";
+		$carddata.="N;CHARSET=UTF-8:".$obj->lastname.";".$obj->firstname.";;".$obj->civility."\n";
 		$carddata.="FN;CHARSET=UTF-8:".$obj->lastname." ".$obj->firstname."\n";
 		$carddata.="ORG;CHARSET=UTF-8:".$obj->soc_nom.";\n";
 		$carddata.="TITLE;CHARSET=UTF-8:".$obj->poste."\n";
 		$carddata.="CATEGORIES;CHARSET=UTF-8:".implode(',',$categ)."\n";
-		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".$address[0].";".$address[1].";".$obj->town.";;".$obj->zip.";".$obj->country_label."\n";
-		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".$soc_address[0].";".$soc_address[1].";".$obj->soc_town.";;".$obj->soc_zip.";".$obj->soc_country_label."\n";
+		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".$address[0].";".$address[1].";".$obj->town.";;".$obj->zip.";".$obj->country_label."\n";
+		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".$soc_address[0].";".$soc_address[1].";".$obj->soc_town.";;".$obj->soc_zip.";".$obj->soc_country_label."\n";
 		$carddata.="TEL;WORK;VOICE:".$obj->phone."\n";
 		$carddata.="TEL;HOME;VOICE:".$obj->phone_perso."\n";
 		$carddata.="TEL;CELL;VOICE:".$obj->phone_mobile."\n";
 		$carddata.="TEL;FAX:".$obj->fax."\n";
 		$carddata.="EMAIL;PREF;INTERNET:".$obj->email."\n";
 		$carddata.="EMAIL;INTERNET:".$obj->soc_email."\n";
+		$carddata.="X-JABBER:".$obj->jabberid."\n";
+		$carddata.="X-SKYPE:".$obj->skype."\n";
 
    		$carddata.="REV:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
 		$carddata.="END:VCARD\n";
@@ -358,25 +360,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         
         // TODO
         return null;
-        
-        /*
-		$stmt = $this->pdo->prepare('INSERT INTO ' . $this->cardsTableName . ' (carddata, uri, lastmodified, addressbookid, size, etag) VALUES (?, ?, ?, ?, ?, ?)');
-
-		$etag = md5($cardData);
-
-		$stmt->execute([
-			$cardData,
-			$cardUri,
-			time(),
-			$addressBookId,
-			strlen($cardData),
-			$etag,
-		]);
-
-		$this->addChange($addressBookId, $cardUri, 1);
-
-		return '"' . $etag . '"';
-        */
 	}
 
 	/**
@@ -408,23 +391,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
         // TODO
         return null;
-        /*
-		$stmt = $this->pdo->prepare('UPDATE ' . $this->cardsTableName . ' SET carddata = ?, lastmodified = ?, size = ?, etag = ? WHERE uri = ? AND addressbookid =?');
-
-		$etag = md5($cardData);
-		$stmt->execute([
-			$cardData,
-			time(),
-			strlen($cardData),
-			$etag,
-			$cardUri,
-			$addressBookId
-		]);
-
-		$this->addChange($addressBookId, $cardUri, 2);
-
-		return '"' . $etag . '"';
-        */
 	}
 
 	/**
@@ -438,14 +404,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
     
         // TODO disable
         return false;
-        /*
-		$stmt = $this->pdo->prepare('DELETE FROM ' . $this->cardsTableName . ' WHERE addressbookid = ? AND uri = ?');
-		$stmt->execute([$addressBookId, $cardUri]);
-
-		$this->addChange($addressBookId, $cardUri, 3);
-
-		return $stmt->rowCount() === 1;
-        */
 	}
 
 	/**
@@ -508,69 +466,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
         // TODO
         return array();
-        
-        
-
-		// Current synctoken
-        /*
-		$stmt = $this->pdo->prepare('SELECT synctoken FROM ' . $this->addressBooksTableName . ' WHERE id = ?');
-		$stmt->execute([ $addressBookId ]);
-		$currentToken = $stmt->fetchColumn(0);
-
-		if (is_null($currentToken)) return null;
-
-		$result = [
-			'syncToken' => $currentToken,
-			'added'	 => [],
-			'modified'  => [],
-			'deleted'   => [],
-		];
-
-		if ($syncToken) {
-
-			$query = "SELECT uri, operation FROM " . $this->addressBookChangesTableName . " WHERE synctoken >= ? AND synctoken < ? AND addressbookid = ? ORDER BY synctoken";
-			if ($limit > 0) $query .= " LIMIT " . (int)$limit;
-
-			// Fetching all changes
-			$stmt = $this->pdo->prepare($query);
-			$stmt->execute([$syncToken, $currentToken, $addressBookId]);
-
-			$changes = [];
-
-			// This loop ensures that any duplicates are overwritten, only the
-			// last change on a node is relevant.
-			while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-
-				$changes[$row['uri']] = $row['operation'];
-
-			}
-
-			foreach ($changes as $uri => $operation) {
-
-				switch ($operation) {
-					case 1:
-						$result['added'][] = $uri;
-						break;
-					case 2:
-						$result['modified'][] = $uri;
-						break;
-					case 3:
-						$result['deleted'][] = $uri;
-						break;
-				}
-
-			}
-		} else {
-			// No synctoken supplied, this is the initial sync.
-			$query = "SELECT uri FROM " . $this->cardsTableName . " WHERE addressbookid = ?";
-			$stmt = $this->pdo->prepare($query);
-			$stmt->execute([$addressBookId]);
-
-			$result['added'] = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-		}
-		return $result;
-        */
-
 	}
 
 }
