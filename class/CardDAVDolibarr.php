@@ -144,7 +144,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	protected function _getSqlContacts()
 	{
-		$sql = 'SELECT p.*, co.label country_label, GREATEST(s.tms, p.tms) lastupd,
+		$sql = 'SELECT p.*, co.label country_label, GREATEST(s.tms, p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur, soc_code_fournisseur,
 					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.email soc_email,
 					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, cl.label category_label
 				FROM '.MAIN_DB_PREFIX.'socpeople as p
@@ -168,10 +168,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	protected function _toVCard($obj)
 	{
         $categ = [];
+        $nick = [];
         if($obj->soc_client)
+        {
+            $nick[] = $obj->soc_code_client;
             $categ[] = $this->langs->transnoentitiesnoconv('Customer');
+        }
         if($obj->soc_fournisseur)
+        {
+            $nick[] = $obj->soc_code_fournisseur;
             $categ[] = $this->langs->transnoentitiesnoconv('Supplier');
+        }
         if(trim($obj->category_label)!='')
             $categ[] = trim($obj->category_label);
         if($obj->priv)
