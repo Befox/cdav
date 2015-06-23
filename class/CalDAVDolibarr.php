@@ -136,11 +136,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
-				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\' AND u.login IS NOT NULL';
+                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
+				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
+                AND cac.type<>\'sysemauto\'
+                AND u.login='.$this->user->id;
         if($onlyuser)
             $sql .= ' AND ar.fk_element = '.$this->user->id;
         
-        $sql .= ' GROUP BY u.rowid';
+        $sql .= ' GROUP BY u.rowid, a.code';
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
@@ -882,7 +885,9 @@ SQL;
 
 		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
-				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\' AND u.login IS NOT NULL';
+				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
+                AND cac.type<>\'sysemauto\'
+                AND u.rowid<>'.$this->user->id;
         if($onlyuser)
             $sql .= ' AND ar.fk_element = '.$this->user->id;
         
@@ -902,10 +907,10 @@ SQL;
                 '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet($components),
                 '{DAV:}displayname'                                                  => $row['login'],
                 '{http://apple.com/ns/ical/}refreshrate'                             => '',
-                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id,
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
-                '{http://calendarserver.org/ns/}subscribed-strip-todos'              => $row['rowid']!=$this->user->id,
-                '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => $row['rowid']!=$this->user->id,
+                '{http://calendarserver.org/ns/}subscribed-strip-todos'              => true,
+                '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => true,
                 '{http://calendarserver.org/ns/}subscribed-strip-attachments'        => true,
             ];
         }
