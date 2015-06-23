@@ -83,7 +83,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     /**
      * Creates the backend
      *
-     * @param \PDO $pdo
+	 * @param user
+	 * @param db
+	 * @param langs
      */
     function __construct($user,$db,$langs) {
 
@@ -132,7 +134,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $components = [ 'VTODO', 'VEVENT' ];
 
 
-		$sql = 'SELECT u.rowid, u.login, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
+		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\' AND u.login IS NOT NULL';
         if($onlyuser)
@@ -153,7 +155,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{http://sabredav.org/ns}sync-token'                                 => $lastupd,
                 '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet($components),
                 '{' . CalDAV\Plugin::NS_CALDAV . '}schedule-calendar-transp'         => new CalDAV\Xml\Property\ScheduleCalendarTransp('opaque'),
-
+                '{DAV:}displayname'                                                  => $row['login'],
+                '{urn:ietf:params:xml:ns:caldav}calendar-description'                => $row['login'],
+                '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->rowid?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
             ];
         }
 
@@ -267,25 +273,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			}
 		}
 		return $cards;
-//////////
-
-        $stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, calendarid, size, componenttype FROM ' . $this->calendarObjectTableName . ' WHERE calendarid = ?');
-        $stmt->execute([$calendarId]);
-
-        $result = [];
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-            $result[] = [
-                'id'           => $row['id'],
-                'uri'          => $row['uri'],
-                'lastmodified' => $row['lastmodified'],
-                'etag'         => '"' . $row['etag'] . '"',
-                'calendarid'   => $row['calendarid'],
-                'size'         => (int)$row['size'],
-                'component'    => strtolower($row['componenttype']),
-            ];
-        }
-
-        return $result;
 
     }
 
@@ -882,39 +869,45 @@ SQL;
      */
     function getSubscriptionsForUser($principalUri) {
 
-        $fields = array_values($this->subscriptionPropertyMap);
-        $fields[] = 'id';
-        $fields[] = 'uri';
-        $fields[] = 'source';
-        $fields[] = 'principaluri';
-        $fields[] = 'lastmodified';
-
-        // Making fields a comma-delimited list
-        $fields = implode(', ', $fields);
-        $stmt = $this->pdo->prepare("SELECT " . $fields . " FROM " . $this->calendarSubscriptionsTableName . " WHERE principaluri = ? ORDER BY calendarorder ASC");
-        $stmt->execute([$principalUri]);
 
         $subscriptions = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        
+        if(! $this->user->rights->agenda->myactions->read)
+            return $subscriptions;
+            
+        $onlyuser = ! $this->user->rights->agenda->allactions->read;
+        
+        $components = [ 'VTODO', 'VEVENT' ];
 
-            $subscription = [
-                'id'           => $row['id'],
-                'uri'          => $row['uri'],
-                'principaluri' => $row['principaluri'],
-                'source'       => $row['source'],
-                'lastmodified' => $row['lastmodified'],
 
-                '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet(['VTODO', 'VEVENT']),
+		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
+                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
+				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\' AND u.login IS NOT NULL';
+        if($onlyuser)
+            $sql .= ' AND ar.fk_element = '.$this->user->id;
+        
+        $sql .= ' GROUP BY u.rowid';
+        
+		$result = $this->db->query($sql);
+		while($row = $this->db->fetch_array($result))
+        {
+            $lastupd = strtotime($row['lastupd']);
+
+            $subscriptions[] = [
+                'id'                                                                 => $row['rowid'],
+                'uri'                                                                => $row['rowid'].'-sub-'.$row['login'],
+                'principaluri'                                                       => $principalUri,
+                'source'                                                             => 'Dolibarr',
+                'lastmodified'                                                       => $lastupd,
+                '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet($components),
+                '{DAV:}displayname'                                                  => $row['login'],
+                '{http://apple.com/ns/ical/}refreshrate'                             => '',
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->rowid?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
+                '{http://calendarserver.org/ns/}subscribed-strip-todos'              => $row['rowid']!=$this->user->rowid,
+                '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => $row['rowid']!=$this->user->rowid,
+                '{http://calendarserver.org/ns/}subscribed-strip-attachments'        => true,
             ];
-
-            foreach ($this->subscriptionPropertyMap as $xmlName => $dbName) {
-                if (!is_null($row[$dbName])) {
-                    $subscription[$xmlName] = $row[$dbName];
-                }
-            }
-
-            $subscriptions[] = $subscription;
-
         }
 
         return $subscriptions;
