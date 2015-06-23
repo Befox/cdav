@@ -123,14 +123,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function getCalendarsForUser($principalUri) {
 
+var_dump($this->user->rights);
+exit;
+
         $calendars = [];
         
         if(! $this->user->rights->agenda->myactions->read)
             return $calendars;
             
         $onlyuser = ! $this->user->rights->agenda->allactions->read;
-var_dump($this->user->rights);
-exit;
         
         $components = [ 'VTODO', 'VEVENT' ];
 
