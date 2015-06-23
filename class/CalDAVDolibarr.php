@@ -94,7 +94,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $this->langs->load("companies");
         $this->langs->load("agenda");
         $this->langs->load("commercial");
-        
     }
 
     /**
@@ -122,9 +121,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarsForUser($principalUri) {
-
-var_dump($this->user->rights);
-exit;
 
         $calendars = [];
         
