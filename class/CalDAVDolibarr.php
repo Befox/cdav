@@ -158,7 +158,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{DAV:}displayname'                                                  => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-description'                => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
-                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->rowid?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
             ];
         }
@@ -902,10 +902,10 @@ SQL;
                 '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet($components),
                 '{DAV:}displayname'                                                  => $row['login'],
                 '{http://apple.com/ns/ical/}refreshrate'                             => '',
-                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->rowid?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
-                '{http://calendarserver.org/ns/}subscribed-strip-todos'              => $row['rowid']!=$this->user->rowid,
-                '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => $row['rowid']!=$this->user->rowid,
+                '{http://calendarserver.org/ns/}subscribed-strip-todos'              => $row['rowid']!=$this->user->id,
+                '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => $row['rowid']!=$this->user->id,
                 '{http://calendarserver.org/ns/}subscribed-strip-attachments'        => true,
             ];
         }
