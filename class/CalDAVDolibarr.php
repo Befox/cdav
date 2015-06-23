@@ -94,7 +94,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $this->langs->load("companies");
         $this->langs->load("agenda");
         $this->langs->load("commercial");
-        restrictedArea($user, 'agenda', 0, '', 'myactions');
+        
     }
 
     /**
@@ -129,6 +129,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
             return $calendars;
             
         $onlyuser = ! $this->user->rights->agenda->allactions->read;
+var_dump($this->user->rights);
+exit;
         
         $components = [ 'VTODO', 'VEVENT' ];
 
