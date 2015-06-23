@@ -249,7 +249,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarObjects($calendarId) {
-
+die("getCalendarObjects( $calendarId )");
 		$events = [] ;
         
 		$sql = $this->_getSqlEvents();
