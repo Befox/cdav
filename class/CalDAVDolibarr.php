@@ -165,6 +165,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
 
+                // try unorthodox method :
                 '{http://calendarserver.org/ns/}subscribed-strip-todos'              => false,
                 '{http://calendarserver.org/ns/}subscribed-strip-alarms'             => $row['rowid']!=$this->user->id,
                 '{http://calendarserver.org/ns/}subscribed-strip-attachments'        => $row['rowid']!=$this->user->id,
@@ -225,6 +226,29 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		// not supported
 		return;
     }
+    
+    
+    /**
+	 * Base sql request for calendar events
+	 * 
+	 * @return string
+	 */
+	protected function _getSqlCalEvents($uid)
+	{
+		$sql = 'SELECT p.*, co.label country_label, GREATEST(s.tms, p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
+					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.email soc_email,
+					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, cl.label category_label
+				FROM '.MAIN_DB_PREFIX.'socpeople as p
+				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = p.fk_pays
+				LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON s.rowid = p.fk_soc
+				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as cos ON cos.rowid = s.fk_pays
+				LEFT JOIN '.MAIN_DB_PREFIX.'categorie_contact as cc ON cc.fk_socpeople = p.rowid 
+				LEFT JOIN '.MAIN_DB_PREFIX.'categorie_lang as cl ON (cl.fk_category = cc.fk_categorie AND cl.lang=\''.$this->db->escape($this->langs->defaultlang).'\')
+				WHERE p.entity IN ('.getEntity('societe', 1).')
+				AND (p.priv=0 OR (p.priv=1 AND p.fk_user_creat='.$this->user->id.'))';
+				
+		return $sql;
+	}
 
     /**
      * Returns all calendar objects within a calendar.
@@ -258,29 +282,38 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarObjects($calendarId) {
-die("getCalendarObjects( $calendarId )");
-		$events = [] ;
+
+        $uid = ($calendarId*1);
+		$calevents = [] ;
+
+        if(! $this->user->rights->agenda->myactions->read)
+            return $calevents;
         
-		$sql = $this->_getSqlEvents();
+        if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
+            return $calevents;
+
+		$sql = $this->_getSqlCalEvents($uid);
+        
 		$result = $this->db->query($sql);
+        
 		if ($result)
 		{
 			while ($obj = $this->db->fetch_object($result))
 			{
-				$eventdata = $this->_toVCal($obj);
+				$calendardata = $this->_toVCalendar($obj);
 				
-				$events[] = [
-					// 'carddata' => $carddata,  not necessary because etag+size are present
+				$calevents[] = [
+					// 'calendardata' => $calendardata,  not necessary because etag+size are present
 					'uri' => $obj->rowid.'-ev-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
-					'etag' => '"'.md5($carddata).'"',
-                    'calendarid'   => $row['calendarid'],
-					'size' => strlen($carddata),
-                    'component'    => strtolower($row['componenttype']),
+					'etag' => '"'.md5($calendardata).'"',
+                    'calendarid'   => $calendarId,
+					'size' => strlen($calendardata),
+                    'component' => strpos($calendardata, 'BEGIN:VEVENT')>0 ? 'vevent' : 'vtodo',
 				];
 			}
 		}
-		return $cards;
+		return $calevents;
 
     }
 
@@ -301,6 +334,41 @@ die("getCalendarObjects( $calendarId )");
      * @return array|null
      */
     function getCalendarObject($calendarId, $objectUri) {
+
+        $uid = ($calendarId*1);
+        $oid = ($objectUri*1);
+		$calevents = [] ;
+
+        if(! $this->user->rights->agenda->myactions->read)
+            return $calevents;
+        
+        if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
+            return $calevents;
+
+		$sql = $this->_getSqlCalEvents($uid);
+        $sql .= ' AND a.rowid = '.$oid;
+        
+		$result = $this->db->query($sql);
+        
+		if ($result)
+		{
+			while ($obj = $this->db->fetch_object($result))
+			{
+				$calendardata = $this->_toVCalendar($obj);
+				
+				$calevents[] = [
+					'uri' => $oid,
+					'uri' => $obj->rowid.'-ev-'.CDAV_URI_KEY,
+					'lastmodified' => strtotime($obj->lastupd),
+					'etag' => '"'.md5($calendardata).'"',
+                    'calendarid'   => $calendarId,
+					'size' => strlen($calendardata),
+					'calendardata' => $calendardata,
+                    'component' => strpos($calendardata, 'BEGIN:VEVENT')>0 ? 'vevent' : 'vtodo',
+				];
+			}
+		}
+		return $calevents;
 
         $stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, calendarid, size, calendardata, componenttype FROM ' . $this->calendarObjectTableName . ' WHERE calendarid = ? AND uri = ?');
         $stmt->execute([$calendarId, $objectUri]);
