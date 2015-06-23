@@ -128,6 +128,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         
         if(! $this->user->rights->agenda->myactions->read)
             return $calendars;
+        
+        if(!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read)
+            $onlyme = true;
+        else
+            $onlyme = false;
                     
         $components = [ 'VTODO', 'VEVENT' ];
 
@@ -136,10 +141,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')
-                AND u.rowid='.$this->user->id.'
-                GROUP BY u.rowid, a.code';
-     
+                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')';
+        if($onlyme)
+            $sql .= ' AND u.rowid='.$this->user->id;
+        $sql.= ' GROUP BY u.rowid';
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
@@ -157,7 +162,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{DAV:}displayname'                                                  => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-description'                => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
-                '{http://apple.com/ns/ical/}calendar-order'                          => 0,
+                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
             ];
         }
