@@ -135,12 +135,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
-                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND cac.type<>\'sysemauto\'
-                AND u.login='.$this->user->id.'
+                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')
+                AND u.rowid='.$this->user->id.'
                 GROUP BY u.rowid, a.code';
-die($sql);        
+     
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
@@ -877,15 +876,14 @@ SQL;
         
         $components = [ 'VTODO', 'VEVENT' ];
 
-
+                
 		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
-                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND cac.type<>\'sysemauto\'
+                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')
                 AND u.rowid<>'.$this->user->id.'
-                GROUP BY u.rowid';
+                GROUP BY u.rowid, a.code';                
 
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
