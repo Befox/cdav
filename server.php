@@ -50,6 +50,7 @@ use Sabre\DAVACL;
 require 'lib/SabreDAV/vendor/autoload.php';
 require 'class/PrincipalsDolibarr.php';
 require 'class/CardDAVDolibarr.php';
+require 'class/CalDAVDolibarr.php';
 
 $user = new User($db);
 $user->fetch('',$_SERVER['PHP_AUTH_USER']);
