@@ -54,6 +54,7 @@ require 'class/CalDAVDolibarr.php';
 
 $user = new User($db);
 $user->fetch('',$_SERVER['PHP_AUTH_USER']);
+$user->getrights();
 
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
