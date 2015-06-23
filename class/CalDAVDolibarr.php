@@ -94,6 +94,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $this->langs->load("companies");
         $this->langs->load("agenda");
         $this->langs->load("commercial");
+        restrictedArea($user, 'agenda');
     }
 
     /**
