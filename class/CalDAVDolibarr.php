@@ -137,7 +137,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $components = [ 'VTODO', 'VEVENT' ];
 
 
-		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd
+		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname, u.color, MAX(a.tms) lastupd
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
@@ -160,7 +160,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{' . CalDAV\Plugin::NS_CALDAV . '}supported-calendar-component-set' => new CalDAV\Xml\Property\SupportedCalendarComponentSet($components),
                 '{' . CalDAV\Plugin::NS_CALDAV . '}schedule-calendar-transp'         => new CalDAV\Xml\Property\ScheduleCalendarTransp('opaque'),
                 '{DAV:}displayname'                                                  => $row['login'],
-                '{urn:ietf:params:xml:ns:caldav}calendar-description'                => $row['login'],
+                '{urn:ietf:params:xml:ns:caldav}calendar-description'                => trim($row['firstname'].' '.$row['lastname']),
                 '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
                 '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
