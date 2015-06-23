@@ -873,7 +873,10 @@ SQL;
      */
     function getSubscriptionsForUser($principalUri) {
 
+        // Not supported
+        return [];
 
+        /*
         $subscriptions = [];
 
         if(!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read)
@@ -913,7 +916,7 @@ SQL;
         }
 
         return $subscriptions;
-
+        */
     }
 
     /**
