@@ -128,9 +128,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         
         if(! $this->user->rights->agenda->myactions->read)
             return $calendars;
-            
-        $onlyuser = ! $this->user->rights->agenda->allactions->read;
-        
+                    
         $components = [ 'VTODO', 'VEVENT' ];
 
 
@@ -139,11 +137,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
                 AND cac.type<>\'sysemauto\'
-                AND u.login='.$this->user->id;
-        if($onlyuser)
-            $sql .= ' AND ar.fk_element = '.$this->user->id;
-        
-        $sql .= ' GROUP BY u.rowid, a.code';
+                AND u.login='.$this->user->id.'
+                GROUP BY u.rowid, a.code';
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
@@ -161,7 +156,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{DAV:}displayname'                                                  => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-description'                => $row['login'],
                 '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
-                '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
+                '{http://apple.com/ns/ical/}calendar-order'                          => 0,
                 '{http://apple.com/ns/ical/}calendar-color'                          => $row['color'],
             ];
         }
@@ -875,10 +870,8 @@ SQL;
 
         $subscriptions = [];
         
-        if(! $this->user->rights->agenda->myactions->read)
+        if(! $this->user->rights->agenda->allactions->read)
             return $subscriptions;
-            
-        $onlyuser = ! $this->user->rights->agenda->allactions->read;
         
         $components = [ 'VTODO', 'VEVENT' ];
 
@@ -887,11 +880,8 @@ SQL;
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
                 AND cac.type<>\'sysemauto\'
-                AND u.rowid<>'.$this->user->id;
-        if($onlyuser)
-            $sql .= ' AND ar.fk_element = '.$this->user->id;
-        
-        $sql .= ' GROUP BY u.rowid';
+                AND u.rowid<>'.$this->user->id.'
+                GROUP BY u.rowid';
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
