@@ -870,7 +870,10 @@ SQL;
 
 
         $subscriptions = [];
-        
+
+var_dump($this->user->rights->agenda);
+die();
+
         if(! $this->user->rights->agenda->allactions->read)
             return $subscriptions;
         
