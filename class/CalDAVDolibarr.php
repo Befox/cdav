@@ -132,7 +132,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $components = [ 'VTODO', 'VEVENT' ];
 
 
-		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
+		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd
+                FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
@@ -876,8 +877,10 @@ SQL;
         $components = [ 'VTODO', 'VEVENT' ];
 
 
-		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
+		$sql = 'SELECT u.rowid, u.login, u.color, MAX(a.tms) lastupd
+                FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
+                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'c_actioncomm cac ON (cac.code = a.code)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
                 AND cac.type<>\'sysemauto\'
                 AND u.rowid<>'.$this->user->id.'
