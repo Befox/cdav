@@ -1069,6 +1069,8 @@ SQL;
      * @return array
      */
     function getSchedulingObjects($principalUri) {
+        
+die("getSchedulingObjects( $principalUri )");
 
         $stmt = $this->pdo->prepare('SELECT id, calendardata, uri, lastmodified, etag, size FROM ' . $this->schedulingObjectTableName . ' WHERE principaluri = ?');
         $stmt->execute([$principalUri]);
