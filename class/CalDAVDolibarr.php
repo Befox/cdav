@@ -140,6 +140,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 AND cac.type<>\'sysemauto\'
                 AND u.login='.$this->user->id.'
                 GROUP BY u.rowid, a.code';
+die($sql);        
         
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
@@ -885,7 +886,7 @@ SQL;
                 AND cac.type<>\'sysemauto\'
                 AND u.rowid<>'.$this->user->id.'
                 GROUP BY u.rowid';
-die($sql);        
+
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
         {
