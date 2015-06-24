@@ -25,11 +25,6 @@ if( isset($_SERVER['HTTP_AUTHORIZATION']) &&
 		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
 		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
 	}
-    {
-		unset($_SERVER['PHP_AUTH_USER']);
-		unset($_SERVER['PHP_AUTH_PW']);
-	}
-	
 }
 
 define('NOTOKENRENEWAL',1); 								// Disables token renewal
@@ -62,15 +57,20 @@ require 'class/PrincipalsDolibarr.php';
 require 'class/CardDAVDolibarr.php';
 require 'class/CalDAVDolibarr.php';
 
-$user = new User($db);
-$user->fetch('',$_SERVER['PHP_AUTH_USER']);
-$user->getrights();
+if(isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER']!='')
+{
+	$user = new User($db);
+	$user->fetch('',$_SERVER['PHP_AUTH_USER']);
+	$user->getrights();
+}
 
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
 	global $db;
 	global $user;
+	if(!isset($user->login) || $user->login=='') return false;
+	
 	return ($user->societe_id==0 && $user->login==$username && $user->pass==$password);
 });
 
