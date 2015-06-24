@@ -238,6 +238,27 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	protected function _getSqlCalEvents($uid, $oid=false)
 	{
+        $sql = 'SELECT a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
+                FROM '.MAIN_DB_PREFIX.'actioncomm as a';
+        if (! $this->user->rights->societe->client->voir )
+        {
+            $sql.=' LEFT OUTER JOIN '.MAIN_DB_PREFIX.'societe_commerciaux as sc ON (a.fk_soc = sc.fk_soc AND sc.fk_user='.$this->user->id.')";
+                    LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = sc.fk_soc)
+                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.fk_soc = sc.fk_soc AND sp.rowid = a.fk_contact)';
+        }
+        else
+        {
+            $sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = a.fk_soc)
+                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.rowid = a.fk_contact)';
+        }
+        $sql.=' WHERE a.id IN (SELECT ar.fk_actioncomm FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar WHERE ar.element_type=\'user\' AND ar.fk_element='.intval($uid).')
+                AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
+                AND a.entity IN ('.getEntity('societe', 1).')';
+        if($oid!==false)
+            $sql.=' AND a.id = '.intval($oid);
+        
+        
+        /*
         $sql = 'SELECT u.rowid uid, u.login, u.color, a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)';
@@ -258,7 +279,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 AND u.rowid='.intval($uid);
         if($oid!==false)
             $sql.= ' AND a.id = '.intval($oid);
-        
+        */
 		return $sql;
 	}
 
