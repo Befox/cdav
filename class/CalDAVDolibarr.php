@@ -453,7 +453,7 @@ echo $sql;
 
         $uid = ($calendarId*1);
         $oid = ($objectUri*1);
-		$calevents = [] ;
+		$calevent = null ;
 
         if(! $this->user->rights->agenda->myactions->read)
             return $calevents;
@@ -467,11 +467,11 @@ echo $sql;
         
 		if ($result)
 		{
-			while ($obj = $this->db->fetch_object($result))
+			if ($obj = $this->db->fetch_object($result))
 			{
 				$calendardata = $this->_toVCalendar($obj);
 				
-				$calevents[] = [
+				$calevent = [
 					'id' => $oid,
 					'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
@@ -483,7 +483,7 @@ echo $sql;
 				];
 			}
 		}
-		return $calevents;
+		return $calevent;
     }
 
     /**
