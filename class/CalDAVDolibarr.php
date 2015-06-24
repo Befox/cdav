@@ -409,7 +409,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
             return $calevents;
 
 		$sql = $this->_getSqlCalEvents($uid);
-echo $sql;        
+      
 		$result = $this->db->query($sql);
         
 		if ($result)
