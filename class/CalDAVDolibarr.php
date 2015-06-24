@@ -236,7 +236,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @param int actioncomm object id
 	 * @return string
 	 */
-	protected function _getSqlCalEvents($uid, $oid=false)
+	protected function _getSqlCalEvents($calid, $oid=false)
 	{
         $sql = 'SELECT a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a';
@@ -251,7 +251,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
             $sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = a.fk_soc)
                     LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.rowid = a.fk_contact)';
         }
-        $sql.=' WHERE a.id IN (SELECT ar.fk_actioncomm FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar WHERE ar.element_type=\'user\' AND ar.fk_element='.intval($uid).')
+        $sql.=' WHERE a.id IN (SELECT ar.fk_actioncomm FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar WHERE ar.element_type=\'user\' AND ar.fk_element='.intval($calid).')
                 AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
                 AND a.entity IN ('.getEntity('societe', 1).')';
         if($oid!==false)
@@ -381,16 +381,16 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     
     protected function _getFullCalendarObjects($calendarId, $bCalendarData) {
 
-        $uid = ($calendarId*1);
+        $calid = ($calendarId*1);
 		$calevents = [] ;
 
         if(! $this->user->rights->agenda->myactions->read)
             return $calevents;
         
-        if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
+        if($calid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
             return $calevents;
 
-		$sql = $this->_getSqlCalEvents($uid);
+		$sql = $this->_getSqlCalEvents($calid);
       
 		$result = $this->db->query($sql);
         
@@ -398,7 +398,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			while ($obj = $this->db->fetch_object($result))
 			{
-				$calendardata = $this->_toVCalendar($obj);
+				$calendardata = $this->_toVCalendar($calid, $obj);
 
 				if($bCalendarData)
                 {
@@ -448,17 +448,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function getCalendarObject($calendarId, $objectUri) {
 
-        $uid = ($calendarId*1);
+        $calid = ($calendarId*1);
         $oid = ($objectUri*1);
 		$calevent = null ;
 
         if(! $this->user->rights->agenda->myactions->read)
             return $calevent;
         
-        if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
+        if($calid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
             return $calevent;
 
-		$sql = $this->_getSqlCalEvents($uid, $oid);
+		$sql = $this->_getSqlCalEvents($calid, $oid);
         
 		$result = $this->db->query($sql);
         
@@ -466,7 +466,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			if ($obj = $this->db->fetch_object($result))
 			{
-				$calendardata = $this->_toVCalendar($obj);
+				$calendardata = $this->_toVCalendar($calid, $obj);
 				
 				$calevent = [
 					'id' => $oid,
