@@ -420,7 +420,7 @@ echo $sql;
 				
 				$calevents[] = [
 					// 'calendardata' => $calendardata,  not necessary because etag+size are present
-					'uri' => $obj->rowid.'-ev-'.CDAV_URI_KEY,
+					'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($calendardata).'"',
                     'calendarid'   => $calendarId,
@@ -473,7 +473,7 @@ echo $sql;
 				
 				$calevents[] = [
 					'id' => $oid,
-					'uri' => $obj->rowid.'-ev-'.CDAV_URI_KEY,
+					'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($calendardata).'"',
                     'calendarid'   => $calendarId,
