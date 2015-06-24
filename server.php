@@ -21,7 +21,7 @@ set_error_handler("exception_error_handler");
 
 
 // debug
-file_put_contents('/tmp/cdav_'.date('Ymd_His_').uniqid(),'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
+//file_put_contents('/tmp/cdav_'.date('Ymd_His_').uniqid(),'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
 
 // HTTP auth workaround for php in fastcgi mode HTTP_AUTHORIZATION set by rewrite engine in .htaccess
 if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
