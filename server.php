@@ -18,8 +18,12 @@
 if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
 	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
 {
-    list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = 
-		explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+    $rAuth = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+    if(count($rAuth)>1)
+    {
+		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
+		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
+	}
 }
 
 define('NOTOKENRENEWAL',1); 								// Disables token renewal
