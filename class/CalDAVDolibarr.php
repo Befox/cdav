@@ -257,29 +257,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         if($oid!==false)
             $sql.=' AND a.id = '.intval($oid);
         
-        
-        /*
-        $sql = 'SELECT u.rowid uid, u.login, u.color, a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
-                FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
-                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)';
-        if (! $this->user->rights->societe->client->voir )
-        {
-            $sql.=' LEFT OUTER JOIN '.MAIN_DB_PREFIX.'societe_commerciaux as sc ON (a.fk_soc = sc.fk_soc AND sc.fk_user='.$this->user->id.')";
-                    LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = sc.fk_soc)
-                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.fk_soc = sc.fk_soc AND sp.rowid = a.fk_contact)';
-        }
-        else
-        {
-            $sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = a.fk_soc)
-                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.rowid = a.fk_contact)';
-        }
-		$sql.=' WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
-                AND a.entity IN ('.getEntity('societe', 1).')
-                AND u.rowid='.intval($uid);
-        if($oid!==false)
-            $sql.= ' AND a.id = '.intval($oid);
-        */
 		return $sql;
 	}
 
@@ -290,7 +267,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @param row object
 	 * @return string
 	 */
-	protected function _toVCalendar($obj)
+	protected function _toVCalendar($calid, $obj)
 	{
         $categ = [];
         /*if($obj->soc_client)
@@ -314,7 +291,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $caldata.="CREATED;TZID=".$timezone.":".strtr($obj->datec,array(" "=>"T", ":"=>"", "-"=>""))."\n";
         $caldata.="LAST-MODIFIED;TZID=".$timezone.":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
         $caldata.="DTSTAMP;TZID=".$timezone.":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
-        $caldata.="UID:".$obj->id.'-ev-'.CDAV_URI_KEY."\n";
+        $caldata.="UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY."\n";
         $caldata.="SUMMARY:".$obj->label."\n";
         $caldata.="LOCATION:".$obj->location."\n";
         $caldata.="PRIORITY:".$obj->priority."\n";
@@ -397,7 +374,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarObjects($calendarId) {
-
+        
+		return $this->_getFullCalendarObjects($calendarId, false);
+    }
+    
+    
+    protected function _getFullCalendarObjects($calendarId, $bCalendarData) {
 
         $uid = ($calendarId*1);
 		$calevents = [] ;
@@ -417,16 +399,31 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			while ($obj = $this->db->fetch_object($result))
 			{
 				$calendardata = $this->_toVCalendar($obj);
-				
-				$calevents[] = [
-					// 'calendardata' => $calendardata,  not necessary because etag+size are present
-					'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
-					'lastmodified' => strtotime($obj->lastupd),
-					'etag' => '"'.md5($calendardata).'"',
-                    'calendarid'   => $calendarId,
-					'size' => strlen($calendardata),
-                    'component' => strpos($calendardata, 'BEGIN:VEVENT')>0 ? 'vevent' : 'vtodo',
-				];
+
+				if($bCalendarData)
+                {
+                    $calevents[] = [
+                        'calendardata' => $calendardata,
+                        'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
+                        'lastmodified' => strtotime($obj->lastupd),
+                        'etag' => '"'.md5($calendardata).'"',
+                        'calendarid'   => $calendarId,
+                        'size' => strlen($calendardata),
+                        'component' => strpos($calendardata, 'BEGIN:VEVENT')>0 ? 'vevent' : 'vtodo',
+                    ];
+                }
+                else
+                {
+                    $calevents[] = [
+                        // 'calendardata' => $calendardata,  not necessary because etag+size are present
+                        'uri' => $obj->id.'-ev-'.CDAV_URI_KEY,
+                        'lastmodified' => strtotime($obj->lastupd),
+                        'etag' => '"'.md5($calendardata).'"',
+                        'calendarid'   => $calendarId,
+                        'size' => strlen($calendardata),
+                        'component' => strpos($calendardata, 'BEGIN:VEVENT')>0 ? 'vevent' : 'vtodo',
+                    ];
+                }
 			}
 		}
 		return $calevents;
@@ -456,10 +453,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		$calevent = null ;
 
         if(! $this->user->rights->agenda->myactions->read)
-            return $calevents;
+            return $calevent;
         
         if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
-            return $calevents;
+            return $calevent;
 
 		$sql = $this->_getSqlCalEvents($uid, $oid);
         
@@ -499,32 +496,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getMultipleCalendarObjects($calendarId, array $uris) {
-
-        $query = 'SELECT id, uri, lastmodified, etag, calendarid, size, calendardata, componenttype FROM ' . $this->calendarObjectTableName . ' WHERE calendarid = ? AND uri IN (';
-        // Inserting a whole bunch of question marks
-        $query .= implode(',', array_fill(0, count($uris), '?'));
-        $query .= ')';
-
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute(array_merge([$calendarId], $uris));
-
-        $result = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-
-            $result[] = [
-                'id'           => $row['id'],
-                'uri'          => $row['uri'],
-                'lastmodified' => $row['lastmodified'],
-                'etag'         => '"' . $row['etag'] . '"',
-                'calendarid'   => $row['calendarid'],
-                'size'         => (int)$row['size'],
-                'calendardata' => $row['calendardata'],
-                'component'    => strtolower($row['componenttype']),
-            ];
-
+    
+        $calevents = [];
+        
+        foreach($uris as $uri)
+        {
+            $calevent = $this->getCalendarObject($calendarId, $uri);
+            if($calevent != null)
+                $calevents[] = $calevent;
         }
-        return $result;
-
+        
+        return $calevents;
     }
 
 
@@ -548,6 +530,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function createCalendarObject($calendarId, $objectUri, $calendarData) {
 
+		// not supported
+		return;
+        /*
         $extraData = $this->getDenormalizedData($calendarData);
 
         $stmt = $this->pdo->prepare('INSERT INTO ' . $this->calendarObjectTableName . ' (calendarid, uri, calendardata, lastmodified, etag, size, componenttype, firstoccurence, lastoccurence, uid) VALUES (?,?,?,?,?,?,?,?,?,?)');
@@ -566,7 +551,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         $this->addChange($calendarId, $objectUri, 1);
 
         return '"' . $extraData['etag'] . '"';
-
+        */
     }
 
     /**
@@ -589,15 +574,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function updateCalendarObject($calendarId, $objectUri, $calendarData) {
 
-        $extraData = $this->getDenormalizedData($calendarData);
-
-        $stmt = $this->pdo->prepare('UPDATE ' . $this->calendarObjectTableName . ' SET calendardata = ?, lastmodified = ?, etag = ?, size = ?, componenttype = ?, firstoccurence = ?, lastoccurence = ?, uid = ? WHERE calendarid = ? AND uri = ?');
-        $stmt->execute([$calendarData, time(), $extraData['etag'], $extraData['size'], $extraData['componentType'], $extraData['firstOccurence'], $extraData['lastOccurence'], $extraData['uid'], $calendarId, $objectUri]);
-
-        $this->addChange($calendarId, $objectUri, 2);
-
-        return '"' . $extraData['etag'] . '"';
-
+        // not supported
+		return;
     }
 
     /**
@@ -690,11 +668,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function deleteCalendarObject($calendarId, $objectUri) {
 
-        $stmt = $this->pdo->prepare('DELETE FROM ' . $this->calendarObjectTableName . ' WHERE calendarid = ? AND uri = ?');
-        $stmt->execute([$calendarId, $objectUri]);
-
-        $this->addChange($calendarId, $objectUri, 3);
-
+        // not supported
+		return;
     }
 
     /**
@@ -750,7 +725,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function calendarQuery($calendarId, array $filters) {
-
+/*
         $componentType = null;
         $requirePostFilter = true;
         $timeRange = null;
@@ -807,16 +782,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
+*/
 
         $result = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            if ($requirePostFilter) {
-                if (!$this->validateFilterForObject($row, $filters)) {
-                    continue;
-                }
+
+        $calevents = $this->_getFullCalendarObjects($calendarId, true);
+
+        foreach($calevents as $calevent) {
+            if (!$this->validateFilterForObject($calevent, $filters)) {
+                continue;
             }
             $result[] = $row['uri'];
-
         }
 
         return $result;
@@ -843,28 +819,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return string|null
      */
     function getCalendarObjectByUID($principalUri, $uid) {
-
-        $query = <<<SQL
-SELECT
-    calendars.uri AS calendaruri, calendarobjects.uri as objecturi
-FROM
-    $this->calendarObjectTableName AS calendarobjects
-LEFT JOIN
-    $this->calendarTableName AS calendars
-    ON calendarobjects.calendarid = calendars.id
-WHERE
-    calendars.principaluri = ?
-    AND
-    calendarobjects.uid = ?
-SQL;
-
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute([$principalUri, $uid]);
-
-        if ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return $row['calendaruri'] . '/' . $row['objecturi'];
-        }
-
+    
+        // "UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY
+    
+        $oid =  $uid*1;
+        $calid = $this->user->id;
+        
+        $calpos = strpos($uid, '-ev-');
+        if($calpos>0)
+            $calid = substr($uid,$calpos+1)*1;
+            
+        return $calid.'-cal-'.$this->user->login . '/' . $oid.'-ev-'.CDAV_URI_KEY;
     }
 
     /**
@@ -925,7 +890,10 @@ SQL;
      */
     function getChangesForCalendar($calendarId, $syncToken, $syncLevel, $limit = null) {
 
-die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
+        // not supported
+        return null;
+        
+        /*
         // Current synctoken
         $stmt = $this->pdo->prepare('SELECT synctoken FROM ' . $this->calendarTableName . ' WHERE id = ?');
         $stmt->execute([ $calendarId ]);
@@ -983,32 +951,9 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
             $result['added'] = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         }
         return $result;
-
+        */
     }
 
-    /**
-     * Adds a change record to the calendarchanges table.
-     *
-     * @param mixed $calendarId
-     * @param string $objectUri
-     * @param int $operation 1 = add, 2 = modify, 3 = delete.
-     * @return void
-     */
-    protected function addChange($calendarId, $objectUri, $operation) {
-
-        $stmt = $this->pdo->prepare('INSERT INTO ' . $this->calendarChangesTableName . ' (uri, synctoken, calendarid, operation) SELECT ?, synctoken, ?, ? FROM ' . $this->calendarTableName . ' WHERE id = ?');
-        $stmt->execute([
-            $objectUri,
-            $calendarId,
-            $operation,
-            $calendarId
-        ]);
-        $stmt = $this->pdo->prepare('UPDATE ' . $this->calendarTableName . ' SET synctoken = synctoken + 1 WHERE id = ?');
-        $stmt->execute([
-            $calendarId
-        ]);
-
-    }
 
     /**
      * Returns a list of subscriptions for a principal.
@@ -1103,6 +1048,10 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
      */
     function createSubscription($principalUri, $uri, array $properties) {
 
+        // Not supported
+        return null;
+
+        /*
         $fieldNames = [
             'principaluri',
             'uri',
@@ -1133,7 +1082,7 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
         $stmt->execute($values);
 
         return $this->pdo->lastInsertId();
-
+        */
     }
 
     /**
@@ -1154,6 +1103,10 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
      */
     function updateSubscription($subscriptionId, DAV\PropPatch $propPatch) {
 
+        // not supported
+        return;
+        
+        /*
         $supportedProperties = array_keys($this->subscriptionPropertyMap);
         $supportedProperties[] = '{http://calendarserver.org/ns/}source';
 
@@ -1186,7 +1139,7 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
             return true;
 
         });
-
+        */
     }
 
     /**
@@ -1197,9 +1150,13 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
      */
     function deleteSubscription($subscriptionId) {
 
+        // not supported
+        return;
+
+        /*
         $stmt = $this->pdo->prepare('DELETE FROM ' . $this->calendarSubscriptionsTableName . ' WHERE id = ?');
         $stmt->execute([$subscriptionId]);
-
+        */
     }
 
     /**
@@ -1220,6 +1177,10 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
      */
     function getSchedulingObject($principalUri, $objectUri) {
 
+        // not supported
+        return [];
+        
+        /*
         $stmt = $this->pdo->prepare('SELECT uri, calendardata, lastmodified, etag, size FROM ' . $this->schedulingObjectTableName . ' WHERE principaluri = ? AND uri = ?');
         $stmt->execute([$principalUri, $objectUri]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -1233,7 +1194,7 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
             'etag'         => '"' . $row['etag'] . '"',
             'size'         => (int)$row['size'],
          ];
-
+        */
     }
 
     /**
@@ -1249,8 +1210,10 @@ die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
      */
     function getSchedulingObjects($principalUri) {
         
-die("getSchedulingObjects( $principalUri )");
+        // not supported
+        return [];
 
+        /*
         $stmt = $this->pdo->prepare('SELECT id, calendardata, uri, lastmodified, etag, size FROM ' . $this->schedulingObjectTableName . ' WHERE principaluri = ?');
         $stmt->execute([$principalUri]);
 
@@ -1266,7 +1229,7 @@ die("getSchedulingObjects( $principalUri )");
         }
 
         return $result;
-
+        */
     }
 
     /**
@@ -1277,9 +1240,14 @@ die("getSchedulingObjects( $principalUri )");
      * @return void
      */
     function deleteSchedulingObject($principalUri, $objectUri) {
-
+        
+        // not supported
+        return;
+        
+        /*
         $stmt = $this->pdo->prepare('DELETE FROM ' . $this->schedulingObjectTableName . ' WHERE principaluri = ? AND uri = ?');
         $stmt->execute([$principalUri, $objectUri]);
+        */
 
     }
 
@@ -1293,8 +1261,13 @@ die("getSchedulingObjects( $principalUri )");
      */
     function createSchedulingObject($principalUri, $objectUri, $objectData) {
 
+        // not supported
+        return;
+        
+        /*
         $stmt = $this->pdo->prepare('INSERT INTO ' . $this->schedulingObjectTableName . ' (principaluri, calendardata, uri, lastmodified, etag, size) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->execute([$principalUri, $objectData, $objectUri, time(), md5($objectData), strlen($objectData) ]);
+        */
 
     }
 
