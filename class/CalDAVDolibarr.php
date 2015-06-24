@@ -376,7 +376,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarObjects($calendarId) {
-
+die("getCalendarObjects( $calendarId )");
         $uid = ($calendarId*1);
 		$calevents = [] ;
 
@@ -903,6 +903,7 @@ SQL;
      */
     function getChangesForCalendar($calendarId, $syncToken, $syncLevel, $limit = null) {
 
+die(" getChangesForCalendar($calendarId , $syncToken , $syncLevel , $limit " );
         // Current synctoken
         $stmt = $this->pdo->prepare('SELECT synctoken FROM ' . $this->calendarTableName . ' WHERE id = ?');
         $stmt->execute([ $calendarId ]);
