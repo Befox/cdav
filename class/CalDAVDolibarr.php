@@ -1178,7 +1178,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     function getSchedulingObject($principalUri, $objectUri) {
 
         // not supported
-        return [];
+        return null;
         
         /*
         $stmt = $this->pdo->prepare('SELECT uri, calendardata, lastmodified, etag, size FROM ' . $this->schedulingObjectTableName . ' WHERE principaluri = ? AND uri = ?');
