@@ -376,10 +376,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarObjects($calendarId) {
-die("getCalendarObjects( $calendarId )");
+
+
         $uid = ($calendarId*1);
 		$calevents = [] ;
-
+var_dump($this->user->rights->agenda);
         if(! $this->user->rights->agenda->myactions->read)
             return $calevents;
         
