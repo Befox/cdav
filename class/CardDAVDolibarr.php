@@ -217,7 +217,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="X-SKYPE:".$obj->skype."\n";
         $carddata.="NOTE;CHARSET=UTF-8:".strtr(trim($obj->note_public),array("\n"=>"\\n* ", "\r"=>""))."\n";
 
-   		$carddata.="REV:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
+   		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
 
         return $carddata;

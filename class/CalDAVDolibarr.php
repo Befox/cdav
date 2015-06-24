@@ -141,7 +141,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')';
+                AND a.entity IN ('.getEntity('societe', 1).')
+                AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')';
         if($onlyme)
             $sql .= ' AND u.rowid='.$this->user->id;
         $sql.= ' GROUP BY u.rowid';
@@ -231,23 +232,116 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     /**
 	 * Base sql request for calendar events
 	 * 
+     * @param int calendar user id
+     * @param int actioncomm object id
 	 * @return string
 	 */
-	protected function _getSqlCalEvents($uid)
+	protected function _getSqlCalEvents($uid, $oid=false)
 	{
-		$sql = 'SELECT p.*, co.label country_label, GREATEST(s.tms, p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
-					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.email soc_email,
-					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, cl.label category_label
-				FROM '.MAIN_DB_PREFIX.'socpeople as p
-				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = p.fk_pays
-				LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON s.rowid = p.fk_soc
-				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as cos ON cos.rowid = s.fk_pays
-				LEFT JOIN '.MAIN_DB_PREFIX.'categorie_contact as cc ON cc.fk_socpeople = p.rowid 
-				LEFT JOIN '.MAIN_DB_PREFIX.'categorie_lang as cl ON (cl.fk_category = cc.fk_categorie AND cl.lang=\''.$this->db->escape($this->langs->defaultlang).'\')
-				WHERE p.entity IN ('.getEntity('societe', 1).')
-				AND (p.priv=0 OR (p.priv=1 AND p.fk_user_creat='.$this->user->id.'))';
-				
+        $sql = 'SELECT u.rowid uid, u.login, u.color, a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
+                FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
+                LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)';
+        if (! $this->user->rights->societe->client->voir )
+        {
+            $sql.=' LEFT OUTER JOIN '.MAIN_DB_PREFIX.'societe_commerciaux as sc ON (a.fk_soc = sc.fk_soc AND sc.fk_user='.$this->user->id.')";
+                    LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = sc.fk_soc)
+                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.fk_soc = sc.fk_soc AND sp.rowid = a.fk_contact)';
+        }
+        else
+        {
+            $sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = a.fk_soc)
+                    LEFT JOIN '.MAIN_DB_PREFIX.'socpeople as sp ON (sp.rowid = a.fk_contact)';
+        }
+		$sql.=' WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
+                AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
+                AND a.entity IN ('.getEntity('societe', 1).')
+                AND u.rowid='.intval($uid);
+        if($oid!==false)
+            $sql.= ' AND a.id = '.intval($oid);
+        
 		return $sql;
+	}
+
+
+	/**
+	 * Convert calendar row to VCalendar string
+	 * 
+     * @param row object
+	 * @return string
+	 */
+	protected function _toVCalendar($obj)
+	{
+        $categ = [];
+        /*if($obj->soc_client)
+        {
+            $nick[] = $obj->soc_code_client;
+            $categ[] = $this->langs->transnoentitiesnoconv('Customer');
+        }*/
+
+        if($obj->percent==-1 && !empty(trim($obj->datep)))
+            $type='VEVENT';
+        else
+            $type='VTODO';
+            
+        $timezone = date_default_timezone_get();
+
+		$caldata ="BEGIN:VCALENDAR\n";
+		$caldata.="VERSION:2.0\n";
+		$caldata.="METHOD:PUBLISH\n";
+		$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+        $caldata.="BEGIN:".$type."\n";
+        $caldata.="CREATED;TZID=".$timezone.":".strtr($obj->datec,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+        $caldata.="LAST-MODIFIED;TZID=".$timezone.":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+        $caldata.="DTSTAMP;TZID=".$timezone.":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+        $caldata.="UID:".$obj->id.'-ev-'.CDAV_URI_KEY."\n";
+        $caldata.="SUMMARY:".$obj->label."\n";
+        $caldata.="LOCATION:".$obj->location."\n";
+        $caldata.="PRIORITY:".$obj->priority."\n";
+        if($obj->fulldayevent)
+        {
+            $caldata.="DTSTART;VALUE=DATE:".substr(strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>"")),0,8)."\n";
+            if($type=='VEVENT')
+                $caldata.="DTEND;VALUE=DATE:".substr(strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>"")),0,8)."\n";
+            elseif(!empty(trim($obj->datep2)))
+                $caldata.="DUE;VALUE=DATE:".substr(strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>"")),0,8)."\n";
+        }
+        else
+        {
+            $caldata.="DTSTART;TZID=".$timezone.":".strtr($obj->datep,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+            if($type=='VEVENT')
+                $caldata.="DTEND;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+            elseif(!empty(trim($obj->datep2)))
+                $caldata.="DUE;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+        }
+        if($obj->transparency==0)
+            $caldata.="TRANSP:TRANSPARENT\n";
+        else
+            $caldata.="TRANSP:OPAQUE\n";
+        
+        if($type=='VEVENT')
+            $caldata.="STATUS:CONFIRMED\n";
+        elseif($obj->percent==0)
+            $caldata.="STATUS:NEEDS-ACTION\n";
+        elseif($obj->percent==100)
+            $caldata.="STATUS:COMPLETED\n";
+        else
+        {
+            $caldata.="STATUS:IN-PROCESS\n";
+            $caldata.="PERCENT-COMPLETE:".$obj->percent."\n";
+        }
+	
+    	$caldata.="DESCRIPTION:";
+		$caldata.=strtr($obj->note,array("\n"=>"\\n", "\r"=>""));
+        if(!empty($obj->soc_nom))
+            $caldata.="\\n\\n*DOLIBARR: ".$obj->soc_nom;
+        if(!empty($obj->firstname) || !empty($obj->lastname))
+            $caldata.="\\n\\n*DOLIBARR: ".trim($obj->firstname.' '.$obj->lastname);
+        $caldata.="\n";
+         
+        $caldata.="END:".$type."\n";
+		$caldata.="END:VCALENDAR\n";
+
+        return $caldata;
 	}
 
     /**
@@ -345,8 +439,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
         if($uid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
             return $calevents;
 
-		$sql = $this->_getSqlCalEvents($uid);
-        $sql .= ' AND a.rowid = '.$oid;
+		$sql = $this->_getSqlCalEvents($uid, $oid);
         
 		$result = $this->db->query($sql);
         
@@ -357,7 +450,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				$calendardata = $this->_toVCalendar($obj);
 				
 				$calevents[] = [
-					'uri' => $oid,
+					'id' => $oid,
 					'uri' => $obj->rowid.'-ev-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($calendardata).'"',
@@ -369,24 +462,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			}
 		}
 		return $calevents;
-
-        $stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, calendarid, size, calendardata, componenttype FROM ' . $this->calendarObjectTableName . ' WHERE calendarid = ? AND uri = ?');
-        $stmt->execute([$calendarId, $objectUri]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$row) return null;
-
-        return [
-            'id'            => $row['id'],
-            'uri'           => $row['uri'],
-            'lastmodified'  => $row['lastmodified'],
-            'etag'          => '"' . $row['etag'] . '"',
-            'calendarid'    => $row['calendarid'],
-            'size'          => (int)$row['size'],
-            'calendardata'  => $row['calendardata'],
-            'component'     => strtolower($row['componenttype']),
-         ];
-
     }
 
     /**
@@ -961,7 +1036,8 @@ SQL;
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a, '.MAIN_DB_PREFIX.'actioncomm_resources as ar
                 LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid = ar.fk_element)
 				WHERE ar.fk_actioncomm = a.id AND ar.element_type=\'user\'
-                AND a.code IN (SELECT cac.code FROM llx_c_actioncomm cac WHERE cac.type<>\'systemauto\')
+                AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
+                AND a.entity IN ('.getEntity('societe', 1).')
                 AND u.rowid<>'.$this->user->id.'
                 GROUP BY u.rowid, a.code';                
 
