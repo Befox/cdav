@@ -26,8 +26,8 @@ if( isset($_SERVER['HTTP_AUTHORIZATION']) &&
 		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
 	}
     {
-		$_SERVER['PHP_AUTH_USER'] = '';
-		$_SERVER['PHP_AUTH_PW'] = '';
+		unset($_SERVER['PHP_AUTH_USER']);
+		unset($_SERVER['PHP_AUTH_PW']);
 	}
 	
 }
