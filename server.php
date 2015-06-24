@@ -14,6 +14,12 @@
  *
  ******************************************************************/
 
+function exception_error_handler($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+}
+set_error_handler("exception_error_handler");
+
+
 // debug
 file_put_contents('/tmp/cdav_'.date('Ymd_His_').uniqid(),'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
 
@@ -43,11 +49,6 @@ require '../main.inc.php';	// Load $user and permissions
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
-
-function exception_error_handler($errno, $errstr, $errfile, $errline) {
-    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
-}
-set_error_handler("exception_error_handler");
 
 // Sabre/dav configuration
 
