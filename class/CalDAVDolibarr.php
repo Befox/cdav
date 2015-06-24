@@ -380,7 +380,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
         $uid = ($calendarId*1);
 		$calevents = [] ;
-var_dump($this->user->rights->agenda);
+
         if(! $this->user->rights->agenda->myactions->read)
             return $calevents;
         
@@ -388,7 +388,7 @@ var_dump($this->user->rights->agenda);
             return $calevents;
 
 		$sql = $this->_getSqlCalEvents($uid);
-        
+echo $sql;        
 		$result = $this->db->query($sql);
         
 		if ($result)
