@@ -241,7 +241,11 @@ debug_log("deleteCalendar( $calendarId )");
 	 */
 	protected function _getSqlCalEvents($calid, $oid=false)
 	{
-        $sql = 'SELECT a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname
+        // TODO : replace GROUP_CONCAT by 
+        $sql = 'SELECT a.tms lastupd, a.*, s.nom soc_nom, sp.firstname, sp.lastname,
+                    (SELECT GROUP_CONCAT(u.login) FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar
+                    LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user u ON (u.rowid=fk_element) 
+                    WHERE ar.element_type=\'user\' AND fk_actioncomm=a.id) other_users
                 FROM '.MAIN_DB_PREFIX.'actioncomm as a';
         if (! $this->user->rights->societe->client->voir )
         {
@@ -339,9 +343,11 @@ debug_log("_toVCalendar $calid , ".$obj->id);
     	$caldata.="DESCRIPTION:";
 		$caldata.=strtr($obj->note,array("\n"=>"\\n", "\r"=>""));
         if(!empty($obj->soc_nom))
-            $caldata.="\\n*DOLIBARR-SOC: ".$obj->soc_nom;
+            $caldata.="\n \\n*DOLIBARR-SOC: ".$obj->soc_nom;
         if(!empty($obj->firstname) || !empty($obj->lastname))
-            $caldata.="\\n*DOLIBARR-CTC: ".trim($obj->firstname.' '.$obj->lastname);
+            $caldata.="\n \\n*DOLIBARR-CTC: ".trim($obj->firstname.' '.$obj->lastname);
+        if(!empty($obj->other_users))
+            $caldata.="\n \\n*DOLIBARR-CTC: ".$obj->other_users;
         $caldata.="\n";
          
         $caldata.="END:".$type."\n";
