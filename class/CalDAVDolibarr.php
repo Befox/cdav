@@ -380,6 +380,8 @@ debug_log("_toVCalendar $calid , ".$obj->id);
      * @return array
      */
     function getCalendarObjects($calendarId) {
+
+debug_log("getCalendarObjects( $calendarId )");
         
 		return $this->_getFullCalendarObjects($calendarId, false);
     }
@@ -805,7 +807,21 @@ debug_log("calendarQuery($calendarId, ".print_r($filters, true)." ) ");
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
 */
+        $result = [];
+        $objects = $this->getCalendarObjects($calendarId);
 
+        foreach ($objects as $object) {
+
+            if ($this->validateFilterForObject($object, $filters)) {
+                $result[] = $object['uri'];
+            }
+
+        }
+
+debug_log("calendarQuery return x ".count($result));
+
+        return $result;
+        /*
         $result = [];
 
         $calevents = $this->_getFullCalendarObjects($calendarId, true);
@@ -817,7 +833,7 @@ debug_log("calendarQuery($calendarId, ".print_r($filters, true)." ) ");
             $result[] = $calevent['uri'];
         }
 
-        return $result;
+        return $result;*/
 
     }
 
