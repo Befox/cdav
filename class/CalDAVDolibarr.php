@@ -491,6 +491,8 @@ debug_log("getCalendarObject( $calendarId , $objectUri )");
 				];
 			}
 		}
+debug_log("getCalendarObject return: \n".print_r($calevent));
+        
 		return $calevent;
     }
 
