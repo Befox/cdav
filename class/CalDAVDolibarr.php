@@ -294,9 +294,9 @@ debug_log("_toVCalendar $calid , ".$obj->id);
 		$caldata.="METHOD:PUBLISH\n";
 		$caldata.="PRODID:-//Dolibarr CDav//FR\n";
         $caldata.="BEGIN:".$type."\n";
-        $caldata.="CREATED:".strtr($obj->datec,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
-        $caldata.="LAST-MODIFIED:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
-        $caldata.="DTSTAMP:".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."Z\n";
+        $caldata.="CREATED:".gmdate('Ymd\THis', strtotime($obj->datec))."Z\n";
+        $caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
+        $caldata.="DTSTAMP:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
         $caldata.="UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY."\n";
         $caldata.="SUMMARY:".$obj->label."\n";
         $caldata.="LOCATION:".$obj->location."\n";
@@ -317,6 +317,7 @@ debug_log("_toVCalendar $calid , ".$obj->id);
             elseif(!empty(trim($obj->datep2)))
                 $caldata.="DUE;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
         }
+        $caldata.="CLASS:PUBLIC\n";
         if($obj->transparency==0)
             $caldata.="TRANSP:TRANSPARENT\n";
         else
@@ -337,9 +338,9 @@ debug_log("_toVCalendar $calid , ".$obj->id);
     	$caldata.="DESCRIPTION:";
 		$caldata.=strtr($obj->note,array("\n"=>"\\n", "\r"=>""));
         if(!empty($obj->soc_nom))
-            $caldata.="\\n\\n*DOLIBARR: ".$obj->soc_nom;
+            $caldata.="\\n*DOLIBARR: ".$obj->soc_nom;
         if(!empty($obj->firstname) || !empty($obj->lastname))
-            $caldata.="\\n\\n*DOLIBARR: ".trim($obj->firstname.' '.$obj->lastname);
+            $caldata.="\\n*DOLIBARR: ".trim($obj->firstname.' '.$obj->lastname);
         $caldata.="\n";
          
         $caldata.="END:".$type."\n";
