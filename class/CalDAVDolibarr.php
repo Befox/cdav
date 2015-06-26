@@ -346,7 +346,7 @@ debug_log("_toVCalendar $calid , ".$obj->id);
             $caldata.="\n \\n*DOLIBARR-SOC: ".$obj->soc_nom;
         if(!empty($obj->firstname) || !empty($obj->lastname))
             $caldata.="\n \\n*DOLIBARR-CTC: ".trim($obj->firstname.' '.$obj->lastname);
-        if(!empty($obj->other_users))
+        if(strpos($obj->other_users,',')) // several
             $caldata.="\n \\n*DOLIBARR-USR: ".$obj->other_users;
         $caldata.="\n";
          
