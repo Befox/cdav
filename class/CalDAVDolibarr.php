@@ -814,7 +814,7 @@ debug_log("calendarQuery($calendarId, ".print_r($filters, true)." ) ");
             if (!$this->validateFilterForObject($calevent, $filters)) {
                 continue;
             }
-            $result[] = $row['uri'];
+            $result[] = $calevent['uri'];
         }
 
         return $result;
