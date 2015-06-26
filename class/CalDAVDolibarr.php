@@ -260,8 +260,9 @@ debug_log("deleteCalendar( $calendarId )");
         if($oid!==false)
             $sql.=' AND a.id = '.intval($oid);
         
+debug_log("_getSqlCalEvents : $sql ");
+
 		return $sql;
-debug_log("_getSqlCalEvents > $sql ");
         
 	}
 
@@ -338,9 +339,9 @@ debug_log("_toVCalendar $calid , ".$obj->id);
     	$caldata.="DESCRIPTION:";
 		$caldata.=strtr($obj->note,array("\n"=>"\\n", "\r"=>""));
         if(!empty($obj->soc_nom))
-            $caldata.="\\n*DOLIBARR: ".$obj->soc_nom;
+            $caldata.="\\n*DOLIBARR-SOC: ".$obj->soc_nom;
         if(!empty($obj->firstname) || !empty($obj->lastname))
-            $caldata.="\\n*DOLIBARR: ".trim($obj->firstname.' '.$obj->lastname);
+            $caldata.="\\n*DOLIBARR-CTC: ".trim($obj->firstname.' '.$obj->lastname);
         $caldata.="\n";
          
         $caldata.="END:".$type."\n";
