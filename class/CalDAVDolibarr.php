@@ -123,7 +123,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getCalendarsForUser($principalUri) {
-
+debug_log("getCalendarsForUser( $principalUri )");
         $calendars = [];
         
         if(! $this->user->rights->agenda->myactions->read)
@@ -188,6 +188,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return string
      */
     function createCalendar($principalUri, $calendarUri, array $properties) {
+debug_log("createCalendar( $principalUri )");
 
 		// not supported
 		return false;
@@ -211,6 +212,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return void
      */
     function updateCalendar($calendarId, \Sabre\DAV\PropPatch $propPatch) {
+debug_log("updateCalendar( $calendarId )");
 
 		// not supported
 		return;
@@ -223,6 +225,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return void
      */
     function deleteCalendar($calendarId) {
+debug_log("deleteCalendar( $calendarId )");
 
 		// not supported
 		return;
@@ -258,6 +261,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
             $sql.=' AND a.id = '.intval($oid);
         
 		return $sql;
+debug_log("_getSqlCalEvents > $sql ");
+        
 	}
 
 
@@ -269,6 +274,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	protected function _toVCalendar($calid, $obj)
 	{
+debug_log("_toVCalendar $calid , ".$obj->id);
         $categ = [];
         /*if($obj->soc_client)
         {
@@ -381,6 +387,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     
     protected function _getFullCalendarObjects($calendarId, $bCalendarData) {
 
+debug_log("_getFullCalendarObjects $calendarId , $bCalendarData ");
         $calid = ($calendarId*1);
 		$calevents = [] ;
 
@@ -448,6 +455,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function getCalendarObject($calendarId, $objectUri) {
 
+debug_log("getCalendarObject( $calendarId , $objectUri )");
+
         $calid = ($calendarId*1);
         $oid = ($objectUri*1);
 		$calevent = null ;
@@ -496,6 +505,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getMultipleCalendarObjects($calendarId, array $uris) {
+
+debug_log("getMultipleCalendarObjects( $calendarId , ".count($uris)." uris )");
     
         $calevents = [];
         
@@ -529,6 +540,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return string|null
      */
     function createCalendarObject($calendarId, $objectUri, $calendarData) {
+
+debug_log("createCalendarObject( $calendarId , $objectUri )");
 
 		// not supported
 		return;
@@ -574,6 +587,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function updateCalendarObject($calendarId, $objectUri, $calendarData) {
 
+debug_log("updateCalendarObject( $calendarId , $objectUri )");
+
         // not supported
 		return;
     }
@@ -594,6 +609,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     protected function getDenormalizedData($calendarData) {
+
+debug_log("getDenormalizedData( ... )");
 
         $vObject = VObject\Reader::read($calendarData);
         $componentType = null;
@@ -668,6 +685,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function deleteCalendarObject($calendarId, $objectUri) {
 
+debug_log("deleteCalendarObject( $calendarId , $objectUri) ");
+
         // not supported
 		return;
     }
@@ -725,6 +744,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function calendarQuery($calendarId, array $filters) {
+
+debug_log("calendarQuery($calendarId, ".print_r($filters, true)." ) ");
+
 /*
         $componentType = null;
         $requirePostFilter = true;
@@ -820,6 +842,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function getCalendarObjectByUID($principalUri, $uid) {
     
+debug_log("getCalendarObjectByUID( $principalUri , $uid)");
+
         // "UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY
     
         $oid =  $uid*1;
@@ -889,6 +913,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getChangesForCalendar($calendarId, $syncToken, $syncLevel, $limit = null) {
+
+debug_log("getChangesForCalendar( $calendarId , $syncToken , $syncLevel , $limit )");
 
         // not supported
         return null;
@@ -988,6 +1014,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function getSubscriptionsForUser($principalUri) {
 
+debug_log("getSubscriptionsForUser( $principalUri )");
+
         // Not supported
         return [];
 
@@ -1048,6 +1076,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function createSubscription($principalUri, $uri, array $properties) {
 
+debug_log("createSubscription( $$principalUri , $uri )");
+
         // Not supported
         return null;
 
@@ -1103,6 +1133,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function updateSubscription($subscriptionId, DAV\PropPatch $propPatch) {
 
+debug_log("updateSubscription( $$subscriptionId ... )");
+
         // not supported
         return;
         
@@ -1150,6 +1182,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      */
     function deleteSubscription($subscriptionId) {
 
+debug_log("deleteSubscription( $$subscriptionId ... )");
+
         // not supported
         return;
 
@@ -1176,6 +1210,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getSchedulingObject($principalUri, $objectUri) {
+
+debug_log("getSchedulingObject( $principalUri , $objectUri )");
 
         // not supported
         return null;
@@ -1209,6 +1245,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return array
      */
     function getSchedulingObjects($principalUri) {
+
+debug_log("getSchedulingObjects( $principalUri )");
         
         // not supported
         return [];
@@ -1240,6 +1278,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return void
      */
     function deleteSchedulingObject($principalUri, $objectUri) {
+
+debug_log("deleteSchedulingObject( $principalUri , $objectUri )");
         
         // not supported
         return;
@@ -1260,6 +1300,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
      * @return void
      */
     function createSchedulingObject($principalUri, $objectUri, $objectData) {
+
+debug_log("createSchedulingObject( $principalUri , $objectUri)");
 
         // not supported
         return;

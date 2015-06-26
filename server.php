@@ -15,13 +15,24 @@
  ******************************************************************/
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
+	if(function_exists("debug_log"))
+		debug_log("Error $errno : $errstr - $errfile @ $errline");
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
 set_error_handler("exception_error_handler");
 
 
 // debug
-//file_put_contents('/tmp/cdav_'.date('Ymd_His_').uniqid(),'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
+$debug_file = fopen('/tmp/cdav_'.date('Ymd_His_').uniqid(),'a');
+
+function debug_log($txt)
+{
+	global $debug_file;
+	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
+	fflush($debug_file);
+}
+
+//file_put_contents(,'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
 
 // HTTP auth workaround for php in fastcgi mode HTTP_AUTHORIZATION set by rewrite engine in .htaccess
 if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
