@@ -23,7 +23,6 @@ set_error_handler("exception_error_handler");
 
 
 // debug
-<<<<<<< HEAD
 // $debug_file = fopen('/tmp/cdav_'.date('Ymd_His_').uniqid(),'a');
 
 function debug_log($txt)
@@ -31,15 +30,6 @@ function debug_log($txt)
 //	global $debug_file;
 //	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
 //	fflush($debug_file);
-=======
-$debug_file = fopen('/tmp/cdav_'.date('Ymd_His_').uniqid(),'a');
-
-function debug_log($txt)
-{
-	global $debug_file;
-	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
-	fflush($debug_file);
->>>>>>> dd8692e886d2390482522e36786c312a04ce0262
 }
 
 //file_put_contents(,'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
@@ -135,11 +125,7 @@ $server = new DAV\Server($nodes);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
-<<<<<<< HEAD
 $server->setBaseUri(DOL_URL_ROOT.'/cdav/server.php/');
-=======
-$server->setBaseUri('/dolibarr/htdocs/cdav/server.php/');
->>>>>>> dd8692e886d2390482522e36786c312a04ce0262
 
 
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
@@ -153,14 +139,4 @@ $server->addPlugin(new \Sabre\DAVACL\Plugin());
 // All we need to do now, is to fire up the server
 $server->exec();
 
-<<<<<<< HEAD
 if (is_object($db)) $db->close();
-=======
-
-
-
-
-
-if (is_object($db)) $db->close();
-
->>>>>>> dd8692e886d2390482522e36786c312a04ce0262
