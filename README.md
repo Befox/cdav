@@ -8,6 +8,11 @@ This first release only permit DAV client tools to read calendars and address bo
 
 Each user can access his contacts address book (public and own private contacts), his own calendar and other users calendars according to his rights.
 
+Admin users can also access Dolibarr documents through WebDAV with WebDAV URL :
+
+    https://server.example.com/dolibarr/htdocs/cdav/server.php/documents/
+
+
 ## How to install
 
 Like all Dolibarr modules, git clone this repository and install cdav directory in dolibarr/htdocs/
