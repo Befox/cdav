@@ -82,7 +82,7 @@ elseif($type=='CalDAV')
 	
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
-		if (versioncompare(versiondolibarrarray(), array(3,8,0)) < 0)
+		if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
 			$fk_soc_fieldname = 'fk_societe';
 		else
 			$fk_soc_fieldname = 'fk_soc';
