@@ -40,6 +40,8 @@ $res=0;
 if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
 if (! $res) die("Include of main fails");
 
+require_once $dolibarr_main_document_root.'/core/lib/admin.lib.php';
+
 // Load traductions files requiredby by page
 $langs->load("cdav");
 
@@ -82,15 +84,14 @@ elseif($type=='CalDAV')
 	
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
-		//if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
-		//	$fk_soc_fieldname = 'fk_societe';
-		//else
+		if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
+			$fk_soc_fieldname = 'fk_societe';
+		else
 			$fk_soc_fieldname = 'fk_soc';
 
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
 			ORDER BY login';
-		echo $sql;
 		$result = $db->query($sql);
 		while($row = $db->fetch_array($result))
 		{
