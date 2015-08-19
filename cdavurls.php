@@ -80,8 +80,6 @@ elseif($type=='CalDAV')
 	
 	echo '<h3>'.$langs->trans('URLforCalDAV').'</h3>';
 	
-	print_r($user->rights->agenda);
-	
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
 		if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
@@ -92,6 +90,7 @@ elseif($type=='CalDAV')
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
 			ORDER BY login';
+		echo $sql;
 		$result = $db->query($sql);
 		while($row = $db->fetch_array($result))
 		{
