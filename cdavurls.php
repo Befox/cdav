@@ -40,7 +40,7 @@ $res=0;
 if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
 if (! $res) die("Include of main fails");
 
-require_once $dolibarr_main_document_root.'/core/lib/admin.lib.php';
+require_once '../core/lib/admin.lib.php';
 
 // Load traductions files requiredby by page
 $langs->load("cdav");
