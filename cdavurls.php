@@ -80,6 +80,8 @@ elseif($type=='CalDAV')
 	
 	echo '<h3>'.$langs->trans('URLforCalDAV').'</h3>';
 	
+	print_r($user->rights->agenda);
+	
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
 		if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
