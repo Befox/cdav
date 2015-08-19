@@ -84,10 +84,10 @@ elseif($type=='CalDAV')
 	
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
-		if (versioncompare(versiondolibarrarray(), array(3,8,0))<0)
-			$fk_soc_fieldname = 'fk_societe';
-		else
+		if (versioncompare(versiondolibarrarray(), array(3,8,0))>=0)
 			$fk_soc_fieldname = 'fk_soc';
+		else
+			$fk_soc_fieldname = 'fk_societe';
 
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
