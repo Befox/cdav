@@ -92,7 +92,6 @@ elseif($type=='CalDAV')
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
 			ORDER BY login';
-		echo $sql;
 		$result = $db->query($sql);
 		while($row = $db->fetch_array($result))
 		{
