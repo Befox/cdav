@@ -42,6 +42,10 @@ if (! $res) die("Include of main fails");
 
 require_once '../core/lib/admin.lib.php';
 
+function base64url_encode($data) {
+  return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
 // Load traductions files requiredby by page
 $langs->load("cdav");
 
@@ -49,7 +53,7 @@ $langs->load("cdav");
 $id			= GETPOST('id','int');
 $action		= GETPOST('action','alpha');
 $backtopage = GETPOST('backtopage');
-$type	= GETPOST('type','CalDAV');
+$type		= GETPOST('type','CalDAV');
 
 // Protection if external user
 if ($user->societe_id > 0)
@@ -101,6 +105,37 @@ elseif($type=='CalDAV')
 			echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/calendars/'.$user->login.'/'.$row['rowid'].'-cal-'.$row['login'].'</PRE><br/>';
 			if($row['rowid'] == $user->id)
 				echo '</strong>';
+		}
+	}
+	else
+	{
+		echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
+	}
+
+}
+elseif($type=='ICS')
+{
+
+	echo '<h3>'.$langs->trans('URLforICS').'</h3>';
+	
+	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
+	{
+		if (versioncompare(versiondolibarrarray(), array(3,7,9))>0)
+			$fk_soc_fieldname = 'fk_soc';
+		else
+			$fk_soc_fieldname = 'fk_societe';
+
+		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
+			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
+			ORDER BY login';
+		$result = $db->query($sql);
+		while($row = $db->fetch_array($result))
+		{
+			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
+			
+			echo "<PRE>".$langs->trans('Full')." :\n".DOL_MAIN_URL_ROOT.'/cdav/ics.php?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+full', MCRYPT_ENCRYPT))."\n\n";
+			echo $langs->trans('NoLabel')." :\n".DOL_MAIN_URL_ROOT.'/cdav/ics.php?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
+			
 		}
 	}
 	else

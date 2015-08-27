@@ -23,13 +23,13 @@ set_error_handler("exception_error_handler");
 
 
 // debug
-// $debug_file = fopen('/tmp/cdav_'.date('Ymd_His_').uniqid(),'a');
+$debug_file = fopen('/tmp/cdav_'.date('Ymd_'),'a');
 
 function debug_log($txt)
 {
-//	global $debug_file;
-//	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
-//	fflush($debug_file);
+	global $debug_file;
+	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
+	fflush($debug_file);
 }
 
 //file_put_contents(,'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
@@ -60,6 +60,8 @@ require '../main.inc.php';	// Load $user and permissions
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
+	
+require_once 'lib/cdav.lib.php';
 
 // Sabre/dav configuration
 
@@ -79,6 +81,8 @@ if(isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER']!='')
 	$user->fetch('',$_SERVER['PHP_AUTH_USER']);
 	$user->getrights();
 }
+
+$cdavLib = new CdavLib($user, $db, $langs);
 
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
@@ -102,7 +106,7 @@ $principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
 
 // CardDav & CalDav Backend
 $carddavBackend   = new Sabre\CardDAV\Backend\Dolibarr($user,$db,$langs);
-$caldavBackend    = new Sabre\CalDAV\Backend\Dolibarr($user,$db,$langs);
+$caldavBackend    = new Sabre\CalDAV\Backend\Dolibarr($user,$db,$langs, $cdavLib);
 
 // Setting up the directory tree //
 $nodes = array(

@@ -1,7 +1,12 @@
 # Dolibarr language file - Source file is en_US - cdav
 CardDAVurl=CardDAV URL
 CalDAVurl=CalDAV URL
-URLGeneric=This URL can be used by a CalDAV/CardDAV synchronisation client tool :
+ICSurl=URL ICS
+URLforICS=This URL can be used by a synchronisation client tool :
+Full=Full
+NoLabel=Without label
+Busy=Busy
+URLGeneric=These URL can be used by a CalDAV/CardDAV synchronisation client tool :
 URLforCardDAV=If your client does not detect your address book this full URL can be specified :
 URLforCalDAV=If your client does not detect your agendas these full URLs can be specified :
 
