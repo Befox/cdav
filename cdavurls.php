@@ -115,7 +115,7 @@ elseif($type=='CalDAV')
 	}
 	else
 	{
-		echo '<PRE>'.dol_buildpath('/cdav/server.php', 2).'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
+		echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
 	}
 
 }

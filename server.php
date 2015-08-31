@@ -140,7 +140,7 @@ $server = new DAV\Server($nodes);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
-$server->setBaseUri(DOL_URL_EXTMODULE.'/cdav/server.php/');
+$server->setBaseUri(dol_buildpath('cdav/server.php', 2).'/');
 
 
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
