@@ -125,7 +125,7 @@ class CdavLib
                 $caldata.="DUE;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
         }
         $caldata.="CLASS:PUBLIC\n";
-        if($obj->transparency==0)
+        if($obj->transparency==1)
             $caldata.="TRANSP:TRANSPARENT\n";
         else
             $caldata.="TRANSP:OPAQUE\n";

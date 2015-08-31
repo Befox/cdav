@@ -425,8 +425,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						".(int)$this->user->id.",
 						0,
 						".(int)$calendarId.",
-						0, 	/*Transparence forcée à 0 ?*/
-						1,
+						".(int)$calendarData['priority'].",
+						".(int)$calendarData['transparency'].",
 						".(int)$calendarData['fullday'].",
 						1,
 						".(int)$calendarData['percent'].",
@@ -714,12 +714,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						$end	= isset($component->DTEND) ? $component->DTEND->getDateTime()->getTimeStamp() : $start+60*60;//date de fin = date début +1H par défaut               
 					}
 	                $location 		= isset($component->LOCATION) ? (string)$component->LOCATION : '';
-	                $priority 		= isset($component->PRIORITY) ? (string)$component->PRIORITY : '';
+	                $priority 		= isset($component->PRIORITY) ? (string)$component->PRIORITY : '5';
 	                $transparency 	= isset($component->TRANSP) ? (string)$component->TRANSP : '0';
 	                if ($transparency == 'OPAQUE')
-						$transparency = 1;
-					else
 						$transparency = 0;
+					else
+						$transparency = 1;
 	                //TODO clear note special comment *DOLIBARR-
 	                $tmp 			= isset($component->DESCRIPTION) ? (string)$component->DESCRIPTION : '';
 	                $arrNote = array();
