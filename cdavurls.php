@@ -36,11 +36,17 @@
 //if (! defined("NOLOGIN"))        define("NOLOGIN",'1');				// If this page is public (can be called outside logged session)
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-$res=0;
-if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
-if (! $res) die("Include of main fails");
+if(is_file('../main.inc.php'))
+	$dir = '../';
+elseif(is_file('../../../main.inc.php'))
+	$dir = '../../../';
+else 
+	$dir = '../../';
+	
+require $dir.'main.inc.php';	// Load $user and permissions
 
-require_once '../core/lib/admin.lib.php';
+
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
 function base64url_encode($data) {
   return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -74,15 +80,15 @@ echo '<H2>'.$langs->trans($type.'url').'</H2>';
 if($type=='CardDAV')
 {
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav</PRE>';
+	echo '<PRE>'.dol_buildpath('cdav', 2).'</PRE>';
 	
-	echo '<h3>'.$langs->trans('URLforCardDAV').'</h3>';
-	echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/addressbooks/'.$user->login.'/default/</PRE>';
+	echo '<h3>'.$langs->trans('URLforCardDAV', 2).'</h3>';
+	echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/addressbooks/'.$user->login.'/default/</PRE>';
 }
 elseif($type=='CalDAV')
 {
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav</PRE>';
+	echo '<PRE>'.dol_buildpath('cdav', 2).'</PRE>';
 	
 	echo '<h3>'.$langs->trans('URLforCalDAV').'</h3>';
 	
@@ -102,14 +108,14 @@ elseif($type=='CalDAV')
 			if($row['rowid'] == $user->id)
 				echo '<strong>';
 			echo $row['firstname'].' '.$row['lastname'].' :';
-			echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/calendars/'.$user->login.'/'.$row['rowid'].'-cal-'.$row['login'].'</PRE><br/>';
+			echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/calendars/'.$user->login.'/'.$row['rowid'].'-cal-'.$row['login'].'</PRE><br/>';
 			if($row['rowid'] == $user->id)
 				echo '</strong>';
 		}
 	}
 	else
 	{
-		echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
+		echo '<PRE>'.dol_buildpath('/cdav/server.php', 2).'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
 	}
 
 }
@@ -133,21 +139,21 @@ elseif($type=='ICS')
 		{
 			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
 			
-			echo "<PRE>".$langs->trans('Full')." :\n".DOL_MAIN_URL_ROOT.'/cdav/ics.php?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+full', MCRYPT_ENCRYPT))."\n\n";
-			echo $langs->trans('NoLabel')." :\n".DOL_MAIN_URL_ROOT.'/cdav/ics.php?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
+			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+full', MCRYPT_ENCRYPT))."\n\n";
+			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
 			
 		}
 	}
 	else
 	{
-		echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav/server.php/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
+		echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
 	}
 
 }
 else
 {
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>'.DOL_MAIN_URL_ROOT.'/cdav</PRE>';
+	echo '<PRE>'.dol_buildpath('cdav', 2).'</PRE>';
 }
 
 // End of page

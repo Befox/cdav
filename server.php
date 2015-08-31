@@ -23,16 +23,18 @@ set_error_handler("exception_error_handler");
 
 
 // debug
-$debug_file = fopen('/tmp/cdav_'.date('Ymd_'),'a');
+//$debug_file = fopen('/tmp/cdav_'.date('Ymd_'),'a');
+$debug_file = false;
 
 function debug_log($txt)
 {
 	global $debug_file;
-	fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
-	fflush($debug_file);
+	if ($debug_file)
+	{
+		fputs($debug_file, '========' . date('H:i:s').': '.$txt."\n");
+		fflush($debug_file);
+	}
 }
-
-//file_put_contents(,'$_SERVER = '.print_r($_SERVER,true).'$_POST = '.print_r($_POST,true));
 
 // HTTP auth workaround for php in fastcgi mode HTTP_AUTHORIZATION set by rewrite engine in .htaccess
 if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
@@ -56,12 +58,21 @@ if (! defined('NOREQUIREAJAX')) define('NOREQUIREAJAX','1');
 function llxHeader() { }
 function llxFooter() { }
 
-require '../main.inc.php';	// Load $user and permissions
+
+if(is_file('../main.inc.php'))
+	$dir = '../';
+elseif(is_file('../../../main.inc.php'))
+	$dir = '../../../';
+else 
+	$dir = '../../';
+
+require $dir.'main.inc.php';	// Load $user and permissions
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
 	
-require_once 'lib/cdav.lib.php';
+
+require_once './lib/cdav.lib.php';
 
 // Sabre/dav configuration
 
@@ -69,10 +80,10 @@ use Sabre\DAV;
 use Sabre\DAVACL;
 
 // The autoloader
-require 'lib/SabreDAV/vendor/autoload.php';
-require 'class/PrincipalsDolibarr.php';
-require 'class/CardDAVDolibarr.php';
-require 'class/CalDAVDolibarr.php';
+require './lib/SabreDAV/vendor/autoload.php';
+require './class/PrincipalsDolibarr.php';
+require './class/CardDAVDolibarr.php';
+require './class/CalDAVDolibarr.php';
 
 $user = new User($db);
 
@@ -129,7 +140,7 @@ $server = new DAV\Server($nodes);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
-$server->setBaseUri(DOL_URL_ROOT.'/cdav/server.php/');
+$server->setBaseUri(DOL_URL_EXTMODULE.'/cdav/server.php/');
 
 
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));

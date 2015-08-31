@@ -13,11 +13,16 @@ function base64url_decode($data) {
   return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
 } 
 
-$res=0;
-if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
-if (! $res) die("Include of main fails");
+if(is_file('../main.inc.php'))
+	$dir = '../';
+elseif(is_file('../../../main.inc.php'))
+	$dir = '../../../';
+else 
+	$dir = '../../';
+	
+require $dir.'main.inc.php';	// Load $user and permissions
 
-require_once '../core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
 // Load traductions files requiredby by page
 $langs->load("cdav");
@@ -53,7 +58,7 @@ $user->rights->agenda->allactions->read = true;
 $user->rights->societe->client->voir = false;
 
 //Get all event
-require_once 'lib/cdav.lib.php';
+require_once './lib/cdav.lib.php';
 $cdavLib = new CdavLib($user, $db, $langs);
 
 //Format them
