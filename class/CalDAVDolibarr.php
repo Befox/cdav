@@ -1,5 +1,23 @@
 <?php
 
+/******************************************************************
+ * cdav is a Dolibarr module
+ * It allows caldav and carddav clients to sync with Dolibarr
+ * calendars and contacts.
+ *
+ * cdav is distributed under GNU/GPLv3 license
+ * (see COPYING file)
+ *
+ * cdav uses Sabre/dav library http://sabre.io/dav/
+ * Sabre/dav is distributed under use the three-clause BSD-license
+ * 
+ * Author : Befox SARL http://www.befox.fr/
+ * Author : Evert Pot (http://evertpot.com/)
+ * copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/)
+ * copyright Copyright (C) 2015 Befox SARL http://www.befox.fr/
+ *
+ ******************************************************************/
+ 
 namespace Sabre\CalDAV\Backend;
 
 use Sabre\VObject;
@@ -7,15 +25,6 @@ use Sabre\CalDAV;
 use Sabre\DAV;
 use Sabre\DAV\Exception\Forbidden;
 
-/**
- * Dolibarr CalDAV backend
- *
- * This CardDAV backend uses Dolibarr to store calendars events
- *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
- * @author Evert Pot (http://evertpot.com/)
- * @license http://sabre.io/license/ Modified BSD License
- */
 class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport {
 
     /**

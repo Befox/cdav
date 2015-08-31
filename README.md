@@ -3,9 +3,16 @@
 ## What is it ?
 
 
-This module for Dolibarr 3.7 add CardDAV and CalDAV synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 3.7 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
-This first release only permit DAV client tools to read calendars and address books.
+You can :
+
+ * Read and Edit calendars through CalDAV
+ * Read addressBooks through CarDAV
+ * Read calendars through ICS Full version or only Free/Busy (hide details)
+ * Access Dolibarr documents through WebDAV
+ 
+This release don't permit CarDAV client tools to update address books.
 
 Each user can access his contacts address book (public and own private contacts), his own calendar and other users calendars according to his rights.
 
@@ -15,7 +22,7 @@ Like all Dolibarr modules, git clone this repository and install cdav directory 
 
 Enable CDav module in Interfaces Modules list.
 
-It would add a link in Agenda left menu and in Contacts left menu to access DAV URLs.
+It would add a link in Agenda left menu and in Contacts left menu to access DAV / ICS URLs.
 
 Use these URLs in your CardDAV or CalDAV client software.
 

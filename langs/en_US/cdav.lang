@@ -2,7 +2,7 @@
 CardDAVurl=CardDAV URL
 CalDAVurl=CalDAV URL
 ICSurl=URL ICS
-URLforICS=This URL can be used by a synchronisation client tool :
+URLforICS=This URL can be used by a synchronisation client tool (read only) :
 Full=Full
 NoLabel=Without label
 Busy=Busy
