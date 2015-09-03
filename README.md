@@ -14,7 +14,9 @@ You can :
  
 This release don't permit CarDAV client tools to update address books.
 
-Each user can access his contacts address book (public and own private contacts), his own calendar and other users calendars according to his rights.
+Each user can access his contacts address book (public and own private contacts), his own calendar and other users calendars according to his rights.i
+
+Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
 
 ## How to install
 
@@ -43,6 +45,8 @@ Use these URLs in your CardDAV or CalDAV client software.
 [DAVDroid](https://davdroid.bitfire.at/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
 
 	https://server.example.com/dolibarr/htdocs/cdav/
+
+You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVDroid is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
 
 Be carefull, if you use https, DAVDroid needs a valid SSL certificate, excluding auto-signed certificates.
 
