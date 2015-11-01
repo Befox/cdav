@@ -89,7 +89,7 @@ class CdavLib
             $categ[] = $this->langs->transnoentitiesnoconv('Customer');
         }*/
 
-        if($obj->percent==-1 && !empty(trim($obj->datep)))
+        if($obj->percent==-1 && trim($obj->datep)!='')
             $type='VEVENT';
         else
             $type='VTODO';
@@ -113,7 +113,7 @@ class CdavLib
             $caldata.="DTSTART;VALUE=DATE:".date('Ymd', strtotime($obj->datep))."\n";
             if($type=='VEVENT')
                 $caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
-            elseif(!empty(trim($obj->datep2)))
+            elseif(trim($obj->datep2)!='')
                 $caldata.="DUE;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
         }
         else
@@ -121,7 +121,7 @@ class CdavLib
             $caldata.="DTSTART;TZID=".$timezone.":".strtr($obj->datep,array(" "=>"T", ":"=>"", "-"=>""))."\n";
             if($type=='VEVENT')
                 $caldata.="DTEND;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
-            elseif(!empty(trim($obj->datep2)))
+            elseif(trim($obj->datep2)!='')
                 $caldata.="DUE;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
         }
         $caldata.="CLASS:PUBLIC\n";
