@@ -132,7 +132,8 @@ elseif($type=='ICS')
 	}
 	else
 	{
-		echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
+		echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+full', MCRYPT_ENCRYPT))."\n\n";
+		echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
 	}
 
 }
