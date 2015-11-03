@@ -23,8 +23,6 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
-set_error_handler("exception_error_handler");
-
 
 // debug
 //$debug_file = fopen('/tmp/cdav_'.date('Ymd_'),'a');
@@ -74,7 +72,8 @@ require $dir.'main.inc.php';	// Load $user and permissions
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !'); 
-	
+
+set_error_handler("exception_error_handler");
 
 require_once './lib/cdav.lib.php';
 
