@@ -14,6 +14,10 @@
  *
  ******************************************************************/
 
+error_reporting(E_ALL & ~E_NOTICE);
+ini_set("display_errors", 1);
+ini_set("log_errors", 1);
+
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
 	if(function_exists("debug_log"))
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
