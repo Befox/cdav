@@ -101,11 +101,17 @@ $cdavLib = new CdavLib($user, $db, $langs);
 // Authentication
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
-	global $db;
 	global $user;
-	if(!isset($user->login) || $user->login=='') return false;
-	
-	return ($user->societe_id==0 && $user->login==$username && $user->pass==$password);
+	if ( ! isset($user->login) || $user->login=='')
+		return false;
+	if ($user->societe_id!=0)
+		return false;
+	if ($user->login!=$username)
+		return false;
+	if ($user->pass_indatabase_crypted == '' || dol_hash($password) != $user->pass_indatabase_crypted)
+		return false;
+
+	return true;
 });
 
 $authBackend->setRealm('Dolibarr');
