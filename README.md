@@ -37,14 +37,13 @@ Use these URLs in your CardDAV or CalDAV client software.
 
     https://server.example.com/dolibarr/htdocs/cdav/server.php/calendars/<connected-user-login>/<calendar-user-id>-cal-<calendar-user-login>
 
-
     https://server.example.com/dolibarr/htdocs/cdav/server.php/addressbooks/<connected-user-login>/default/
 
 ### DAVDroid
 
 [DAVDroid](https://davdroid.bitfire.at/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
 
-	https://server.example.com/dolibarr/htdocs/cdav/
+    https://server.example.com/dolibarr/htdocs/cdav/
 
 You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVDroid is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
 
@@ -53,4 +52,32 @@ Be carefull, if you use https, DAVDroid needs a valid SSL certificate, excluding
 Admin users can also access Dolibarr documents through WebDAV with WebDAV URL :
 
     https://server.example.com/dolibarr/htdocs/cdav/server.php/documents/
+
+## Troubleshooting
+
+To test cdav module, you can use DAVDroid url https://server.example.com/dolibarr/htdocs/cdav/ in a web browser. Error messages are clearer.
+
+### Apache web server
+
+Apache rewrite module is necessary if you use fcgi or php-fpm mode. In this case, .htacess file in cdav module has to be read by Apache or reported in your Apache configuration.
+
+It is recommanded to disable these Apache modules : dav / dav_fs / dav_lock.
+
+### nginx web server
+
+To solve authentication loop, add these directives to your nginx "location" rubrique : 
+
+    fastcgi_param PHP_AUTH_USER $remote_user;
+    fastcgi_param PHP_AUTH_PW $http_authorization;
+
+or
+
+    fastcgi_pass_header Authorization;
+
+### nginx reverse proxy
+
+To solve authentication loop, add this directive to your nginx "location" rubrique :
+
+    proxy_pass_header Authorization;
+
 
