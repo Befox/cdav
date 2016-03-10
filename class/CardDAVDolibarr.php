@@ -188,13 +188,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
         $soc_address=explode("\n",$obj->soc_address,2);
         foreach($soc_address as $kAddr => $vAddr)
-            $soc_address[$kAddr] = trim(str_replace(array("\r","\t"),' ', $vAddr));
+            $soc_address[$kAddr] = trim(str_replace(array("\r","\n","\t"),' ', $vAddr));
         $soc_address[]='';
         $soc_address[]='';
         
         $address=explode("\n",$obj->address,2);
         foreach($address as $kAddr => $vAddr)
-            $address[$kAddr] = trim(str_replace(array("\r","\t"),' ', $vAddr));
+            $address[$kAddr] = trim(str_replace(array("\r","\n","\t"),' ', $vAddr));
         $address[]='';
         $address[]='';
         
