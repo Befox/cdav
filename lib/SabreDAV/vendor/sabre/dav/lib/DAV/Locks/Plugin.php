@@ -16,7 +16,7 @@ use Sabre\HTTP\ResponseInterface;
  * $lockPlugin = new Sabre\DAV\Locks\Plugin($lockBackend);
  * $server->addPlugin($lockPlugin);
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -409,6 +409,7 @@ class Plugin extends DAV\ServerPlugin {
      * must be present in the request, and reject requests without the proper
      * tokens.
      *
+     * @param RequestInterface $request
      * @param mixed $conditions
      * @return void
      */

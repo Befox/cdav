@@ -193,6 +193,27 @@ BLA;
     }
 
     /**
+     * @expectedException \LogicException
+     */
+    function testMappedElementBadClass() {
+
+        $input = <<<BLA
+<?xml version="1.0"?>
+<root xmlns="http://sabredav.org/ns">
+  <elem1 />
+</root>
+BLA;
+
+        $reader = new Reader();
+        $reader->elementMap = [
+            '{http://sabredav.org/ns}elem1' => new \StdClass()
+        ];
+        $reader->xml($input);
+
+        $reader->parse();
+    }
+
+    /**
      * @depends testMappedElement
      */
     function testMappedElementCallBack() {
@@ -325,7 +346,7 @@ BLA;
      *
      * @expectedException Sabre\Xml\LibXMLException
      */
-    function testBrokenXML() {
+    function testBrokenXml() {
 
         $input = <<<BLA
 <test>
@@ -339,6 +360,33 @@ BLA;
         $reader->parse();
 
     }
+
+    /**
+     * Test was added for Issue #45.
+     *
+     * @expectedException Sabre\Xml\LibXMLException
+     */
+    function testBrokenXml2() {
+
+        $input = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions>
+    <collaboration>
+        <participant id="sid-A33D08EB-A2DE-448F-86FE-A2B62E98818" name="Company" processRef="sid-A0A6A196-3C9A-4C69-88F6-7ED7DDFDD264">
+            <extensionElements>
+                <signavio:signavioMetaData metaKey="bgcolor" />
+                ""Administrative w">
+                <extensionElements>
+                    <signavio:signavioMetaData metaKey="bgcolor" metaValue=""/>
+                </extensionElements>
+                </lan
+XML;
+        $reader = new Reader();
+        $reader->xml($input);
+        $reader->parse();
+
+    }
+
 
     /**
      * @depends testMappedElement
@@ -392,5 +440,106 @@ BLA;
         $this->assertEquals($expected, $output);
 
     }
+
+    /**
+     * @depends testParseInnerTree
+     */
+    function testParseGetElements() {
+
+        $input = <<<BLA
+<?xml version="1.0"?>
+<root xmlns="http://sabredav.org/ns">
+  <elem1>
+     <elem1 />
+  </elem1>
+</root>
+BLA;
+
+        $reader = new Reader();
+        $reader->elementMap = [
+            '{http://sabredav.org/ns}elem1' => function(Reader $reader) {
+
+                $innerTree = $reader->parseGetElements(['{http://sabredav.org/ns}elem1' => function(Reader $reader) {
+                    $reader->next();
+                    return "foobar";
+                }]);
+
+                return $innerTree;
+            }
+        ];
+        $reader->xml($input);
+
+        $output = $reader->parse();
+
+        $expected = [
+            'name'  => '{http://sabredav.org/ns}root',
+            'value' => [
+                [
+                    'name'  => '{http://sabredav.org/ns}elem1',
+                    'value' => [
+                        [
+                            'name'       => '{http://sabredav.org/ns}elem1',
+                            'value'      => 'foobar',
+                            'attributes' => [],
+                        ]
+                    ],
+                    'attributes' => [],
+                ],
+            ],
+            'attributes' => [],
+
+        ];
+
+        $this->assertEquals($expected, $output);
+
+    }
+
+    /**
+     * @depends testParseInnerTree
+     */
+    function testParseGetElementsNoElements() {
+
+        $input = <<<BLA
+<?xml version="1.0"?>
+<root xmlns="http://sabredav.org/ns">
+  <elem1>
+    hi
+  </elem1>
+</root>
+BLA;
+
+        $reader = new Reader();
+        $reader->elementMap = [
+            '{http://sabredav.org/ns}elem1' => function(Reader $reader) {
+
+                $innerTree = $reader->parseGetElements(['{http://sabredav.org/ns}elem1' => function(Reader $reader) {
+                    $reader->next();
+                    return "foobar";
+                }]);
+
+                return $innerTree;
+            }
+        ];
+        $reader->xml($input);
+
+        $output = $reader->parse();
+
+        $expected = [
+            'name'  => '{http://sabredav.org/ns}root',
+            'value' => [
+                [
+                    'name'       => '{http://sabredav.org/ns}elem1',
+                    'value'      => [],
+                    'attributes' => [],
+                ],
+            ],
+            'attributes' => [],
+
+        ];
+
+        $this->assertEquals($expected, $output);
+
+    }
+
 
 }

@@ -198,6 +198,93 @@ XML;
 
     }
 
+    function testMapValueObject() {
+
+        $input = <<<XML
+<?xml version="1.0"?>
+<order xmlns="http://sabredav.org/ns">
+ <id>1234</id>
+ <amount>99.99</amount>
+ <description>black friday deal</description>
+ <status>
+  <id>5</id>
+  <label>processed</label>
+ </status>
+</order>
+
+XML;
+
+        $ns = 'http://sabredav.org/ns';
+        $orderService = new \Sabre\Xml\Service();
+        $orderService->mapValueObject('{' . $ns . '}order', 'Sabre\Xml\Order');
+        $orderService->mapValueObject('{' . $ns . '}status', 'Sabre\Xml\OrderStatus');
+        $orderService->namespaceMap[$ns] = null;
+
+        $order = $orderService->parse($input);
+        $expected = new Order();
+        $expected->id = 1234;
+        $expected->amount = 99.99;
+        $expected->description = 'black friday deal';
+        $expected->status = new OrderStatus();
+        $expected->status->id = 5;
+        $expected->status->label = 'processed';
+
+        $this->assertEquals($expected, $order);
+
+        $writtenXml = $orderService->writeValueObject($order);
+        $this->assertEquals($input, $writtenXml);
+    }
+
+    function testMapValueObjectArrayProperty() {
+
+        $input = <<<XML
+<?xml version="1.0"?>
+<order xmlns="http://sabredav.org/ns">
+ <id>1234</id>
+ <amount>99.99</amount>
+ <description>black friday deal</description>
+ <status>
+  <id>5</id>
+  <label>processed</label>
+ </status>
+ <link>http://example.org/</link>
+ <link>http://example.com/</link>
+</order>
+
+XML;
+
+        $ns = 'http://sabredav.org/ns';
+        $orderService = new \Sabre\Xml\Service();
+        $orderService->mapValueObject('{' . $ns . '}order', 'Sabre\Xml\Order');
+        $orderService->mapValueObject('{' . $ns . '}status', 'Sabre\Xml\OrderStatus');
+        $orderService->namespaceMap[$ns] = null;
+
+        $order = $orderService->parse($input);
+        $expected = new Order();
+        $expected->id = 1234;
+        $expected->amount = 99.99;
+        $expected->description = 'black friday deal';
+        $expected->status = new OrderStatus();
+        $expected->status->id = 5;
+        $expected->status->label = 'processed';
+        $expected->link = ['http://example.org/', 'http://example.com/'];
+
+        $this->assertEquals($expected, $order);
+
+        $writtenXml = $orderService->writeValueObject($order);
+        $this->assertEquals($input, $writtenXml);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    function testWriteVoNotFound() {
+
+        $service = new Service();
+        $service->writeValueObject(new \StdClass());
+
+    }
+
     function testParseClarkNotation() {
 
         $this->assertEquals([
@@ -216,4 +303,26 @@ XML;
 
     }
 
+}
+
+/**
+ * asset for testMapValueObject()
+ * @internal
+ */
+class Order {
+    public $id;
+    public $amount;
+    public $description;
+    public $status;
+    public $empty;
+    public $link = [];
+}
+
+/**
+ * asset for testMapValueObject()
+ * @internal
+ */
+class OrderStatus {
+    public $id;
+    public $label;
 }

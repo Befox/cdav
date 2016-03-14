@@ -20,7 +20,7 @@ use Sabre\HTTP\ResponseInterface;
  * This plugin provides functionality added by CalDAV (RFC 4791)
  * It implements new reports, and the MKCALENDAR method.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -572,6 +572,19 @@ class Plugin extends DAV\ServerPlugin {
 
                 }
 
+            }
+
+        }
+
+        if ($node instanceof ICalendarObjectContainer && $depth === 0) {
+
+            if (strpos($this->server->httpRequest->getHeader('User-Agent'), 'MSFT-WP/') === 0) {
+                // Windows phone incorrectly supplied depth as 0, when it actually
+                // should have set depth to 1. We're implementing a workaround here
+                // to deal with this.
+                $depth = 1;
+            } else {
+                throw new BadRequest('A calendar-query REPORT on a calendar with a Depth: 0 is undefined. Set Depth to 1');
             }
 
         }

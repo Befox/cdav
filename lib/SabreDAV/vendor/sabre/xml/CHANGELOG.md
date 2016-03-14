@@ -1,6 +1,62 @@
 ChangeLog
 =========
 
+1.4.1 (2016-03-12)
+-----------------
+
+* Parsing clark-notation is now cached. This can speed up parsing large
+  documents with lots of repeating elements a fair bit. (@icewind1991).
+
+
+1.4.0 (2016-02-14)
+------------------
+
+* Any array thrown into the serializer with numeric keys is now simply
+  traversed and each individual item is serialized. This fixes an issue
+  related to serializing value objects with array children.
+* When serializing value objects, properties that have a null value or an
+  empty array are now skipped. We believe this to be the saner default, but
+  does constitute a BC break for those depending on this.
+* Serializing array properties in value objects was broken.
+
+
+1.3.0 (2015-12-29)
+------------------
+
+* The `Service` class adds a new `mapValueObject` method which provides basic
+  capabilities to map between ValueObjects and XML.
+* #61: You can now specify serializers for specific classes, allowing you
+  separate the object you want to serialize from the serializer. This uses the
+  `$classMap` property which is defined on both the `Service` and `Writer`.
+* It's now possible to pass an array of possible root elements to
+  `Sabre\Xml\Service::expect()`.
+* Moved some parsing logic to `Reader::getDeserializerForElementName()`,
+  so people with more advanced use-cases can implement their own logic there.
+* #63: When serializing elements using arrays, the `value` key in the array is
+  now optional.
+* #62: Added a `keyValue` deserializer function. This can be used instead of
+  the `Element\KeyValue` class and is a lot more flexible. (@staabm)
+* Also added an `enum` deserializer function to replace
+  `Element\Elements`.
+* Using an empty string for a namespace prefix now has the same effect as
+  `null`.
+
+
+1.2.0 (2015-08-30)
+------------------
+
+* #53: Added `parseGetElements`, a function like `parseInnerTree`, except
+  that it always returns an array of elements, or an empty array.
+
+
+1.1.0 (2015-06-29)
+------------------
+
+* #44, #45: Catching broken and invalid XML better and throwing
+  `Sabre\Xml\LibXMLException` whenever we encounter errors. (@stefanmajoor,
+   @DaanBiesterbos)
+
+
 1.0.0 (2015-05-25)
 ------------------
 

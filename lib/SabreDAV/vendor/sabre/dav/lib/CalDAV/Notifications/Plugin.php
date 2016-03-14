@@ -20,7 +20,7 @@ use Sabre\HTTP\ResponseInterface;
  * Before version 2.1.0 this functionality was part of Sabre\CalDAV\Plugin but
  * this has since been split up.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -32,6 +32,8 @@ class Plugin extends ServerPlugin {
     const NS_CALENDARSERVER = 'http://calendarserver.org/ns/';
 
     /**
+     * Reference to the main server object.
+     *
      * @var Server
      */
     protected $server;

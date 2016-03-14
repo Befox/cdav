@@ -9,7 +9,7 @@ use Sabre\DAV;
  *
  * See the Collection in this directory for more details.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -44,6 +44,17 @@ class File extends DAV\File {
     function getName() {
 
         return $this->name;
+
+    }
+
+    /**
+     * Changes the name of the node.
+     *
+     * @return void
+     */
+    function setName($name) {
+
+        $this->name = $name;
 
     }
 
@@ -87,19 +98,6 @@ class File extends DAV\File {
     function get() {
 
         return $this->contents;
-
-    }
-
-    /**
-     * Changes the name of the node.
-     *
-     * @return void
-     */
-    function setName($newName) {
-
-        $this->parent->deleteChild($this->name);
-        $this->name = $newName;
-        $this->parent->createFile($newName, $this->contents);
 
     }
 

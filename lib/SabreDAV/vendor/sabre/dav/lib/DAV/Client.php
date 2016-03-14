@@ -12,7 +12,7 @@ use Sabre\HTTP;
  *
  * NOTE: This class is experimental, it's api will likely change in the future.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -38,6 +38,13 @@ class Client extends HTTP\Client {
      */
     public $propertyMap = [];
 
+    /**
+     * Base URI
+     *
+     * This URI will be used to resolve relative urls.
+     *
+     * @var string
+     */
     protected $baseUri;
 
     /**
@@ -49,6 +56,11 @@ class Client extends HTTP\Client {
      * Digest authentication
      */
     const AUTH_DIGEST = 2;
+
+    /**
+     * NTLM authentication
+     */
+    const AUTH_NTLM = 4;
 
     /**
      * Identity encoding, which basically does not nothing.
@@ -90,8 +102,8 @@ class Client extends HTTP\Client {
      *   * authType (optional)
      *   * encoding (optional)
      *
-     *  authType must be a bitmap, using self::AUTH_BASIC and
-     *  self::AUTH_DIGEST. If you know which authentication method will be
+     *  authType must be a bitmap, using self::AUTH_BASIC, self::AUTH_DIGEST
+     *  and self::AUTH_NTLM. If you know which authentication method will be
      *  used, it's recommended to set it, as it will save a great deal of
      *  requests to 'discover' this information.
      *
@@ -124,6 +136,9 @@ class Client extends HTTP\Client {
                 }
                 if ($settings['authType'] & self::AUTH_DIGEST) {
                     $curlType |= CURLAUTH_DIGEST;
+                }
+                if ($settings['authType'] & self::AUTH_NTLM) {
+                    $curlType |= CURLAUTH_NTLM;
                 }
             } else {
                 $curlType = CURLAUTH_BASIC | CURLAUTH_DIGEST;

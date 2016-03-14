@@ -7,7 +7,7 @@ use Sabre\VObject;
 /**
  * This unittest is created to check if queries for time-range include the start timestamp or not
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -32,7 +32,7 @@ VERSION:2.0
 BEGIN:VEVENT
 CREATED:20120313T142342Z
 UID:171EBEFC-C951-499D-B234-7BA7D677B45D
-DTEND;TZID=Europe/Berlin:20120227T000000
+DTEND;TZID=Europe/Berlin:20120227T010000
 TRANSP:OPAQUE
 SUMMARY:Monday 0h
 DTSTART;TZID=Europe/Berlin:20120227T000000
@@ -47,25 +47,27 @@ END:VCALENDAR
 
     function testQueryTimerange() {
 
-        $request = HTTP\Sapi::createFromServerArray([
-            'REQUEST_METHOD' => 'REPORT',
-            'HTTP_CONTENT_TYPE' => 'application/xml',
-            'REQUEST_URI' => '/calendars/user1/calendar1',
-            'HTTP_DEPTH' => '1',
-        ]);
+        $request = new HTTP\Request(
+            'REPORT',
+            '/calendars/user1/calendar1',
+            [
+                'Content-Type' => 'application/xml',
+                'Depth'        => '1',
+            ]
+        );
 
         $request->setBody('<?xml version="1.0" encoding="utf-8" ?>
 <C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
     <D:prop>
         <C:calendar-data>
-            <C:expand start="20120226T230000Z" end="20120228T225959Z"/>
+            <C:expand start="20120226T220000Z" end="20120228T225959Z"/>
         </C:calendar-data>
         <D:getetag/>
     </D:prop>
     <C:filter>
         <C:comp-filter name="VCALENDAR">
             <C:comp-filter name="VEVENT">
-                <C:time-range start="20120226T230000Z" end="20120228T225959Z"/>
+                <C:time-range start="20120226T220000Z" end="20120228T225959Z"/>
             </C:comp-filter>
         </C:comp-filter>
     </C:filter>

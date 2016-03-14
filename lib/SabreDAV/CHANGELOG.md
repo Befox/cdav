@@ -1,6 +1,102 @@
 ChangeLog
 =========
 
+3.0.8 (2016-03-12)
+------------------
+
+* #784: Sync logs for address books were not correctly cleaned up after
+  deleting them.
+* #787: Cannot use non-seekable stream-wrappers with range requests.
+* Faster XML parsing and generating due to sabre/xml update.
+* The zip release ships with [sabre/vobject 3.5.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
+3.0.7 (2016-01-12)
+------------------
+
+* #752: PHP 7 support for 3.0 branch. (@DeepDiver1975)
+* The zip release ships with [sabre/vobject 3.5.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.3.0][xml].
+
+
+3.0.6 (2016-01-04)
+------------------
+
+* #730: Switched all mysql tables to `utf8mb4` character set, allowing you to
+  use emoji in some tables where you couldn't before.
+* #729: Not all calls to `Sabre\DAV\Tree::getChildren()` were properly cached.
+* #734: Return `418 I'm a Teapot` when generating a multistatus response that
+  has resources with no returned properties.
+* #740: Bugs in `migrate20.php` script.
+* The zip release ships with [sabre/vobject 3.4.8][vobj],
+  [sabre/http 4.1.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.3.0][xml].
+
+
+3.0.5 (2015-09-15)
+------------------
+
+* #704: Fixed broken uri encoding in multistatus responses. This affected
+  at least CyberDuck, but probably also others.
+* The zip release ships with [sabre/vobject 3.4.7][vobj],
+  [sabre/http 4.1.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.2.0][xml].
+
+
+3.0.4 (2015-09-06)
+------------------
+
+* #703: PropPatch in client is not correctly encoded.
+* #709: Throw exception when running into empty
+  `supported-calendar-component-set`.
+* #711: Don't trigger deserializers for empty elements in `{DAV:}prop`. This
+  fixes issues when using sabre/dav as a client.
+* #705: A `MOVE` request that gets prevented from deleting the source resource
+  will still remove the target resource. Now all events are triggered before
+  any destructive operations.
+* The zip release ships with [sabre/vobject 3.4.7][vobj],
+  [sabre/http 4.1.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.2.0][xml].
+
+
+3.0.3 (2015-08-06)
+------------------
+
+* #700: Digest Auth fails on `HEAD` requests.
+* Fixed example files to no longer use now-deprecated realm argument.
+* The zip release ships with [sabre/vobject 3.4.6][vobj],
+  [sabre/http 4.0.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.1.0][xml].
+
+
+3.0.2 (2015-07-21)
+------------------
+
+* #657: Migration script would break when coming a cross an iCalendar object
+  with no UID.
+* #691: Workaround for broken Windows Phone client.
+* Fixed a whole bunch of incorrect php docblocks.
+* The zip release ships with [sabre/vobject 3.4.5][vobj],
+  [sabre/http 4.0.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.1.0][xml].
+
+
+3.0.1 (2015-07-02)
+------------------
+
+* #674: Postgres sql file fixes. (@davesouthey)
+* #677: Resources with the name '0' would not get retrieved when using
+  `Depth: infinity` in a `PROPFIND` request.
+* #680: Fix 'autoprefixing' of dead `{DAV:}href` properties.
+* #675: NTLM support in DAV\Client. (@k42b3)
+* The zip release ships with [sabre/vobject 3.4.5][vobj],
+  [sabre/http 4.0.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.1.0][xml].
+
+
 3.0.0 (2015-06-02)
 ------------------
 
@@ -151,6 +247,59 @@ ChangeLog
 * #582: `Sabre\DAV\Auth\Plugin::getCurrentUser()` is now deprecated. Use
   `Sabre\DAV\Auth\Plugin::getCurrentPrincipal()` instead.
 * #193: Fix `Sabre\DAV\FSExt\Directory::getQuotaInfo()` on windows.
+
+
+2.1.10 (2016-03-10)
+-------------------
+
+* #784: Sync logs for address books were not correctly cleaned up after
+  deleting them.
+
+
+2.1.9 (2016-01-25)
+------------------
+
+* #674: PHP7 support (@DeepDiver1975).
+* The zip release ships with [sabre/vobject 3.5.0][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
+
+
+2.1.8 (2016-01-04)
+------------------
+
+* #729: Fixed a caching problem in the Tree object.
+* #740: Bugs in `migrate20.php` script.
+* The zip release ships with [sabre/vobject 3.4.8][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
+
+
+2.1.7 (2015-09-05)
+------------------
+
+* #705: A `MOVE` request that gets prevented from deleting the source resource
+  will still remove the target resource. Now all events are triggered before
+  any destructive operations.
+* The zip release ships with [sabre/vobject 3.4.7][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
+
+
+2.1.6 (2015-07-21)
+------------------
+
+* #657: Migration script would break when coming a cross an iCalendar object
+  with no UID.
+* #691: Workaround for broken Windows Phone client.
+* The zip release ships with [sabre/vobject 3.4.5][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
+
+
+2.1.5 (2015-07-11)
+------------------
+
+* #677: Resources with the name '0' would not get retrieved when using
+  `Depth: infinity` in a `PROPFIND` request.
+* The zip release ships with [sabre/vobject 3.4.5][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
 
 
 2.1.4 (2015-05-25)
@@ -315,6 +464,26 @@ ChangeLog
 * Added: #523 Custom CalDAV backends can now mark any calendar as read-only.
 * The zip release ships with [sabre/vobject 3.3.3][vobj],
   [sabre/http 3.0.0][http], and [sabre/event 2.0.0][evnt].
+
+
+2.0.9 (2015-09-04)
+------------------
+
+* #705: A `MOVE` request that gets prevented from deleting the source resource
+  will still remove the target resource. Now all events are triggered before
+  any destructive operations.
+* The zip release ships with [sabre/vobject 3.4.6][vobj],
+  [sabre/http 2.0.4][http], and [sabre/event 1.0.1][evnt].
+
+
+
+2.0.8 (2015-07-11)
+------------------
+
+* #677: Resources with the name '0' would not get retrieved when using
+  `Depth: infinity` in a `PROPFIND` request.
+* The zip release ships with [sabre/vobject 3.3.5][vobj],
+  [sabre/http 2.0.4][http], and [sabre/event 1.0.1][evnt].
 
 
 2.0.7 (2015-05-25)

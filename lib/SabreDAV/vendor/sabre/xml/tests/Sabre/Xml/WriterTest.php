@@ -72,29 +72,29 @@ HI
         );
 
     }
-
     function testMixedSyntax() {
         $this->compare([
             '{http://sabredav.org/ns}root' => [
-                'single'   => 'value',
-                'multiple' => [
+                '{http://sabredav.org/ns}single'   => 'value',
+                '{http://sabredav.org/ns}multiple' => [
                     [
-                        'name'  => 'foo',
+                        'name'  => '{http://sabredav.org/ns}foo',
                         'value' => 'bar',
                     ],
                     [
-                        'name'  => 'foo',
+                        'name'  => '{http://sabredav.org/ns}foo',
                         'value' => 'foobar',
                     ],
                 ],
-                'attributes' => [
+                [
+                    'name'       => '{http://sabredav.org/ns}attributes',
                     'value'      => null,
                     'attributes' => [
                         'foo' => 'bar',
                     ],
                 ],
                 [
-                    'name'       => 'verbose',
+                    'name'       => '{http://sabredav.org/ns}verbose',
                     'value'      => 'syntax',
                     'attributes' => [
                         'foo' => 'bar',
@@ -104,13 +104,13 @@ HI
         ], <<<HI
 <?xml version="1.0"?>
 <s:root xmlns:s="http://sabredav.org/ns">
- <single>value</single>
- <multiple>
-  <foo>bar</foo>
-  <foo>foobar</foo>
- </multiple>
- <attributes foo="bar"/>
- <verbose foo="bar">syntax</verbose>
+ <s:single>value</s:single>
+ <s:multiple>
+  <s:foo>bar</s:foo>
+  <s:foo>foobar</s:foo>
+ </s:multiple>
+ <s:attributes foo="bar"/>
+ <s:verbose foo="bar">syntax</s:verbose>
 </s:root>
 
 HI
@@ -146,6 +146,55 @@ HI
 <?xml version="1.0"?>
 <s:root xmlns:s="http://sabredav.org/ns">
  <s:elem1 attr1="attribute value">text</s:elem1>
+</s:root>
+
+HI
+        );
+
+    }
+
+    function testArrayOfValues() {
+
+        $this->compare([
+            '{http://sabredav.org/ns}root' => [
+                [
+                    'name'       => '{http://sabredav.org/ns}elem1',
+                    'value'      => [
+                        'foo',
+                        'bar',
+                        'baz',
+                    ],
+                ],
+            ],
+        ], <<<HI
+<?xml version="1.0"?>
+<s:root xmlns:s="http://sabredav.org/ns">
+ <s:elem1>foobarbaz</s:elem1>
+</s:root>
+
+HI
+        );
+
+    }
+
+    /**
+     * @depends testArrayFormat2
+     */
+    function testArrayFormat2NoValue() {
+
+        $this->compare([
+            '{http://sabredav.org/ns}root' => [
+                [
+                    'name'       => '{http://sabredav.org/ns}elem1',
+                    'attributes' => [
+                        'attr1' => 'attribute value',
+                    ],
+                ],
+            ],
+        ], <<<HI
+<?xml version="1.0"?>
+<s:root xmlns:s="http://sabredav.org/ns">
+ <s:elem1 attr1="attribute value"/>
 </s:root>
 
 HI
@@ -213,19 +262,6 @@ HI
 
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    function testInvalidFormat() {
-
-        $this->compare([
-            '{http://sabredav.org/ns}root' => [
-                ['incorrect' => '0', 'keynames' => 1]
-            ],
-        ], "");
-
-    }
-
     function testBaseElement() {
 
         $this->compare([
@@ -257,6 +293,22 @@ HI
     function testEmptyNamespacePrefix() {
 
         $this->writer->namespaceMap['http://sabredav.org/ns'] = null;
+        $this->compare([
+            '{http://sabredav.org/ns}root' => new Element\Mock()
+        ], <<<HI
+<?xml version="1.0"?>
+<root xmlns="http://sabredav.org/ns">
+ <elem1>hiiii!</elem1>
+</root>
+
+HI
+        );
+
+    }
+
+    function testEmptyNamespacePrefixEmptyString() {
+
+        $this->writer->namespaceMap['http://sabredav.org/ns'] = '';
         $this->compare([
             '{http://sabredav.org/ns}root' => new Element\Mock()
         ], <<<HI
@@ -323,6 +375,65 @@ HI;
 
         $this->assertEquals($output, $this->writer->outputMemory());
 
+    }
+
+    function testCallback() {
+
+        $this->compare([
+            '{http://sabredav.org/ns}root' => function(Writer $writer) {
+                $writer->text('deferred writer');
+            },
+        ], <<<HI
+<?xml version="1.0"?>
+<s:root xmlns:s="http://sabredav.org/ns">deferred writer</s:root>
+
+HI
+        );
+
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    function testResource() {
+
+        $this->compare([
+            '{http://sabredav.org/ns}root' => fopen('php://memory', 'r'),
+        ], <<<HI
+<?xml version="1.0"?>
+<s:root xmlns:s="http://sabredav.org/ns">deferred writer</s:root>
+
+HI
+        );
+
+    }
+
+    function testClassMap() {
+
+        $obj = (object)[
+            'key1' => 'value1',
+            'key2' => 'value2',
+        ];
+
+        $this->writer->classMap['stdClass'] = function(Writer $writer, $value) {
+
+            foreach (get_object_vars($value) as $key => $val) {
+                $writer->writeElement('{http://sabredav.org/ns}' . $key, $val);
+            }
+
+        };
+
+        $this->compare([
+            '{http://sabredav.org/ns}root' => $obj
+        ], <<<HI
+<?xml version="1.0"?>
+<s:root xmlns:s="http://sabredav.org/ns">
+ <s:key1>value1</s:key1>
+ <s:key2>value2</s:key2>
+</s:root>
+
+HI
+        );
 
     }
 }

@@ -56,6 +56,7 @@ class Reader extends XMLReader {
      */
     function parse() {
 
+        $previousEntityState = libxml_disable_entity_loader(true);
         $previousSetting = libxml_use_internal_errors(true);
 
         // Really sorry about the silence operator, seems like I have no
@@ -70,12 +71,40 @@ class Reader extends XMLReader {
         $errors = libxml_get_errors();
         libxml_clear_errors();
         libxml_use_internal_errors($previousSetting);
+        libxml_disable_entity_loader($previousEntityState);
 
         if ($errors) {
             throw new LibXMLException($errors);
-        } else {
-            return $result;
         }
+
+        return $result;
+    }
+
+
+
+    /**
+     * parseGetElements parses everything in the current sub-tree,
+     * and returns a an array of elements.
+     *
+     * Each element has a 'name', 'value' and 'attributes' key.
+     *
+     * If the the element didn't contain sub-elements, an empty array is always
+     * returned. If there was any text inside the element, it will be
+     * discarded.
+     *
+     * If the $elementMap argument is specified, the existing elementMap will
+     * be overridden while parsing the tree, and restored after this process.
+     *
+     * @param array $elementMap
+     * @return array
+     */
+    function parseGetElements(array $elementMap = null) {
+
+        $result = $this->parseInnerTree($elementMap);
+        if (!is_array($result)) {
+            return [];
+        }
+        return $result;
 
     }
 
@@ -95,11 +124,8 @@ class Reader extends XMLReader {
      */
     function parseInnerTree(array $elementMap = null) {
 
-        $previousDepth = $this->depth;
-
         $text = null;
         $elements = [];
-        $attributes = [];
 
         if ($this->nodeType === self::ELEMENT && $this->isEmptyElement) {
             // Easy!
@@ -112,7 +138,6 @@ class Reader extends XMLReader {
             $this->elementMap = $elementMap;
         }
 
-
         // Really sorry about the silence operator, seems like I have no
         // choice. See:
         //
@@ -120,6 +145,16 @@ class Reader extends XMLReader {
         if (!@$this->read()) return false;
 
         while (true) {
+
+            if (!$this->isValid()) {
+
+                $errors = libxml_get_errors();
+
+                if ($errors) {
+                    libxml_clear_errors();
+                    throw new LibXMLException($errors);
+                }
+            }
 
             switch ($this->nodeType) {
                 case self::ELEMENT :
@@ -190,24 +225,10 @@ class Reader extends XMLReader {
             $attributes = $this->parseAttributes();
         }
 
-        if (array_key_exists($name, $this->elementMap)) {
-            $deserializer = $this->elementMap[$name];
-            if (is_subclass_of($deserializer, 'Sabre\\Xml\\XmlDeserializable')) {
-                $value = call_user_func([ $deserializer, 'xmlDeserialize' ], $this);
-            } elseif (is_callable($deserializer)) {
-                $value = call_user_func($deserializer, $this);
-            } else {
-                $type = gettype($deserializer);
-                if ($type === 'string') {
-                    $type .= ' (' . $deserializer . ')';
-                } elseif ($type === 'object') {
-                    $type .= ' (' . get_class($deserializer) . ')';
-                }
-                throw new \LogicException('Could not use this type as a deserializer: ' . $type);
-            }
-        } else {
-            $value = Element\Base::xmlDeserialize($this);
-        }
+        $value = call_user_func(
+            $this->getDeserializerForElementName($name),
+            $this
+        );
 
         return [
             'name'       => $name,
@@ -215,6 +236,7 @@ class Reader extends XMLReader {
             'attributes' => $attributes,
         ];
     }
+
 
     /**
      * Grabs all the attributes from the current element, and returns them as a
@@ -224,7 +246,7 @@ class Reader extends XMLReader {
      * short keys. If they are defined on a different namespace, the attribute
      * name will be retured in clark-notation.
      *
-     * @return void
+     * @return array
      */
     function parseAttributes() {
 
@@ -248,6 +270,38 @@ class Reader extends XMLReader {
         $this->moveToElement();
 
         return $attributes;
+
+    }
+
+    /**
+     * Returns the function that should be used to parse the element identified
+     * by it's clark-notation name.
+     *
+     * @param string $name
+     * @return callable
+     */
+    function getDeserializerForElementName($name) {
+
+        if (!array_key_exists($name, $this->elementMap)) {
+            return ['Sabre\\Xml\\Element\\Base', 'xmlDeserialize'];
+        }
+
+        $deserializer = $this->elementMap[$name];
+        if (is_subclass_of($deserializer, 'Sabre\\Xml\\XmlDeserializable')) {
+            return [ $deserializer, 'xmlDeserialize' ];
+        }
+
+        if (is_callable($deserializer)) {
+            return $deserializer;
+        }
+
+        $type = gettype($deserializer);
+        if ($type === 'string') {
+            $type .= ' (' . $deserializer . ')';
+        } elseif ($type === 'object') {
+            $type .= ' (' . get_class($deserializer) . ')';
+        }
+        throw new \LogicException('Could not use this type as a deserializer: ' . $type . ' for element: ' . $name);
 
     }
 

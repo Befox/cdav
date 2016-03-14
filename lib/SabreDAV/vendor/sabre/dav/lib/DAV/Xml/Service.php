@@ -5,7 +5,7 @@ namespace Sabre\DAV\Xml;
 /**
  * XML service for WebDAV
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -20,7 +20,6 @@ class Service extends \Sabre\Xml\Service {
     public $elementMap = [
         '{DAV:}multistatus' => 'Sabre\\DAV\\Xml\\Response\\MultiStatus',
         '{DAV:}response'    => 'Sabre\\DAV\\Xml\\Element\\Response',
-        '{DAV:}propstat'    => 'Sabre\\Xml\\Element\\KeyValue',
 
         // Requests
         '{DAV:}propfind'       => 'Sabre\\DAV\\Xml\\Request\\PropFind',

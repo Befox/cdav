@@ -17,7 +17,7 @@ use Sabre\HTTP\ResponseInterface;
  * The class intercepts GET requests to collection resources and generates a simple
  * html index.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -406,6 +406,16 @@ class Plugin extends DAV\ServerPlugin {
 
     }
 
+    /**
+     * Generates the first block of HTML, including the <head> tag and page
+     * header.
+     *
+     * Returns footer.
+     *
+     * @param string $title
+     * @param string $path
+     * @return void
+     */
     function generateHeader($title, $path = null) {
 
         $version = DAV\Version::VERSION;
@@ -456,6 +466,13 @@ HTML;
 
     }
 
+    /**
+     * Generates the page footer.
+     *
+     * Returns html.
+     *
+     * @return string
+     */
     function generateFooter() {
 
         $version = DAV\Version::VERSION;
@@ -694,7 +711,7 @@ HTML;
 
     }
 
-    /*
+    /**
      * Draws a table row for a property
      *
      * @param string $name

@@ -14,7 +14,7 @@ use Sabre\Xml\Writer;
  * This class represents the current-user-privilege-set property. When
  * requested, it contain all the privileges a user has on a specific node.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -76,6 +76,7 @@ class CurrentUserPrivilegeSet implements Element, HtmlOutput {
      * Returns true or false, whether the specified principal appears in the
      * list.
      *
+     * @param string $privilegeName
      * @return bool
      */
     function has($privilegeName) {

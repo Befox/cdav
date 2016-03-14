@@ -14,7 +14,7 @@ use Sabre\DAV\Xml\Request\SyncCollectionReport;
  * The sync capabilities only work with collections that implement
  * Sabre\DAV\Sync\ISyncCollection.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -222,7 +222,8 @@ class Plugin extends DAV\ServerPlugin {
      * It's a moment where this plugin can check all the supplied lock tokens
      * in the If: header, and check if they are valid.
      *
-     * @param mixed $conditions
+     * @param RequestInterface $request
+     * @param array $conditions
      * @return void
      */
     function validateTokens(RequestInterface $request, &$conditions) {

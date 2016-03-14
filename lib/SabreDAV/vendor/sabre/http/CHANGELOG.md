@@ -1,6 +1,29 @@
 ChangeLog
 =========
 
+4.2.1 (2016-01-06)
+------------------
+
+* #56: `getBodyAsString` now returns at most as many bytes as the contents of
+  the `Content-Length` header. This allows users to pass much larger strings
+  without having to copy and truncate them.
+
+
+4.2.0 (2016-01-04)
+------------------
+
+* This package now supports sabre/event 3.0.
+* The client now sets a default `User-Agent` header identifying this library.
+
+
+4.1.0 (2015-09-04)
+------------------
+
+* The async client wouldn't `wait()` for new http requests being started
+  after the (previous) last request in the queue was resolved.
+* Added `Sabre\HTTP\Auth\Bearer`, to easily extract a OAuth2 bearer token.
+
+
 4.0.0 (2015-05-20)
 ------------------
 

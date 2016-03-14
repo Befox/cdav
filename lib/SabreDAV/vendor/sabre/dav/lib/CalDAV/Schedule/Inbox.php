@@ -11,7 +11,7 @@ use Sabre\VObject;
 /**
  * The CalDAV scheduling inbox
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -34,6 +34,7 @@ class Inbox extends DAV\Collection implements IInbox {
     /**
      * Constructor
      *
+     * @param Backend\SchedulingSupport $caldavBackend
      * @param string $principalUri
      */
     function __construct(Backend\SchedulingSupport $caldavBackend, $principalUri) {

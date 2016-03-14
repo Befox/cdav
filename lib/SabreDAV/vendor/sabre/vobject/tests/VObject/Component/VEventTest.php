@@ -43,7 +43,10 @@ class VEventTest extends \PHPUnit_Framework_TestCase {
         $tests[] = array($vevent4, new \DateTime('2011-01-01'), new \DateTime('2011-11-01'), false);
         // Event with no end date should be treated as lasting the entire day.
         $tests[] = array($vevent4, new \DateTime('2011-12-25 16:00:00'), new \DateTime('2011-12-25 17:00:00'), true);
-
+        // DTEND is non inclusive so all day events should not be returned on the next day.
+        $tests[] = array($vevent4, new \DateTime('2011-12-26 00:00:00'), new \DateTime('2011-12-26 17:00:00'), false);
+        // The timezone of timerange in question also needs to be considered.
+        $tests[] = array($vevent4, new \DateTime('2011-12-26 00:00:00', new \DateTimeZone('Europe/Berlin')), new \DateTime('2011-12-26 17:00:00', new \DateTimeZone('Europe/Berlin')), false);
 
         $vevent5 = clone $vevent;
         $vevent5->DURATION = 'P1D';
@@ -68,6 +71,17 @@ class VEventTest extends \PHPUnit_Framework_TestCase {
         $vevent7->DTSTART['VALUE'] = 'DATE';
         $vevent7->RRULE = 'FREQ=MONTHLY';
         $tests[] = array($vevent7, new \DateTime('2012-02-01 15:00:00'), new \DateTime('2012-02-02'), true);
+        // The timezone of timerange in question should also be considered.
+
+        // Added this test to check recurring events that have no instances.
+        $vevent8 = clone $vevent;
+        $vevent8->DTSTART = '20130329T140000';
+        $vevent8->DTEND = '20130329T153000';
+        $vevent8->RRULE = array('FREQ' => 'WEEKLY', 'BYDAY' => array('FR'), 'UNTIL' => '20130412T115959Z');
+        $vevent8->add('EXDATE', '20130405T140000');
+        $vevent8->add('EXDATE', '20130329T140000');
+        $tests[] = array($vevent8, new \DateTime('2013-03-01'), new \DateTime('2013-04-01'), false);
+
         return $tests;
 
     }

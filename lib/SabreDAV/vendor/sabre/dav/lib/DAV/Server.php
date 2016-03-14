@@ -12,7 +12,7 @@ use Sabre\Uri;
 /**
  * Main DAV server class
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -523,7 +523,12 @@ class Server extends EventEmitter {
     }
 
     /**
-     * Calculates the uri for a request, making sure that the base uri is stripped out
+     * Turns a URI such as the REQUEST_URI into a local path.
+     *
+     * This method:
+     *   * strips off the base path
+     *   * normalizes the path
+     *   * uri-decodes the path
      *
      * @param string $uri
      * @throws Exception\Forbidden A permission denied exception is thrown whenever there was an attempt to supply a uri outside of the base uri
@@ -835,6 +840,10 @@ class Server extends EventEmitter {
 
     /**
      * Small helper to support PROPFIND with DEPTH_INFINITY.
+     *
+     * @param array[] $propFindRequests
+     * @param PropFind $propFind
+     * @return void
      */
     private function addPathNodesRecursively(&$propFindRequests, PropFind $propFind) {
 
@@ -848,7 +857,11 @@ class Server extends EventEmitter {
         foreach ($this->tree->getChildren($path) as $childNode) {
             $subPropFind = clone $propFind;
             $subPropFind->setDepth($newDepth);
-            $subPath = $path ? $path . '/' . $childNode->getName() : $childNode->getName();
+            if ($path !== '') {
+                $subPath = $path . '/' . $childNode->getName();
+            } else {
+                $subPath = $childNode->getName();
+            }
             $subPropFind->setPath($subPath);
 
             $propFindRequests[] = [
@@ -1488,6 +1501,7 @@ class Server extends EventEmitter {
      *    ],
      * ]
      *
+     * @param RequestInterface $request
      * @return array
      */
     function getIfConditions(RequestInterface $request) {

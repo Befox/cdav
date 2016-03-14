@@ -16,7 +16,7 @@ use Sabre\VObject;
  *
  * The CardDAV plugin adds CardDAV functionality to the WebDAV server
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -654,6 +654,10 @@ class Plugin extends DAV\ServerPlugin {
      *
      * This event is scheduled late in the process, after most work for
      * propfind has been done.
+     *
+     * @param DAV\PropFind $propFind
+     * @param DAV\INode $node
+     * @return void
      */
     function propFindLate(DAV\PropFind $propFind, DAV\INode $node) {
 

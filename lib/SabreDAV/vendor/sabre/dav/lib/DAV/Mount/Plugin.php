@@ -11,7 +11,7 @@ use Sabre\HTTP\ResponseInterface;
  *
  * Simply append ?mount to any collection to generate the davmount response.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -65,6 +65,7 @@ class Plugin extends DAV\ServerPlugin {
     /**
      * Generates the davmount response
      *
+     * @param ResponseInterface $response
      * @param string $uri absolute uri
      * @return void
      */

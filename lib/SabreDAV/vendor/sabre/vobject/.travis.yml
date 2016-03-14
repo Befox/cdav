@@ -8,9 +8,8 @@ php:
   - hhvm
 
 matrix:
-  fast_finish: true
   allow_failures:
-    - php: 7
+    - php: hhvm
 
 script:
   - phpunit --configuration tests/phpunit.xml

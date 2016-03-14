@@ -18,7 +18,7 @@ use Sabre\Xml\Writer;
  * {DAV:}href elements were found, this property will unserialize itself as
  * null.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://www.rooftopsolutions.nl/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -105,7 +105,7 @@ class Href implements Element, HtmlOutput {
 
         foreach ($this->getHrefs() as $href) {
             if ($this->autoPrefix) {
-                $href = $writer->contextUri . $href;
+                $href = $writer->contextUri . \Sabre\HTTP\encodePath($href);
             }
             $writer->writeElement('{DAV:}href', $href);
         }
@@ -145,8 +145,8 @@ class Href implements Element, HtmlOutput {
      * Often you want to return an instance of the current class, but you are
      * free to return other data as well.
      *
-     * Important note 2: You are responsible for advancing the reader to the
-     * next element. Not doing anything will result in a never-ending loop.
+     * You are responsible for advancing the reader to the next element. Not
+     * doing anything will result in a never-ending loop.
      *
      * If you just want to skip parsing for this element altogether, you can
      * just call $reader->next();
@@ -168,7 +168,7 @@ class Href implements Element, HtmlOutput {
 
         }
         if ($hrefs) {
-            return new self($hrefs);
+            return new self($hrefs, false);
         }
 
     }

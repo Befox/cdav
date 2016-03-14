@@ -2,15 +2,13 @@
 
 namespace Sabre\DAV\Mock;
 
-use Sabre\DAV;
-
 /**
  * Mock Streaming File File
  *
  * Works similar to the mock file, but this one works with streams and has no
  * content-length or etags.
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -39,7 +37,7 @@ class StreamingFile extends File {
     function put($data) {
 
         if (is_string($data)) {
-            $stream = fopen('php://memory','r+');
+            $stream = fopen('php://memory', 'r+');
             fwrite($stream, $data);
             rewind($stream);
             $data = $stream;

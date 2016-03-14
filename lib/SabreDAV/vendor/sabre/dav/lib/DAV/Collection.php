@@ -8,7 +8,7 @@ namespace Sabre\DAV;
  * This is a helper class, that should aid in getting collections classes setup.
  * Most of its methods are implemented, and throw permission denied exceptions
  *
- * @copyright Copyright (C) 2007-2015 fruux GmbH (https://fruux.com/).
+ * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
@@ -32,7 +32,7 @@ abstract class Collection extends Node implements ICollection {
 
         foreach ($this->getChildren() as $child) {
 
-            if ($child->getName() == $name) return $child;
+            if ($child->getName() === $name) return $child;
 
         }
         throw new Exception\NotFound('File not found: ' . $name);

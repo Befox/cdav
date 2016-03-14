@@ -1,6 +1,44 @@
 ChangeLog
 =========
 
+3.5.0 (2016-01-11)
+-----------------
+
+* This release supports PHP 7, contrary to 3.4.x versions.
+* BC Break: `Sabre\VObject\Property\Float` has been renamed to
+  `Sabre\VObject\Property\FloatValue`.
+* BC Break: `Sabre\VObject\Property\Integer` has been renamed to
+  `Sabre\VObject\Property\IntegerValue`.
+
+
+3.4.9 (2016-01-11)
+------------------
+
+* This package now specifies in composer.json that it does not support PHP 7.
+  For PHP 7, use version 3.5.x or 4.x.
+
+
+3.4.8 (2016-01-04)
+------------------
+
+* #284: When generating `CANCEL` iTip messages, we now include `DTEND`.
+  (@kewisch).
+
+
+3.4.7 (2015-09-05)
+------------------
+
+* #253: Handle `isInTimeRange` for recurring events that have 0 valid
+  instances. (@DominikTo, @migrax).
+
+
+3.4.6 (2015-08-06)
+------------------
+
+* #250: Recurring all-day events are incorrectly included in time range
+  requests when not using UTC in the time range. (@armin-hackmann)
+
+
 3.4.5 (2015-06-02)
 ------------------
 
