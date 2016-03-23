@@ -2,21 +2,28 @@
 
 ## What is it ?
 
-
 This module for Dolibarr 3.7/3.8 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
 You can :
 
  * Read and Edit calendars through CalDAV
- * Read addressBooks through CardDAV
+ * Read and Edit addressBooks through CardDAV
  * Read calendars through ICS Full version or only Free/Busy (hide details)
  * Access Dolibarr documents through WebDAV (if admin)
- 
-This release don't permit CarDAV client tools to update address books.
 
-Each user can access his contacts address book (public and own private contacts), his own calendar and other users calendars according to his rights.i
+Each user can access his/her contacts address book (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
+
+Dolibarr contact informations fill personnal informations in client software cards.
+
+Society informations (to which contact is attached) fill professional informations in client software cards.
+
+Cards updated in client software fill only Dolibarr contacts (not Society).
 
 Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
+
+## Help improvements
+
+If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/fr/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
 
 ## How to install
 
