@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 3.7/3.8 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 3.7/3.8/3.9 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
 You can :
 
@@ -27,13 +27,19 @@ If you find the module is useful and want to finance improvements, consider to p
 
 ## How to install
 
-Like all Dolibarr modules, git clone this repository and install cdav directory in dolibarr/htdocs/
+Like all Dolibarr modules, _git clone_ this repository and install cdav directory in dolibarr/htdocs/
 
 Enable CDav module in Interfaces Modules list.
 
 It would add a link in Agenda left menu and in Contacts left menu to access DAV / ICS URLs.
 
 Use these URLs in your CardDAV or CalDAV client software.
+
+## How to upgrade
+
+* Disable CDav module in Interfaces Modules list.
+* Unzip last version or _git pull_ in dolibarr/htdocs/cdav
+* Enable CDav module in Interfaces Modules list.
 
 
 ## DAV URLs
@@ -55,6 +61,14 @@ Use these URLs in your CardDAV or CalDAV client software.
 You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVDroid is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
 
 Be carefull, if you use https, DAVDroid needs a valid SSL certificate, excluding auto-signed certificates.
+
+### iOS
+
+iOS uses _principals_ url to grab list of CalDAV or CardDAV resources :
+
+    https://server.example.com/dolibarr/htdocs/cdav/server.php/principals/<connected-user-login>
+
+### WebDAV
 
 Admin users can also access Dolibarr documents through WebDAV with WebDAV URL :
 
