@@ -6,6 +6,6 @@ URLforICS=Cette URL peut être utilisée avec un client de synchronisation (lect
 Full=Complet
 NoLabel=Sans label
 Busy=Occupé
-URLGeneric=Ces URL peut être utilisée avec un client de synchronisation CalDAV/CardDAV :
+URLGeneric=Ces URL peuvent être utilisées avec un client de synchronisation CalDAV/CardDAV :
 URLforCardDAV=Si votre client ne détecte pas votre carnet d'adresse cette URL complète peut être précisée :
 URLforCalDAV=Si votre client ne détecte pas vos agendas ces URLs complètes peuvent être précisées :
