@@ -80,9 +80,16 @@ To test cdav module, you can use DAVDroid url https://server.example.com/dolibar
 
 ### Apache web server
 
-Apache rewrite module is necessary if you use fcgi or php-fpm mode. In this case, .htacess file in cdav module has to be read by Apache or reported in your Apache configuration.
+Apache *rewrite* module is necessary if you use fcgi or php-fpm mode. In this case, .htacess file in cdav module has to be read by Apache or reported in your Apache configuration.
 
-It is recommanded to disable these Apache modules : dav / dav_fs / dav_lock.
+    <IfModule mod_fastcgi.c>
+    	<IfModule mod_rewrite.c>
+    		RewriteEngine on
+    		RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    	</IfModule>
+    </IfModule>
+
+It is recommanded to *disable* these Apache modules : *dav* / *dav_fs* / *dav_lock*
 
 ### nginx web server
 
