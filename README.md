@@ -27,6 +27,8 @@ If you find the module is useful and want to finance improvements, consider to p
 
 ## How to install
 
+Dolibarr native calendar module must be activated before installing CDav module.
+
 Like all Dolibarr modules, _git clone_ this repository and install cdav directory in dolibarr/htdocs/
 
 Enable CDav module in Interfaces Modules list.
