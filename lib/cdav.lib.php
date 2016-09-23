@@ -110,18 +110,18 @@ class CdavLib
 		if(empty($location) && !empty($obj->address))
 		{
 			$location = trim(str_replace(array("\r","\t","\n"),' ', $obj->address));
-			$location = trim($location.' '.$obj->zip);
+			$location = trim($location.', '.$obj->zip);
 			$location = trim($location.' '.$obj->town);
-			$location = trim($location.' '.$obj->country_label);
+			$location = trim($location.', '.$obj->country_label);
 		}
 		
 		// contact address
 		if(empty($location) && !empty($obj->soc_address))
 		{
 			$location = trim(str_replace(array("\r","\t","\n"),' ', $obj->soc_address));
-			$location = trim($location.' '.$obj->soc_zip);
+			$location = trim($location.', '.$obj->soc_zip);
 			$location = trim($location.' '.$obj->soc_town);
-			$location = trim($location.' '.$obj->soc_country_label);
+			$location = trim($location.', '.$obj->soc_country_label);
 		}
 		
 		$address=explode("\n",$obj->address,2);
