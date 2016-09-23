@@ -40,7 +40,7 @@ class CdavLib
 					sp.address,
 					sp.zip,
 					sp.town,
-					co.country_label,
+					co.label country_label,
 					sp.phone,
 					sp.phone_perso,
 					sp.phone_mobile,
@@ -50,7 +50,6 @@ class CdavLib
 					s.town soc_town,
 					cos.label soc_country_label,
 					s.phone soc_phone,
-					cos.label soc_country_label,
 					(SELECT GROUP_CONCAT(u.login) FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar
 						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=fk_element) 
 						WHERE ar.element_type=\'user\' AND fk_actioncomm=a.id) AS other_users
