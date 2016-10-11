@@ -4,4 +4,6 @@
 		RewriteEngine on
 		RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 	</IfModule>
+	# for Apache 2.4.13 or later
+	CGIPassAuth on
 </IfModule>
