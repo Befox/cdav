@@ -614,13 +614,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         {
             $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."categorie
                     WHERE label LIKE '".$this->db->escape(CDAV_CONTACT_TAG)."'
-                    AND type = 4";
+                    AND type = ".Categorie::TYPE_CONTACT;
             $res = $this->db->query($sql);
             if($row = $this->db->fetch_array($res))
             {
                 $tagid = $row['rowid'];
                 $sql = "INSERT INTO ".MAIN_DB_PREFIX."categorie_contact (`fk_categorie`, `fk_socpeople`)
                         VALUES ( ".$tagid.", ".$id.")";
+                $this->db->query($sql);
             }
         }
 
