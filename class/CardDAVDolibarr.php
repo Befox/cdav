@@ -239,6 +239,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="X-JABBER:".str_replace(';','\;',$obj->jabberid)."\n";
 		if(!empty($obj->skype))
 			$carddata.="X-SKYPE:".str_replace(';','\;',$obj->skype)."\n";
+		if(!empty($obj->birthday))
+			$carddata.="BDAY:".str_replace(';','\;',$obj->birthday)."\n";
 		if(!empty($obj->note_public))
 			$carddata.="NOTE;CHARSET=UTF-8:".str_replace(';','\;',strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>"")))."\n";
 
@@ -370,6 +372,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$rdata['skype'] = (string)$vCard->{'X-SKYPE'};
         elseif(isset($vCard->{'X-SKYPE-USERNAME'}))
 			$rdata['skype'] = (string)$vCard->{'X-SKYPE-USERNAME'};
+
+		if( isset($vCard->BDAY) &&
+			!empty(trim((string)$vCard->BDAY)) && 
+			date("Y-m-d", strtotime(trim((string)$vCard->BDAY)))==trim((string)$vCard->BDAY) )
+			$rdata['birthday'] = trim((string)$vCard->BDAY);
 
 		if(isset($vCard->NOTE))
 			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");   
