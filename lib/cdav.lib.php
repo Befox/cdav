@@ -155,7 +155,12 @@ class CdavLib
 		{
 			$caldata.="DTSTART;VALUE=DATE:".date('Ymd', strtotime($obj->datep))."\n";
 			if($type=='VEVENT')
-				$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
+			{
+				if(trim($obj->datep2)!='')
+					$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
+				else
+					$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep)+1)."\n";
+			}
 			elseif(trim($obj->datep2)!='')
 				$caldata.="DUE;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
 		}
@@ -163,7 +168,12 @@ class CdavLib
 		{
 			$caldata.="DTSTART;TZID=".$timezone.":".strtr($obj->datep,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 			if($type=='VEVENT')
-				$caldata.="DTEND;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+			{
+				if(trim($obj->datep2)!='')
+					$caldata.="DTEND;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+				else
+					$caldata.="DTEND;TZID=".$timezone.":".strtr($obj->datep,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+			}
 			elseif(trim($obj->datep2)!='')
 				$caldata.="DUE;TZID=".$timezone.":".strtr($obj->datep2,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		}
