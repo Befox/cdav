@@ -112,6 +112,7 @@ class modCDav extends DolibarrModules
 		// );
 		$this->const = array(
 			0 => array('CDAV_URI_KEY', 'CDav uri key', substr(md5(time()),0,8),'Change it to force client to resync',1,'current',0),
+			1 => array('CDAV_CONTACT_TAG', 'CDav contact tag', '', 'Contact tag to restrict contacts to sync, leave blank for all',1,'current',1),
 		);
 
 		// Array to add new pages in new tabs

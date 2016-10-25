@@ -77,6 +77,10 @@ set_error_handler("exception_error_handler");
 
 require_once './lib/cdav.lib.php';
 
+// define CDAV_CONTACT_TAG if not
+if(!defined('CDAV_CONTACT_TAG'))
+	define('CDAV_CONTACT_TAG', '');
+
 // Sabre/dav configuration
 
 use Sabre\DAV;
