@@ -612,6 +612,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         
         if (! empty($conf->categorie->enabled) && CDAV_CONTACT_TAG!='')
         {
+            // TODO : correct create categorie
             $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."categorie
                     WHERE label LIKE '".$this->db->escape(CDAV_CONTACT_TAG)."'
                     AND type = ".Categorie::TYPE_CONTACT;
