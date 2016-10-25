@@ -176,6 +176,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	protected function _toVCard($obj)
 	{
+        global $conf;
         $nick = [];
         $categ = [];
         if($obj->soc_client)
@@ -188,7 +189,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
             $nick[] = $obj->soc_code_fournisseur;
             $categ[] = $this->langs->transnoentitiesnoconv('Supplier');
         }
-        if (! empty($conf->categorie->enabled)  && ! empty($user->rights->categorie->lire))
+        if (! empty($conf->categorie->enabled)  && ! empty($this->user->rights->categorie->lire))
             if(trim($obj->category_label)!='')
                 $categ[] = trim($obj->category_label);
         if($obj->priv)
