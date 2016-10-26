@@ -19,6 +19,8 @@ Society informations (to which contact is attached) fill professional informatio
 
 Cards updated in client software fill only Dolibarr contacts (not Society).
 
+It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).
+
 Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
 
 ## Help improvements
