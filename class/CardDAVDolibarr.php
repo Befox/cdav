@@ -144,7 +144,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * 
 	 * @return string
 	 */
-	protected function _getSqlContacts()
+	protected function _getSqlContacts($sqlWhere='')
 	{
 		$sql = 'SELECT p.*, co.label country_label, GREATEST(COALESCE(s.tms, p.tms), p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
 					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax, s.email soc_email,
@@ -160,6 +160,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				WHERE p.entity IN ('.getEntity('societe', 1).')
 				AND p.statut=1
 				AND (p.priv=0 OR (p.priv=1 AND p.fk_user_creat='.$this->user->id.'))
+				'.$sqlWhere.'
 				GROUP BY p.rowid';
 
 		if(CDAV_CONTACT_TAG!='')
@@ -465,11 +466,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(! $this->user->rights->societe->contact->lire)
 			return false;
 
-		$sql = $this->_getSqlContacts();
         if(strpos($cardUri, '-ct-')>0)
-            $sql.= ' AND p.rowid='.($cardUri*1);                            // cardUri starts with contact id
+            $sqlWhere = ' AND p.rowid='.($cardUri*1);                            // cardUri starts with contact id
         else
-            $sql.= ' AND spc.uuidext = "'.$this->db->escape($cardUri).'"';     // cardUri comes from external apps
+            $sqlWhere = ' AND spc.uuidext = "'.$this->db->escape($cardUri).'"';     // cardUri comes from external apps
+
+		$sql = $this->_getSqlContacts($sqlWhere);
 		
 		$result = $this->db->query($sql);
 		if ($result && $obj = $this->db->fetch_object($result))
@@ -518,16 +520,18 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
             else
                 $extids[] = '"'.$this->db->escape($cardUri).'"';     // cardUri comes from external apps
         }
-		
-		$sql = $this->_getSqlContacts();
+
+		$sqlWhere = '';
         if(count($ids)>0 && count($extids)>0)
-            $sql.= ' AND (p.rowid IN ('.implode(',', $ids).') 
+            $sqlWhere = ' AND (p.rowid IN ('.implode(',', $ids).') 
                         OR spc.uuidext IN ('.implode(',',$extids).') )';
         else if(count($ids)>0)
-            $sql.= ' AND p.rowid IN ('.implode(',', $ids).')';
+            $sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
         else if(count($extids)>0)
-            $sql.= ' AND spc.uuidext IN ('.implode(',',$extids).')';
-		
+            $sqlWhere = ' AND spc.uuidext IN ('.implode(',',$extids).')';
+
+		$sql = $this->_getSqlContacts($sqlWhere);
+
 		$result = $this->db->query($sql);
 		if ($result)
 		{
