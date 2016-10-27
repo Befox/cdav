@@ -159,7 +159,7 @@ class CdavLib
 				if(trim($obj->datep2)!='')
 					$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
 				else
-					$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep)+1)."\n";
+					$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datep)+(25*3600))."\n";
 			}
 			elseif(trim($obj->datep2)!='')
 				$caldata.="DUE;VALUE=DATE:".date('Ymd', strtotime($obj->datep2)+1)."\n";
