@@ -23,9 +23,11 @@ It is possible to select which contacts to sync with CDAV_CONTACT_TAG configurat
 
 Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
 
+Recurring events are not handled (Dolibarr does not handle them).
+
 ## Help improvements
 
-If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/fr/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
+If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
 
 ## How to install
 
