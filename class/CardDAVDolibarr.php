@@ -380,10 +380,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         elseif(isset($vCard->{'X-SKYPE-USERNAME'}))
 			$rdata['skype'] = (string)$vCard->{'X-SKYPE-USERNAME'};
 
-		if( isset($vCard->BDAY) &&
-			!empty(trim((string)$vCard->BDAY)) && 
-			date("Y-m-d", strtotime(trim((string)$vCard->BDAY)))==trim((string)$vCard->BDAY) )
-			$rdata['birthday'] = trim((string)$vCard->BDAY);
+        $bday = '';
+        if( isset($vCard->BDAY))
+            $bday = (string)$vCard->BDAY;
+		if( isset($vCard->BDAY) && 
+            !empty($bday) &&
+			!empty(trim($bday)) && 
+			date("Y-m-d", strtotime(trim($bday))) == trim($bday) )
+			$rdata['birthday'] = trim($bday);
 
 		if(isset($vCard->NOTE))
 			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");   
