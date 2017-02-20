@@ -382,10 +382,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
         $bday = '';
         if( isset($vCard->BDAY))
-            $bday = (string)$vCard->BDAY;
+            $bday = trim((string)$vCard->BDAY);
 		if( isset($vCard->BDAY) && 
             !empty($bday) &&
-			!empty(trim($bday)) && 
 			date("Y-m-d", strtotime(trim($bday))) == trim($bday) )
 			$rdata['birthday'] = trim($bday);
 
