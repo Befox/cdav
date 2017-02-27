@@ -470,7 +470,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
 				VALUES (
 					".$id.", 
-					'".$this->db->escape($objectUri)."'
+					'".$this->db->escape($objectUri)."',
 					'".$this->db->escape($calendarData['uid'])."'
 				)";
 
