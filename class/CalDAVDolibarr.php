@@ -711,7 +711,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				}
 				else
 				{
-					$sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."actioncomm_cdav
+					$sql = "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."actioncomm_cdav
 							WHERE `sourceuid`= '".$this->db->escape($uid)."'"; // uid comes from external apps
 					$result = $this->db->query($sql);
 					if($result!==false && ($row = $this->db->fetch_array($result))!==false)

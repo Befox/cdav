@@ -689,7 +689,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		}
 		else
 		{
-			$sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
+			$sql = "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
 					WHERE `uuidext`= '".$this->db->escape($cardUri)."'"; // cardUri comes from external apps
 			$result = $this->db->query($sql);
 			if($result!==false && ($row = $this->db->fetch_array($result))!==false)
