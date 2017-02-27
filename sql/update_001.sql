@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2015 Jérôme ANDANSON
+-- Copyright (C) 2017 Jean-Pierre Morfin
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,13 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 --
--- Table of "actioncomm_cdav" for cdav module
+-- add column sourceuid for cdav module
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS `llx_actioncomm_cdav` (
-  `fk_object` int(11) NOT NULL,
-  `uuidext` varchar(255) NOT NULL,
-  `sourceuid` varchar(255) NOT NULL,
-  PRIMARY KEY (`fk_object`),
-  KEY `uuidext` (`uuidext`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Storage of external UUID created by externals applications';
+ALTER TABLE `llx_actioncomm_cdav` ADD `sourceuid` VARCHAR(255) NOT NULL AFTER `uuidext`;
+ALTER TABLE `llx_socpeople_cdav` ADD `sourceuid` VARCHAR(255) NOT NULL AFTER `uuidext`;

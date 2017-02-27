@@ -148,7 +148,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	{
 		$sql = 'SELECT p.*, co.label country_label, GREATEST(COALESCE(s.tms, p.tms), p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
 					s.nom soc_nom, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax, s.email soc_email,
-					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public,
+					s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, spc.sourceuid,
 					GROUP_CONCAT(DISTINCT cat.label ORDER BY cat.label ASC SEPARATOR \',\') category_label
 				FROM '.MAIN_DB_PREFIX.'socpeople as p
                 LEFT JOIN '.MAIN_DB_PREFIX.'socpeople_cdav AS spc ON (p.rowid = spc.fk_object)
@@ -215,7 +215,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata ="BEGIN:VCARD\n";
 		$carddata.="VERSION:3.0\n";
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
-		$carddata.="UID:".$obj->rowid.'-ct-'.CDAV_URI_KEY."\n";
+		if($obj->sourceuid=='')
+			$carddata.="UID:".$obj->rowid.'-ct-'.CDAV_URI_KEY."\n";
+		else
+			$carddata.="UID:".$obj->sourceuid."\n";
 		$carddata.="N;CHARSET=UTF-8:".str_replace(';','\;',$obj->lastname).";".str_replace(';','\;',$obj->firstname).";;".str_replace(';','\;',$obj->civility)."\n";
 		$carddata.="FN;CHARSET=UTF-8:".str_replace(';','\;',$obj->lastname." ".$obj->firstname)."\n";
 		if(!empty($obj->soc_nom))
@@ -634,10 +637,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         }
 
 		//Insérer l'UUID externe
-		$sql = "INSERT INTO ".MAIN_DB_PREFIX."socpeople_cdav (`fk_object`, `uuidext`)
+		$sql = "INSERT INTO ".MAIN_DB_PREFIX."socpeople_cdav (`fk_object`, `uuidext`, `sourceuid`)
 				VALUES (
 					".$id.", 
-					'".$this->db->escape($cardUri)."'
+					'".$this->db->escape($cardUri)."',
+					'".$this->db->escape($rdata['_uid'])."'
 				)";
 
 		$this->db->query($sql);
@@ -679,14 +683,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					
 		$rdata = $this->_parseData($cardData, 'U');
 
-        if(strpos($cardUri, '-ct-')>0)
-        {
-            $contactid = ($cardUri*1); // cardUri starts with contact id
+		if(strpos($cardUri, '-ct-')>0)
+		{
+			$contactid = ($cardUri*1); // cardUri starts with contact id
 		}
-        else
-        {
-            $sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
-					WHERE `uuidext`= '".$this->db->escape($cardUri)."'";     // cardUri comes from external apps
+		else
+		{
+			$sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
+					WHERE `uuidext`= '".$this->db->escape($cardUri)."'"; // cardUri comes from external apps
 			$result = $this->db->query($sql);
 			if($result!==false && ($row = $this->db->fetch_array($result))!==false)
 				$contactid = $row['fk_object']*1;
@@ -716,19 +720,19 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function deleteCard($addressBookId, $cardUri) {
  
-        debug_log("deleteContactObject( $addressBookId , $cardUri )");
+		debug_log("deleteContactObject( $addressBookId , $cardUri )");
    
 		if(! $this->user->rights->societe->contact->supprimer)
 			return false;
 
-        if(strpos($cardUri, '-ct-')>0)
-        {
-            $contactid = ($cardUri*1); // cardUri starts with contact id
+		if(strpos($cardUri, '-ct-')>0)
+		{
+			$contactid = ($cardUri*1); // cardUri starts with contact id
 		}
-        else
-        {
-            $sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
-					WHERE `uuidext`= '".$this->db->escape($cardUri)."'";     // cardUri comes from external apps
+		else 
+		{
+			$sql.= "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."socpeople_cdav
+					WHERE `uuidext`= '".$this->db->escape($cardUri)."'"; // cardUri comes from external apps
 			$result = $this->db->query($sql);
 			if($result!==false && ($row = $this->db->fetch_array($result))!==false)
 				$contactid = $row['fk_object']*1;
