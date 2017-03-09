@@ -14,12 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 --
--- Table of "actioncomm_cdav" for cdav module
+-- Table of "socpeople_cdav" for cdav module
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `llx_socpeople_cdav` (
   `fk_object` int(11) NOT NULL,
   `uuidext` varchar(255) NOT NULL,
+  `sourceuid` varchar(255) NOT NULL,
   PRIMARY KEY (`fk_object`),
   KEY `uuidext` (`uuidext`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Storage of external UUID created by externals applications';

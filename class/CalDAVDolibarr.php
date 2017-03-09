@@ -467,10 +467,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		$this->db->query($sql);
 		
 		//Insérer l'UUID externe
-		$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`)
+		$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
 				VALUES (
 					".$id.", 
-					'".$this->db->escape($objectUri)."'
+					'".$this->db->escape($objectUri)."',
+					'".$this->db->escape($calendarData['uid'])."'
 				)";
 
 		$this->db->query($sql);
@@ -704,8 +705,18 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
             {
                 $componentType = $component->name;
                 $uid = (string)$component->UID;
-                $tmp = explode('-', $uid);
-                $id = $tmp[0];
+                if(strpos($uid, '-ev-')>0)
+                {
+					$id = $uid*1;
+				}
+				else
+				{
+					$sql = "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."actioncomm_cdav
+							WHERE `sourceuid`= '".$this->db->escape($uid)."'"; // uid comes from external apps
+					$result = $this->db->query($sql);
+					if($result!==false && ($row = $this->db->fetch_array($result))!==false)
+						$id = $row['fk_object']*1;
+				}
                 if (in_array($componentType, array('VEVENT', 'VTODO')))
                 {
 	                $label 			= isset($component->SUMMARY) ? (string)$component->SUMMARY : '';
@@ -948,16 +959,23 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
     
         debug_log("getCalendarObjectByUID( $principalUri , $uid)");
 
-        // "UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY
-    
-        $oid =  $uid*1;
-        $calid = $this->user->id;
-        
-        $calpos = strpos($uid, '-ev-');
-        if($calpos>0)
-            $calid = substr($uid,$calpos+1)*1;
-            
-        return $calid.'-cal-'.$this->user->login . '/' . $oid.'-ev-'.CDAV_URI_KEY;
+		if(strpos($uid, '-ev-')>0)
+		{
+			// "UID:".$obj->id.'-ev-'.$calid.'-cal-'.CDAV_URI_KEY
+		
+			$oid =  $uid*1;
+			$calid = $this->user->id;
+			
+			$calpos = strpos($uid, '-ev-');
+			if($calpos>0)
+				$calid = substr($uid,$calpos+1)*1;
+				
+			return $calid.'-cal-'.$this->user->login . '/' . $oid.'-ev-'.CDAV_URI_KEY;
+		}
+		else
+		{
+			return null; // not found
+		}
     }
 
     /**
