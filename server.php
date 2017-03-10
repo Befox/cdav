@@ -106,15 +106,26 @@ $cdavLib = new CdavLib($user, $db, $langs);
 $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
 {
 	global $user;
+	global $conf;
+	global $dolibarr_main_authentication;
+	
+	
 	if ( ! isset($user->login) || $user->login=='')
 		return false;
 	if ($user->societe_id!=0)
 		return false;
 	if ($user->login!=$username)
 		return false;
-	if ($user->pass_indatabase_crypted == '' || dol_hash($password) != $user->pass_indatabase_crypted)
+	/*if ($user->pass_indatabase_crypted == '' || dol_hash($password) != $user->pass_indatabase_crypted)
+		return false;*/
+	
+	// Authentication mode
+	if (empty($dolibarr_main_authentication))
+		$dolibarr_main_authentication='http,dolibarr';
+	$authmode = explode(',',$dolibarr_main_authentication);
+	$entity = (GETPOST('entity','int') ? GETPOST('entity','int') : (!empty($conf->entity) ? $conf->entity : 1));
+	if(checkLoginPassEntity($username,$password,$entity,$authmode)!=$username)
 		return false;
-
 	return true;
 });
 
