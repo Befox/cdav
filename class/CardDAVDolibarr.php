@@ -250,7 +250,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(!empty($obj->soc_url))
 		{
 			if(strpos($obj->soc_url,'://')===false)
-				$carddata.="URL:http://:".trim($obj->soc_url)."\n";
+				$carddata.="URL:http://".trim($obj->soc_url)."\n";
 			else
 				$carddata.="URL:".trim($obj->soc_url)."\n";
 		}
