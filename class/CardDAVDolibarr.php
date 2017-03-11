@@ -148,7 +148,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	{
 		$sql = 'SELECT p.*, co.label country_label, GREATEST(COALESCE(s.tms, p.tms), p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
 					s.nom soc_nom, s.name_alias soc_name_alias, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax,
-					s.email soc_email, s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, spc.sourceuid,
+					s.email soc_email, s.url soc_url, s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, spc.sourceuid,
 					GROUP_CONCAT(DISTINCT cat.label ORDER BY cat.label ASC SEPARATOR \',\') category_label
 				FROM '.MAIN_DB_PREFIX.'socpeople as p
 				LEFT JOIN '.MAIN_DB_PREFIX.'socpeople_cdav AS spc ON (p.rowid = spc.fk_object)
@@ -247,6 +247,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="EMAIL;PREF=1,INTERNET:".str_replace(';','\;',$obj->email)."\n";
 		if(!empty($obj->soc_email))
 			$carddata.="EMAIL;INTERNET:".str_replace(';','\;',$obj->soc_email)."\n";
+		if(!empty($obj->soc_url))
+		{
+			if(strpos($obj->soc_url,'://')===false)
+				$carddata.="URL:http://:".trim($obj->soc_url)."\n";
+			else
+				$carddata.="URL:".trim($obj->soc_url)."\n";
+		}
 		if(!empty($obj->jabberid))
 			$carddata.="X-JABBER:".str_replace(';','\;',$obj->jabberid)."\n";
 		if(!empty($obj->skype))
