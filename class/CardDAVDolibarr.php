@@ -323,6 +323,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         $vCard = VObject\Reader::read($cardData);
         $vCard->convert(VObject\Document::VCARD30);
 
+		debug_log("_parseData__converted( ".$vCard->jsonSerialize()." )");
+
         $rdata['_uid'] = (string)$vCard->UID;
          
         $names = $vCard->N->getParts();
