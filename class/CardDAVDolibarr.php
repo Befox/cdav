@@ -264,7 +264,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="NOTE;CHARSET=UTF-8:".str_replace(';','\;',strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>"")))."\n";
 		if(!empty($obj->photo))
 		{
-			$photofile = $conf->societe->dir_output."/contact/".$obj->id."/photos/".$obj->photo;
+			$photofile = $conf->societe->dir_output."/contact/".$obj->rowid."/photos/".$obj->photo;
 			if(file_exists($photofile))
 			{
 				if(function_exists('exif_imagetype'))
