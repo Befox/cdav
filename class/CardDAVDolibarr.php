@@ -267,35 +267,38 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$photofile = $conf->societe->dir_output."/contact/".$obj->rowid."/photos/".$obj->photo;
 			if(file_exists($photofile))
 			{
-				if(false && function_exists('exif_imagetype'))
-					$image_mime = image_type_to_mime_type(exif_imagetype($photofile));
+				if(function_exists('exif_imagetype'))
+				{
+					$image_type = image_type_to_mime_type(exif_imagetype($photofile));
+					$image_type = strtoupper(substr($image_type, strpos($image_type, '/')+1));
+				}
 				else
 				{
-					$image_mime='';
+					$image_type='';
 					switch(strtolower(substr($obj->photo,-4)))
 					{
 						case '.jpg':
 						case 'jpeg':
-							$image_mime='image/jpeg';
+							$image_type='JPEG';
 							break;
 						case '.gif':
-							$image_mime='image/gif';
+							$image_type='GIF';
 							break;
 						case '.png':
-							$image_mime='image/png';
+							$image_type='PNG';
 							break;
 						case '.bmp':
-							$image_mime='image/bmp';
+							$image_type='BMP';
 							break;
 						case '.tif':
 						case 'tiff':
-							$image_mime='image/tiff';
+							$image_type='TIFF';
 							break;
 					}
 				}
 				if(!empty($image_mime))
 				{
-					$photodata = wordwrap("PHOTO:data:".$image_mime.";base64,".base64_encode(file_get_contents($photofile)),72,"\n",true);
+					$photodata = wordwrap("PHOTO;ENCODING=b;TYPE=JPEG:".base64_encode(file_get_contents($photofile)),72,"\n",true);
 					$photodata = trim(str_replace("\n", "\n ", $photodata));
 					$carddata .= $photodata."\n"; 
 				}
