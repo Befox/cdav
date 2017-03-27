@@ -296,7 +296,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 							break;
 					}
 				}
-				if(!empty($image_mime))
+				if(!empty($image_type))
 				{
 					$photodata = wordwrap("PHOTO;ENCODING=b;TYPE=JPEG:".base64_encode(file_get_contents($photofile)),72,"\n",true);
 					$photodata = trim(str_replace("\n", "\n ", $photodata));
