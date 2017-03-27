@@ -303,7 +303,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		}
    		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
-
+die($carddata);
         return $carddata;
 	}
 
