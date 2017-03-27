@@ -262,7 +262,45 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="BDAY:".str_replace(';','\;',$obj->birthday)."\n";
 		if(!empty($obj->note_public))
 			$carddata.="NOTE;CHARSET=UTF-8:".str_replace(';','\;',strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>"")))."\n";
-
+		if(!empty($obj->photo))
+		{
+			$photofile = $conf->societe->dir_output."/contact/".$obj->id."/photos/".$obj->photo;
+			if(file_exists($photofile))
+			{
+				if(function_exists('exif_imagetype'))
+					$image_mime = image_type_to_mime_type(exif_imagetype($photofile));
+				else
+				{
+					$image_mime='';
+					switch(strtolower(substr($obj->photo,-4)))
+					{
+						case '.jpg':
+						case 'jpeg':
+							$image_mime='image/jpeg';
+							break;
+						case '.gif':
+							$image_mime='image/gif';
+							break;
+						case '.png':
+							$image_mime='image/png';
+							break;
+						case '.bmp':
+							$image_mime='image/bmp';
+							break;
+						case '.tif':
+						case 'tiff':
+							$image_mime='image/tiff';
+							break;
+					}
+				}
+				if(!empty($image_mime))
+				{
+					$photodata = wordwrap("PHOTO:data:".$image_mime.";base64,".base64_encode(file_get_contents($photofile)),72,"\n",true);
+					$photodata = trim(str_replace("\n", " \n", $photodata));
+					$carddata .= $photodata."\n"; 
+				}
+			}
+		}
    		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
 
