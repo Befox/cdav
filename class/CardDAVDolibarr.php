@@ -296,14 +296,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				if(!empty($image_mime))
 				{
 					$photodata = wordwrap("PHOTO:data:".$image_mime.";base64,".base64_encode(file_get_contents($photofile)),72,"\n",true);
-					$photodata = trim(str_replace("\n", " \n", $photodata));
+					$photodata = trim(str_replace("\n", "\n ", $photodata));
 					$carddata .= $photodata."\n"; 
 				}
 			}
 		}
    		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
-die($carddata);
         return $carddata;
 	}
 
