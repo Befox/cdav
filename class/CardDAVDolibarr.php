@@ -267,7 +267,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$photofile = $conf->societe->dir_output."/contact/".$obj->rowid."/photos/".$obj->photo;
 			if(file_exists($photofile))
 			{
-				if(function_exists('exif_imagetype'))
+				if(false && function_exists('exif_imagetype'))
 					$image_mime = image_type_to_mime_type(exif_imagetype($photofile));
 				else
 				{
