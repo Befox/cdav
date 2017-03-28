@@ -328,7 +328,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$rdata['_uid'] = (string)$vCard->UID;
 		if(isset($vCard->PHOTO) && strpos(substr($vCard->PHOTO,0,10),'://')===false) // exist and not uri
 		{
-			$rdata['_photo_bin'] = $vCard->PHOTO;
+			$rdata['_photo_bin'] = (string)$vCard->PHOTO;
 		}
 		else
 			$rdata['_photo_bin'] = false;
