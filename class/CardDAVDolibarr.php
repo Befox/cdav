@@ -752,7 +752,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 */
 	function updateCard($addressBookId, $cardUri, $cardData) {
 
-        debug_log("updateContactObject( $addressBookId , $cardUri )");
+		global $conf;
+		
+		debug_log("updateContactObject( $addressBookId , $cardUri )");
 
 		if(! $this->user->rights->societe->contact->creer)
 			return null;
@@ -796,13 +798,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		// save photo with jpeg format
 		if(isset($rdata['photo']))
 		{
-			$dir = $conf->societe->dir_output."/contact";
-			@mkdir($dir);
-			$dir = $conf->societe->dir_output."/contact/".$contactid;
-			@mkdir($dir);
 			$dir = $conf->societe->dir_output."/contact/".$contactid."/photos";
 			@mkdir($dir);
-			@mkdir($dir.'/thumbs');
 			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
 			{
 				$object = new \Contact($this->db);
