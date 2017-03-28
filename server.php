@@ -70,6 +70,7 @@ else
 
 require $dir.'main.inc.php';	// Load $user and permissions
 require $dir.'core/lib/security2.lib.php';	// auth method
+require_once $dir.'/contact/class/contact.class.php';
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !');
