@@ -25,8 +25,8 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 }
 
 // debug
-//$debug_file = fopen('/tmp/cdav_'.date('Ymd').'.log','a');
-$debug_file = false;
+$debug_file = fopen('/tmp/cdav_'.date('Ymd').'.log','a');
+//$debug_file = false;
 
 function debug_log($txt)
 {
