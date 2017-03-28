@@ -716,7 +716,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			@mkdir($dir, 0777, true);
 			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
 			{
-				$object = new Contact($this->db);
+				$object = new \Contact($this->db);
 				if($object->fetch($id)>0)
 					$object->addThumbs($dir.'/'.$rdata['photo']);
 			}
