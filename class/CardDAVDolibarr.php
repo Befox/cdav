@@ -314,131 +314,137 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * @param cardData : string vcard
 	 * @param mode : C=create / U=update
 	 */
-    protected function _parseData($cardData, $mode) {
+	protected function _parseData($cardData, $mode) {
 
-        debug_log("_parseData( $cardData )");
-        
-        $rdata = [] ;
+		debug_log("_parseData( $cardData )");
+		
+		$rdata = [] ;
 
-        $vCard = VObject\Reader::read($cardData);
-        $vCard->convert(VObject\Document::VCARD30);
+		$vCard = VObject\Reader::read($cardData);
+		$vCard->convert(VObject\Document::VCARD30);
 
 		// debug_log("_parseData__converted( ".$vCard->PHOTO." )");
 
-        $rdata['_uid'] = (string)$vCard->UID;
-         
-        $names = $vCard->N->getParts();
-        if(isset($names[0]) && trim((string)$names[0])!='')
-            $rdata['lastname'] = (string)$names[0];
-        if($rdata['lastname']=='' && isset($vCard->FN) && trim((string)$vCard->FN)!='')
-            $rdata['lastname'] = (string)$vCard->FN;
-        if($rdata['lastname']=='' && isset($names[1]) && trim((string)$names[1])!='')
-            $rdata['lastname'] = (string)$names[1];
-        if($rdata['lastname']=='')
-            $rdata['lastname'] = "Contact ".date('Y-m-d H:i:s');
-            
-        if(isset($names[1]))
-            $rdata['firstname'] = (string)$names[1];
-        
-        if(isset($names[3]))
-            $rdata['civility'] = (string)$names[3];
-        
-        if(isset($vCard->TITLE))
-            $rdata['poste'] = (string)$vCard->TITLE;
-            
-        if(isset($vCard->CLASS) && ((string)strtoupper($vCard->CLASS))=='PRIVATE')
-            $rdata['priv'] = 1;
-        else
-            $rdata['priv'] = 0;
-            
-        if(isset($vCard->TEL))
-        {
-            foreach($vCard->TEL as $tel)
-            {
-                $teltype = [];
-                $types = $tel['TYPE'];
-                foreach($types as $type)
-                {
-                    $teltype[strtoupper($type)]=true;
-                }
-                
-                if(isset($teltype['WORK']) && (isset($teltype['VOICE']) || count($teltype)==1))
-                    $rdata['phone'] = (string)$tel;
-                    
-                if(isset($teltype['HOME']) && (isset($teltype['VOICE']) || count($teltype)==1))
-                    $rdata['phone_perso'] = (string)$tel;
-                    
-                if(isset($teltype['CELL']))
-                    $rdata['phone_mobile'] = (string)$tel;
-                    
-                if(isset($teltype['HOME']) && isset($teltype['FAX']))
-                    $rdata['fax'] = (string)$tel;
-                elseif(isset($teltype['FAX']) && !isset($rdata['fax']))
-                    $rdata['fax'] = (string)$tel;
-            }
-        }
-        
-        if(isset($vCard->EMAIL))
-        {
-            foreach($vCard->EMAIL as $email)
-            {
-                if(!isset($rdata['email']))
-                    $rdata['email'] = (string)$email;
-                if(isset($email->PREF))
-                    $rdata['email'] = (string)$email;
-            }
-        }
-        
-        if(isset($vCard->ADR))
-        {
-            foreach($vCard->ADR as $adr)
-            {
-                $types = $adr['TYPE'];
-                $adrtype = [];
-                foreach($types as $type)
-                {
-                    $adrtype[strtoupper($type)]=true;
-                }
-                $adrparts = $adr->getParts();
-                debug_log("adrparts:\n".print_r($adrtype, true).print_r($adrparts, true));
-                if(isset($adrtype['HOME']) || !isset($rdata['address']))
-                {
-                    $rdata['address'] = '';
-                    $rdata['town'] = '';
-                    $rdata['zip'] = '';
-                    $rdata['_country_label'] = '';
-                    if(isset($adrparts[2]) && !empty($adrparts[2]))
-                        $rdata['address'].= str_replace(' | ',"\n",trim($adrparts[2]))."\n";
-                    if(isset($adrparts[0]) && !empty($adrparts[0]))
-                        $rdata['address'].= $adrparts[0]."\n";
-                    if(isset($adrparts[1]) && !empty($adrparts[1]))
-                        $rdata['address'].= str_replace(' | ',"\n",trim($adrparts[1]))."\n";
-                    $rdata['address'] = trim($rdata['address']);
-                    if(isset($adrparts[3]))
-                        $rdata['town'] = $adrparts[3];
-                    if(isset($adrparts[5]))
-                        $rdata['zip'] = $adrparts[5];
-                    if(isset($adrparts[6]))
-                        $rdata['_country_label'] = $adrparts[6];
-                    if($mode=='C' && isset($vCard->ORG))	// keep ORG info in address
-						$rdata['address'] = trim((string)$vCard->ORG," ;\n\r\t") . "\n" . $rdata['address'];                    
-                }
-            }
-        }
-        
-        if(isset($vCard->{'X-JABBER'}))
+		$rdata['_uid'] = (string)$vCard->UID;
+		if(isset($vCard->PHOTO) && strpos(substr($vCard->PHOTO,0,10),'://')===false) // exist and not uri
+		{
+			$rdata['_photo_bin'] = $vCard->PHOTO;
+		}
+		else
+			$rdata['_photo_bin'] = false;
+		
+		$names = $vCard->N->getParts();
+		if(isset($names[0]) && trim((string)$names[0])!='')
+			$rdata['lastname'] = (string)$names[0];
+		if($rdata['lastname']=='' && isset($vCard->FN) && trim((string)$vCard->FN)!='')
+			$rdata['lastname'] = (string)$vCard->FN;
+		if($rdata['lastname']=='' && isset($names[1]) && trim((string)$names[1])!='')
+			$rdata['lastname'] = (string)$names[1];
+		if($rdata['lastname']=='')
+			$rdata['lastname'] = "Contact ".date('Y-m-d H:i:s');
+			
+		if(isset($names[1]))
+			$rdata['firstname'] = (string)$names[1];
+		
+		if(isset($names[3]))
+			$rdata['civility'] = (string)$names[3];
+		
+		if(isset($vCard->TITLE))
+			$rdata['poste'] = (string)$vCard->TITLE;
+			
+		if(isset($vCard->CLASS) && ((string)strtoupper($vCard->CLASS))=='PRIVATE')
+			$rdata['priv'] = 1;
+		else
+			$rdata['priv'] = 0;
+			
+		if(isset($vCard->TEL))
+		{
+			foreach($vCard->TEL as $tel)
+			{
+				$teltype = [];
+				$types = $tel['TYPE'];
+				foreach($types as $type)
+				{
+					$teltype[strtoupper($type)]=true;
+				}
+				
+				if(isset($teltype['WORK']) && (isset($teltype['VOICE']) || count($teltype)==1))
+					$rdata['phone'] = (string)$tel;
+					
+				if(isset($teltype['HOME']) && (isset($teltype['VOICE']) || count($teltype)==1))
+					$rdata['phone_perso'] = (string)$tel;
+					
+				if(isset($teltype['CELL']))
+					$rdata['phone_mobile'] = (string)$tel;
+					
+				if(isset($teltype['HOME']) && isset($teltype['FAX']))
+					$rdata['fax'] = (string)$tel;
+				elseif(isset($teltype['FAX']) && !isset($rdata['fax']))
+					$rdata['fax'] = (string)$tel;
+			}
+		}
+		
+		if(isset($vCard->EMAIL))
+		{
+			foreach($vCard->EMAIL as $email)
+			{
+				if(!isset($rdata['email']))
+					$rdata['email'] = (string)$email;
+				if(isset($email->PREF))
+					$rdata['email'] = (string)$email;
+			}
+		}
+		
+		if(isset($vCard->ADR))
+		{
+			foreach($vCard->ADR as $adr)
+			{
+				$types = $adr['TYPE'];
+				$adrtype = [];
+				foreach($types as $type)
+				{
+					$adrtype[strtoupper($type)]=true;
+				}
+				$adrparts = $adr->getParts();
+				// debug_log("adrparts:\n".print_r($adrtype, true).print_r($adrparts, true));
+				if(isset($adrtype['HOME']) || !isset($rdata['address']))
+				{
+					$rdata['address'] = '';
+					$rdata['town'] = '';
+					$rdata['zip'] = '';
+					$rdata['_country_label'] = '';
+					if(isset($adrparts[2]) && !empty($adrparts[2]))
+						$rdata['address'].= str_replace(' | ',"\n",trim($adrparts[2]))."\n";
+					if(isset($adrparts[0]) && !empty($adrparts[0]))
+						$rdata['address'].= $adrparts[0]."\n";
+					if(isset($adrparts[1]) && !empty($adrparts[1]))
+						$rdata['address'].= str_replace(' | ',"\n",trim($adrparts[1]))."\n";
+					$rdata['address'] = trim($rdata['address']);
+					if(isset($adrparts[3]))
+						$rdata['town'] = $adrparts[3];
+					if(isset($adrparts[5]))
+						$rdata['zip'] = $adrparts[5];
+					if(isset($adrparts[6]))
+						$rdata['_country_label'] = $adrparts[6];
+					if($mode=='C' && isset($vCard->ORG))	// keep ORG info in address
+						$rdata['address'] = trim((string)$vCard->ORG," ;\n\r\t") . "\n" . $rdata['address'];					
+				}
+			}
+		}
+		
+		if(isset($vCard->{'X-JABBER'}))
 			$rdata['jabberid'] = (string)$vCard->{'X-JABBER'};
 		
-        if(isset($vCard->{'X-SKYPE'}))
+		if(isset($vCard->{'X-SKYPE'}))
 			$rdata['skype'] = (string)$vCard->{'X-SKYPE'};
-        elseif(isset($vCard->{'X-SKYPE-USERNAME'}))
+		elseif(isset($vCard->{'X-SKYPE-USERNAME'}))
 			$rdata['skype'] = (string)$vCard->{'X-SKYPE-USERNAME'};
 
-        $bday = '';
-        if( isset($vCard->BDAY))
-            $bday = trim((string)$vCard->BDAY);
+		$bday = '';
+		if( isset($vCard->BDAY))
+			$bday = trim((string)$vCard->BDAY);
 		if( isset($vCard->BDAY) && 
-            !empty($bday) &&
+			!empty($bday) &&
 			date("Y-m-d", strtotime(trim($bday))) == trim($bday) )
 			$rdata['birthday'] = trim($bday);
 
@@ -455,10 +461,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				$rdata['fk_pays'] = $row['rowid'];
 		}
 		
-        debug_log("parsed:\n".print_r($rdata, true));
-        
-        return $rdata;
-    }
+		debug_log("parsed:\n".print_r($rdata, true));
+		
+		return $rdata;
+	}
 
 	/**
 	 * Returns all cards for a specific addressbook id.
@@ -643,6 +649,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return null;
 		
 		$rdata = $this->_parseData($cardData, 'C');
+		
+		if($rdata['_photo_bin']!==false)
+		{
+			$gdim = @imagecreatefromstring($rdata['_photo_bin']);
+			if($gdim!==false)
+				$rdata['photo'] = 'cdavimage.jpg';
+		}
 
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."socpeople (";
 		foreach($rdata as $fld => $val)
@@ -694,8 +707,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					'".$this->db->escape($cardUri)."',
 					'".$this->db->escape($rdata['_uid'])."'
 				)";
-
 		$this->db->query($sql);
+
+		// save photo with jpeg format
+		if(isset($rdata['photo']))
+		{
+			$dir = $conf->societe->dir_output."/contact/".$id."/photos";
+			dol_mkdir($dir);
+			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
+			{
+				$object = new Contact($this->db);
+				if($object->fetch($id)>0)
+					$object->addThumbs($dir.'/'.$rdata['photo']);
+			}
+		}
 
 		return null;
     }
