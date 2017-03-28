@@ -22,7 +22,7 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 	if(function_exists("debug_log"))
 	{
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
-		debug_log(print_r(debug_backtrace(), true));
+		debug_log(print_r(debug_backtrace(false), true));
     }
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
