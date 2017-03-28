@@ -23,7 +23,7 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 	{
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
 		foreach(debug_backtrace(false) as $trace)
-		debug_log(" - ".$trace['file'].'@'.$trace['line'].' '.$trace['function'].'(...)');
+			debug_log(" - ".$trace['file'].'@'.$trace['line'].' '.$trace['function'].'(...)');
     }
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
@@ -80,8 +80,7 @@ if(!$conf->cdav->enabled)
 	die('module CDav not enabled !');
 
 set_error_handler("exception_error_handler", E_ERROR | E_USER_ERROR |
-				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR |
-				E_PARSE | E_WARNING | E_CORE_WARNING | E_USER_WARNING);
+				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR );
 
 
 require_once './lib/cdav.lib.php';
