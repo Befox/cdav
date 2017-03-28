@@ -796,8 +796,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		// save photo with jpeg format
 		if(isset($rdata['photo']))
 		{
+			$dir = $conf->societe->dir_output."/contact";
+			@mkdir($dir);
+			$dir = $conf->societe->dir_output."/contact/".$contactid;
+			@mkdir($dir);
 			$dir = $conf->societe->dir_output."/contact/".$contactid."/photos";
-			@mkdir($dir, 0777, true);
+			@mkdir($dir);
+			@mkdir($dir.'/thumbs');
 			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
 			{
 				$object = new \Contact($this->db);
