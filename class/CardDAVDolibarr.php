@@ -774,6 +774,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				return null; // not found
 		}
 
+		if($rdata['_photo_bin']!==false)
+		{
+			$gdim = @imagecreatefromstring($rdata['_photo_bin']);
+			if($gdim!==false)
+				$rdata['photo'] = 'cdavimage.jpg';
+		}
+
 		$sql = "UPDATE ".MAIN_DB_PREFIX."socpeople SET ";
 		foreach($rdata as $fld => $val)
 		{
@@ -785,6 +792,19 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$res = $this->db->query($sql);
 
 		$this->db->query($sql);
+
+		// save photo with jpeg format
+		if(isset($rdata['photo']))
+		{
+			$dir = $conf->societe->dir_output."/contact/".$contactid."/photos";
+			@mkdir($dir, 0777, true);
+			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
+			{
+				$object = new \Contact($this->db);
+				if($object->fetch($contactid)>0)
+					$object->addThumbs($dir.'/'.$rdata['photo']);
+			}
+		}
 	}
 
 	/**
