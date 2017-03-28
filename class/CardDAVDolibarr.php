@@ -713,7 +713,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(isset($rdata['photo']))
 		{
 			$dir = $conf->societe->dir_output."/contact/".$id."/photos";
-			dol_mkdir($dir);
+			@mkdir($dir, 0777, true);
 			if(@imagejpeg($gdim, $dir.'/'.$rdata['photo']))
 			{
 				$object = new Contact($this->db);
