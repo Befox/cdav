@@ -123,6 +123,32 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	// Authentication mode
 	if (empty($dolibarr_main_authentication))
 		$dolibarr_main_authentication='http,dolibarr';
+	if(strpos($dolibarr_main_authentication,'ldap')!==false)
+	{
+		// workaround for undefined vars in ldap connection method
+		if(!isset($conf->global->LDAP_FILTER_CONNECTION))
+			$conf->global->LDAP_FILTER_CONNECTION='';
+		if(!isset($conf->global->LDAP_MEMBER_FILTER))
+			$conf->global->LDAP_MEMBER_FILTER='';
+		if(!isset($conf->global->LDAP_FIELD_LOGIN))
+			$conf->global->LDAP_FIELD_LOGIN='';
+		if(!isset($conf->global->LDAP_FIELD_LOGIN_SAMBA))
+			$conf->global->LDAP_FIELD_LOGIN_SAMBA='';
+		if(!isset($conf->global->LDAP_FIELD_NAME))
+			$conf->global->LDAP_FIELD_NAME='';
+		if(!isset($conf->global->LDAP_FIELD_FIRSTNAME))
+			$conf->global->LDAP_FIELD_FIRSTNAME='';
+		if(!isset($conf->global->LDAP_FIELD_MAIL))
+			$conf->global->LDAP_FIELD_MAIL='';
+		if(!isset($conf->global->LDAP_FIELD_PHONE))
+			$conf->global->LDAP_FIELD_PHONE='';
+		if(!isset($conf->global->LDAP_FIELD_SKYPE))
+			$conf->global->LDAP_FIELD_SKYPE='';
+		if(!isset($conf->global->LDAP_FIELD_FAX))
+			$conf->global->LDAP_FIELD_FAX='';
+		if(!isset($conf->global->LDAP_FIELD_MOBILE))
+			$conf->global->LDAP_FIELD_MOBILE='';
+	}
 	$authmode = explode(',',$dolibarr_main_authentication);
 	$entity = (GETPOST('entity','int') ? GETPOST('entity','int') : (!empty($conf->entity) ? $conf->entity : 1));
 	if(checkLoginPassEntity($username,$password,$entity,$authmode)!=$username)
