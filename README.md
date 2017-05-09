@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 3.7/3.8/3.9/4.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 3.7/3.8/3.9/4.0/5.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
 You can :
 
@@ -13,7 +13,7 @@ You can :
 
 Each user can access his/her contacts address book (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
 
-Dolibarr contact informations fill personnal informations in client software cards.
+Dolibarr contact informations fill personnal informations in client software cards (including contact photo).
 
 Society informations (to which contact is attached) fill professional informations in client software cards.
 
@@ -47,7 +47,7 @@ Use these URLs in your CardDAV or CalDAV client software.
 
 * Disable CDav module in Interfaces Modules list.
 * Unzip last version or _git pull_ in dolibarr/htdocs/cdav
-* Enable CDav module in Interfaces Modules list.
+* Enable CDav module in Modules list.
 
 
 ## DAV URLs

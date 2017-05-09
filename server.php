@@ -15,12 +15,16 @@
  ******************************************************************/
 
 error_reporting(E_ALL & ~E_NOTICE);
-ini_set("display_errors", 1);
+ini_set("display_errors", 0);
 ini_set("log_errors", 1);
 
 function exception_error_handler($errno, $errstr, $errfile, $errline) {
 	if(function_exists("debug_log"))
+	{
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
+		foreach(debug_backtrace(false) as $trace)
+			debug_log(" - ".$trace['file'].'@'.$trace['line'].' '.$trace['function'].'(...)');
+    }
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
 
@@ -70,11 +74,14 @@ else
 
 require $dir.'main.inc.php';	// Load $user and permissions
 require $dir.'core/lib/security2.lib.php';	// auth method
+require_once $dir.'/contact/class/contact.class.php';
 
 if(!$conf->cdav->enabled)
-	die('module CDav not enabled !'); 
+	die('module CDav not enabled !');
 
-set_error_handler("exception_error_handler");
+set_error_handler("exception_error_handler", E_ERROR | E_USER_ERROR |
+				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR );
+
 
 require_once './lib/cdav.lib.php';
 
