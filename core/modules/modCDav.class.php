@@ -58,7 +58,7 @@ class modCDav extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.07';
+		$this->version = '1.08';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -111,8 +111,8 @@ class modCDav extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array(
-			0 => array('CDAV_URI_KEY', 'CDav uri key', substr(md5(time()),0,8),'Change it to force client to resync',1,'current',0),
-			1 => array('CDAV_CONTACT_TAG', 'CDav contact tag', '', 'Contact tag to restrict contacts to sync, leave blank for all',1,'current',1),
+			0 => array('CDAV_URI_KEY', 'chaine', substr(md5(time()),0,8),'Change it to force client to resync',1,'current',0),
+			1 => array('CDAV_CONTACT_TAG', 'chaine', '', 'Contact tag to restrict contacts to sync, leave blank for all',1,'current',1),
 		);
 
 		// Array to add new pages in new tabs
