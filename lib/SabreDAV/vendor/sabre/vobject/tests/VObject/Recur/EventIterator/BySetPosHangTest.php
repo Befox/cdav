@@ -2,9 +2,8 @@
 
 namespace Sabre\VObject\Recur;
 
-use
-    Sabre\VObject\Reader,
-    DateTime;
+use DateTime;
+use Sabre\VObject\Reader;
 
 class BySetPosHangTest extends \PHPUnit_Framework_TestCase {
 
@@ -33,13 +32,13 @@ ICS;
         $vcal = Reader::read($ics);
         $this->assertInstanceOf('Sabre\\VObject\\Component\\VCalendar', $vcal);
 
-        $vcal->expand(new DateTime('2015-01-01'), new DateTime('2016-01-01'));
+        $vcal = $vcal->expand(new DateTime('2015-01-01'), new DateTime('2016-01-01'));
 
         foreach ($vcal->VEVENT as $event) {
             $dates[] = $event->DTSTART->getValue();
         }
 
-        $expectedDates = array(
+        $expectedDates = [
             "20150101T160000Z",
             "20150122T160000Z",
             "20150219T160000Z",
@@ -53,7 +52,7 @@ ICS;
             "20151022T150000Z",
             "20151119T160000Z",
             "20151224T160000Z",
-        );
+        ];
 
         $this->assertEquals($expectedDates, $dates);
     }

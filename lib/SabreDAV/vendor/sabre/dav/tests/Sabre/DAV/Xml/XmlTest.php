@@ -2,8 +2,8 @@
 
 namespace Sabre\DAV\Xml;
 
-use Sabre\Xml\Writer;
 use Sabre\Xml\Reader;
+use Sabre\Xml\Writer;
 
 abstract class XmlTest extends \PHPUnit_Framework_TestCase {
 
@@ -29,6 +29,13 @@ abstract class XmlTest extends \PHPUnit_Framework_TestCase {
         $reader->elementMap = array_merge($this->elementMap, $elementMap);
         $reader->xml($xml);
         return $reader->parse();
+
+    }
+
+    function assertParsedValue($expected, $xml, array $elementMap = []) {
+
+        $result = $this->parse($xml, $elementMap);
+        $this->assertEquals($expected, $result['value']);
 
     }
 

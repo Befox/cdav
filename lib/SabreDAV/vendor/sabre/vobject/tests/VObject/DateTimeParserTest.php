@@ -2,20 +2,20 @@
 
 namespace Sabre\VObject;
 
-use DateTime;
-use DateTimeZone;
 use DateInterval;
+use DateTimeImmutable;
+use DateTimeZone;
 
 class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
     function testParseICalendarDuration() {
 
-        $this->assertEquals('+1 weeks', DateTimeParser::parseDuration('P1W',true));
-        $this->assertEquals('+5 days',  DateTimeParser::parseDuration('P5D',true));
-        $this->assertEquals('+5 days 3 hours 50 minutes 12 seconds', DateTimeParser::parseDuration('P5DT3H50M12S',true));
-        $this->assertEquals('-1 weeks 50 minutes', DateTimeParser::parseDuration('-P1WT50M',true));
-        $this->assertEquals('+50 days 3 hours 2 seconds', DateTimeParser::parseDuration('+P50DT3H2S',true));
-        $this->assertEquals('+0 seconds', DateTimeParser::parseDuration('+PT0S',true));
+        $this->assertEquals('+1 weeks', DateTimeParser::parseDuration('P1W', true));
+        $this->assertEquals('+5 days',  DateTimeParser::parseDuration('P5D', true));
+        $this->assertEquals('+5 days 3 hours 50 minutes 12 seconds', DateTimeParser::parseDuration('P5DT3H50M12S', true));
+        $this->assertEquals('-1 weeks 50 minutes', DateTimeParser::parseDuration('-P1WT50M', true));
+        $this->assertEquals('+50 days 3 hours 2 seconds', DateTimeParser::parseDuration('+P50DT3H2S', true));
+        $this->assertEquals('+0 seconds', DateTimeParser::parseDuration('+PT0S', true));
         $this->assertEquals(new DateInterval('PT0S'), DateTimeParser::parseDuration('PT0S'));
 
     }
@@ -33,11 +33,11 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException LogicException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
     function testParseICalendarDurationFail() {
 
-        DateTimeParser::parseDuration('P1X',true);
+        DateTimeParser::parseDuration('P1X', true);
 
     }
 
@@ -45,7 +45,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDateTime('20100316T141405');
 
-        $compare = new DateTime('2010-03-16 14:14:05',new DateTimeZone('UTC'));
+        $compare = new DateTimeImmutable('2010-03-16 14:14:05', new DateTimeZone('UTC'));
 
         $this->assertEquals($compare, $dateTime);
 
@@ -53,11 +53,21 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @depends testParseICalendarDateTime
-     * @expectedException LogicException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
     function testParseICalendarDateTimeBadFormat() {
 
         $dateTime = DateTimeParser::parseDateTime('20100316T141405 ');
+
+    }
+
+    /**
+     * @depends testParseICalendarDateTime
+     * @expectedException \Sabre\VObject\InvalidDataException
+     */
+    function testParseICalendarDateTimeInvalidTime() {
+
+        $dateTime = DateTimeParser::parseDateTime('20100316T251405');
 
     }
 
@@ -68,7 +78,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDateTime('20100316T141405Z');
 
-        $compare = new DateTime('2010-03-16 14:14:05',new DateTimeZone('UTC'));
+        $compare = new DateTimeImmutable('2010-03-16 14:14:05', new DateTimeZone('UTC'));
         $this->assertEquals($compare, $dateTime);
 
     }
@@ -80,7 +90,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDateTime('20101211T160000Z');
 
-        $compare = new DateTime('2010-12-11 16:00:00',new DateTimeZone('UTC'));
+        $compare = new DateTimeImmutable('2010-12-11 16:00:00', new DateTimeZone('UTC'));
         $this->assertEquals($compare, $dateTime);
 
     }
@@ -92,7 +102,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDateTime('20100316T141405', new DateTimeZone('Europe/Amsterdam'));
 
-        $compare = new DateTime('2010-03-16 14:14:05',new DateTimeZone('Europe/Amsterdam'));
+        $compare = new DateTimeImmutable('2010-03-16 14:14:05', new DateTimeZone('Europe/Amsterdam'));
         $this->assertEquals($compare, $dateTime);
 
     }
@@ -101,7 +111,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDate('20100316');
 
-        $expected = new DateTime('2010-03-16 00:00:00',new DateTimeZone('UTC'));
+        $expected = new DateTimeImmutable('2010-03-16 00:00:00', new DateTimeZone('UTC'));
 
         $this->assertEquals($expected, $dateTime);
 
@@ -117,7 +127,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDate('45001231');
 
-        $expected = new DateTime('4500-12-31 00:00:00',new DateTimeZone('UTC'));
+        $expected = new DateTimeImmutable('4500-12-31 00:00:00', new DateTimeZone('UTC'));
 
         $this->assertEquals($expected, $dateTime);
 
@@ -133,7 +143,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
         $dateTime = DateTimeParser::parseDateTime('45001231T235959');
 
-        $expected = new DateTime('4500-12-31 23:59:59',new DateTimeZone('UTC'));
+        $expected = new DateTimeImmutable('4500-12-31 23:59:59', new DateTimeZone('UTC'));
 
         $this->assertEquals($expected, $dateTime);
 
@@ -144,11 +154,21 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @depends testParseICalendarDate
-     * @expectedException LogicException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
     function testParseICalendarDateBadFormat() {
 
         $dateTime = DateTimeParser::parseDate('20100316T141405');
+
+    }
+
+    /**
+     * @depends testParseICalendarDate
+     * @expectedException \Sabre\VObject\InvalidDataException
+     */
+    function testParseICalendarDateInvalidDate() {
+
+        $dateTime = DateTimeParser::parseDate('20101331');
 
     }
 
@@ -165,8 +185,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @dataProvider vcardDates
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
     function testBadVCardDate() {
 
@@ -175,8 +194,7 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @dataProvider vcardDates
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
     function testBadVCardTime() {
 
@@ -186,230 +204,494 @@ class DateTimeParserTest extends \PHPUnit_Framework_TestCase {
 
     function vcardDates() {
 
-        return array(
-            array(
+        return [
+            [
                 "19961022T140000",
-                array(
-                    "year" => 1996,
-                    "month" => 10,
-                    "date" => 22,
-                    "hour" => 14,
-                    "minute" => 00,
-                    "second" => 00,
+                [
+                    "year"     => 1996,
+                    "month"    => 10,
+                    "date"     => 22,
+                    "hour"     => 14,
+                    "minute"   => 00,
+                    "second"   => 00,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "--1022T1400",
-                array(
-                    "year" => null,
-                    "month" => 10,
-                    "date" => 22,
-                    "hour" => 14,
-                    "minute" => 00,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => 10,
+                    "date"     => 22,
+                    "hour"     => 14,
+                    "minute"   => 00,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "---22T14",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => 22,
-                    "hour" => 14,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => 22,
+                    "hour"     => 14,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "19850412",
-                array(
-                    "year" => 1985,
-                    "month" => 4,
-                    "date" => 12,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => 1985,
+                    "month"    => 4,
+                    "date"     => 12,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "1985-04",
-                array(
-                    "year" => 1985,
-                    "month" => 04,
-                    "date" => null,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => 1985,
+                    "month"    => 04,
+                    "date"     => null,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "1985",
-                array(
-                    "year" => 1985,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => 1985,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "--0412",
-                array(
-                    "year" => null,
-                    "month" => 4,
-                    "date" => 12,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => 4,
+                    "date"     => 12,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "---12",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => 12,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => 12,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T102200",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => 10,
-                    "minute" => 22,
-                    "second" => 0,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => 10,
+                    "minute"   => 22,
+                    "second"   => 0,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T1022",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => 10,
-                    "minute" => 22,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => 10,
+                    "minute"   => 22,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T10",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => 10,
-                    "minute" => null,
-                    "second" => null,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => 10,
+                    "minute"   => null,
+                    "second"   => null,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T-2200",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => null,
-                    "minute" => 22,
-                    "second" => 00,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => null,
+                    "minute"   => 22,
+                    "second"   => 00,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T--00",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => null,
-                    "minute" => null,
-                    "second" => 00,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => null,
+                    "minute"   => null,
+                    "second"   => 00,
                     "timezone" => null
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T102200Z",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => 10,
-                    "minute" => 22,
-                    "second" => 00,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => 10,
+                    "minute"   => 22,
+                    "second"   => 00,
                     "timezone" => 'Z'
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 "T102200-0800",
-                array(
-                    "year" => null,
-                    "month" => null,
-                    "date" => null,
-                    "hour" => 10,
-                    "minute" => 22,
-                    "second" => 00,
+                [
+                    "year"     => null,
+                    "month"    => null,
+                    "date"     => null,
+                    "hour"     => 10,
+                    "minute"   => 22,
+                    "second"   => 00,
                     "timezone" => '-0800'
-                ),
-            ),
+                ],
+            ],
 
             // extended format
-            array(
+            [
                 "2012-11-29T15:10:53Z",
-                array(
-                    "year" => 2012,
-                    "month" => 11,
-                    "date" => 29,
-                    "hour" => 15,
-                    "minute" => 10,
-                    "second" => 53,
+                [
+                    "year"     => 2012,
+                    "month"    => 11,
+                    "date"     => 29,
+                    "hour"     => 15,
+                    "minute"   => 10,
+                    "second"   => 53,
                     "timezone" => 'Z'
-                ),
-            ),
+                ],
+            ],
 
             // with milliseconds
-            array(
+            [
                 "20121129T151053.123Z",
-                array(
-                    "year" => 2012,
-                    "month" => 11,
-                    "date" => 29,
-                    "hour" => 15,
-                    "minute" => 10,
-                    "second" => 53,
+                [
+                    "year"     => 2012,
+                    "month"    => 11,
+                    "date"     => 29,
+                    "hour"     => 15,
+                    "minute"   => 10,
+                    "second"   => 53,
                     "timezone" => 'Z'
-                ),
-            ),
+                ],
+            ],
 
             // extended format with milliseconds
-            array(
+            [
                 "2012-11-29T15:10:53.123Z",
-                array(
-                    "year" => 2012,
-                    "month" => 11,
-                    "date" => 29,
-                    "hour" => 15,
-                    "minute" => 10,
-                    "second" => 53,
+                [
+                    "year"     => 2012,
+                    "month"    => 11,
+                    "date"     => 29,
+                    "hour"     => 15,
+                    "minute"   => 10,
+                    "second"   => 53,
                     "timezone" => 'Z'
-                ),
-            ),
+                ],
+            ],
+        ];
 
+    }
+
+    function testDateAndOrTime_DateWithYearMonthDay() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '20150128',
+            [
+                'year'  => '2015',
+                'month' => '01',
+                'date'  => '28'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateWithYearMonth() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '2015-01',
+            [
+                'year'  => '2015',
+                'month' => '01'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateWithMonth() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '--01',
+            [
+                'month' => '01'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateWithMonthDay() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '--0128',
+            [
+                'month' => '01',
+                'date'  => '28'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateWithDay() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28',
+            [
+                'date' => '28'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithHour() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '13',
+            [
+                'hour' => '13'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithHourMinute() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '1353',
+            [
+                'hour'   => '13',
+                'minute' => '53'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithHourSecond() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '135301',
+            [
+                'hour'   => '13',
+                'minute' => '53',
+                'second' => '01'
+            ]
+
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithMinute() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '-53',
+            [
+                'minute' => '53'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithMinuteSecond() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '-5301',
+            [
+                'minute' => '53',
+                'second' => '01'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithSecond() {
+
+        $this->assertTrue(true);
+
+        /**
+         * This is unreachable due to a conflict between date and time pattern.
+         * This is an error in the specification, not in our implementation.
+         */
+    }
+
+    function testDateAndOrTime_TimeWithSecondZ() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '--01Z',
+            [
+                'second'   => '01',
+                'timezone' => 'Z'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_TimeWithSecondTZ() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '--01+1234',
+            [
+                'second'   => '01',
+                'timezone' => '+1234'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithYearMonthDayHour() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '20150128T13',
+            [
+                'year'  => '2015',
+                'month' => '01',
+                'date'  => '28',
+                'hour'  => '13'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithMonthDayHour() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '--0128T13',
+            [
+                'month' => '01',
+                'date'  => '28',
+                'hour'  => '13'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithDayHour() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28T13',
+            [
+                'date' => '28',
+                'hour' => '13'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithDayHourMinute() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28T1353',
+            [
+                'date'   => '28',
+                'hour'   => '13',
+                'minute' => '53'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithDayHourMinuteSecond() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28T135301',
+            [
+                'date'   => '28',
+                'hour'   => '13',
+                'minute' => '53',
+                'second' => '01'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithDayHourZ() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28T13Z',
+            [
+                'date'     => '28',
+                'hour'     => '13',
+                'timezone' => 'Z'
+            ]
+        );
+
+    }
+
+    function testDateAndOrTime_DateTimeWithDayHourTZ() {
+
+        $this->assertDateAndOrTimeEqualsTo(
+            '---28T13+1234',
+            [
+                'date'     => '28',
+                'hour'     => '13',
+                'timezone' => '+1234'
+            ]
+        );
+
+    }
+
+    protected function assertDateAndOrTimeEqualsTo($date, $parts) {
+
+        $this->assertSame(
+            DateTimeParser::parseVCardDateAndOrTime($date),
+            array_merge(
+                [
+                    'year'     => null,
+                    'month'    => null,
+                    'date'     => null,
+                    'hour'     => null,
+                    'minute'   => null,
+                    'second'   => null,
+                    'timezone' => null
+                ],
+                $parts
+            )
         );
 
     }

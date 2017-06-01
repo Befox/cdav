@@ -42,7 +42,7 @@ class SchedulingObject extends \Sabre\CalDAV\CalendarObject implements IScheduli
      *   * lastmodified - (optional) format as a unix timestamp.
      *   * acl - (optional) Use this to override the default ACL for the node.
      *
-     * @param Backend\BackendInterface $caldavBackend
+     * @param Backend\SchedulingSupport $caldavBackend
      * @param array $objectData
      */
     function __construct(Backend\SchedulingSupport $caldavBackend, array $objectData) {
@@ -134,22 +134,12 @@ class SchedulingObject extends \Sabre\CalDAV\CalendarObject implements IScheduli
         // The default ACL
         return [
             [
-                'privilege' => '{DAV:}read',
-                'principal' => $this->objectData['principaluri'],
+                'privilege' => '{DAV:}all',
+                'principal' => '{DAV:}owner',
                 'protected' => true,
             ],
             [
-                'privilege' => '{DAV:}write',
-                'principal' => $this->objectData['principaluri'],
-                'protected' => true,
-            ],
-            [
-                'privilege' => '{DAV:}read',
-                'principal' => $this->objectData['principaluri'] . '/calendar-proxy-write',
-                'protected' => true,
-            ],
-            [
-                'privilege' => '{DAV:}write',
+                'privilege' => '{DAV:}all',
                 'principal' => $this->objectData['principaluri'] . '/calendar-proxy-write',
                 'protected' => true,
             ],

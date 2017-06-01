@@ -56,10 +56,10 @@ require_once 'vendor/autoload.php';
  * This allows any developer to subclass just any of them and hook into their
  * own backend systems.
  */
-$authBackend      = new \Sabre\DAV\Auth\Backend\PDO($pdo);
+$authBackend = new \Sabre\DAV\Auth\Backend\PDO($pdo);
 $principalBackend = new \Sabre\DAVACL\PrincipalBackend\PDO($pdo);
-$carddavBackend   = new \Sabre\CardDAV\Backend\PDO($pdo);
-$caldavBackend    = new \Sabre\CalDAV\Backend\PDO($pdo);
+$carddavBackend = new \Sabre\CardDAV\Backend\PDO($pdo);
+$caldavBackend = new \Sabre\CalDAV\Backend\PDO($pdo);
 
 /**
  * The directory tree
@@ -83,10 +83,19 @@ if (isset($baseUri)) $server->setBaseUri($baseUri);
 // Plugins
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
 $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
-$server->addPlugin(new \Sabre\CalDAV\Plugin());
-$server->addPlugin(new \Sabre\CardDAV\Plugin());
-$server->addPlugin(new \Sabre\DAVACL\Plugin());
 $server->addPlugin(new \Sabre\DAV\Sync\Plugin());
+$server->addPlugin(new \Sabre\DAV\Sharing\Plugin());
+$server->addPlugin(new \Sabre\DAVACL\Plugin());
+
+// CalDAV plugins
+$server->addPlugin(new \Sabre\CalDAV\Plugin());
+$server->addPlugin(new \Sabre\CalDAV\Schedule\Plugin());
+$server->addPlugin(new \Sabre\CalDAV\SharingPlugin());
+$server->addPlugin(new \Sabre\CalDAV\ICSExportPlugin());
+
+// CardDAV plugins
+$server->addPlugin(new \Sabre\CardDAV\Plugin());
+$server->addPlugin(new \Sabre\CardDAV\VCFExportPlugin());
 
 // And off we go!
 $server->exec();

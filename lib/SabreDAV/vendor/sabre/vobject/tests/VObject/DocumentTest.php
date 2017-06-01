@@ -20,14 +20,14 @@ class DocumentTest extends \PHPUnit_Framework_TestCase {
 
     function testCreateComponent() {
 
-        $vcal = new Component\VCalendar(array(), false);
+        $vcal = new Component\VCalendar([], false);
 
         $event = $vcal->createComponent('VEVENT');
 
         $this->assertInstanceOf('Sabre\VObject\Component\VEvent', $event);
         $vcal->add($event);
 
-        $prop = $vcal->createProperty('X-PROP','1234256',array('X-PARAM' => '3'));
+        $prop = $vcal->createProperty('X-PROP', '1234256', ['X-PARAM' => '3']);
         $this->assertInstanceOf('Sabre\VObject\Property', $prop);
 
         $event->add($prop);
@@ -44,21 +44,42 @@ class DocumentTest extends \PHPUnit_Framework_TestCase {
 
     function testCreate() {
 
-        $vcal = new Component\VCalendar(array(), false);
+        $vcal = new Component\VCalendar([], false);
 
         $event = $vcal->create('VEVENT');
         $this->assertInstanceOf('Sabre\VObject\Component\VEvent', $event);
 
-        $event = $vcal->create('CALSCALE');
-        $this->assertInstanceOf('Sabre\VObject\Property\Text', $event);
+        $prop = $vcal->create('CALSCALE');
+        $this->assertInstanceOf('Sabre\VObject\Property\Text', $prop);
 
     }
 
     function testGetClassNameForPropertyValue() {
 
-        $vcal = new Component\VCalendar(array(), false);
+        $vcal = new Component\VCalendar([], false);
         $this->assertEquals('Sabre\\VObject\\Property\\Text', $vcal->getClassNameForPropertyValue('TEXT'));
         $this->assertNull($vcal->getClassNameForPropertyValue('FOO'));
+
+    }
+
+    function testDestroy() {
+
+        $vcal = new Component\VCalendar([], false);
+        $event = $vcal->createComponent('VEVENT');
+
+        $this->assertInstanceOf('Sabre\VObject\Component\VEvent', $event);
+        $vcal->add($event);
+
+        $prop = $vcal->createProperty('X-PROP', '1234256', ['X-PARAM' => '3']);
+
+        $event->add($prop);
+
+        $this->assertEquals($event, $prop->parent);
+
+        $vcal->destroy();
+
+        $this->assertNull($prop->parent);
+
 
     }
 

@@ -2,10 +2,10 @@
 
 namespace Sabre\VObject\Component;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use Sabre\VObject;
 use Sabre\VObject\Reader;
-use Sabre\VObject\Component;
-use Sabre\VObject\Component\VAvailability;
 
 /**
  * We use `RFCxxx` has a placeholder for the
@@ -24,6 +24,106 @@ VCAL;
         $document = Reader::read($vcal);
 
         $this->assertInstanceOf(__NAMESPACE__ . '\VAvailability', $document->VAVAILABILITY);
+
+    }
+
+    function testGetEffectiveStartEnd() {
+
+        $vcal = <<<VCAL
+BEGIN:VCALENDAR
+BEGIN:VAVAILABILITY
+DTSTART:20150717T162200Z
+DTEND:20150717T172200Z
+END:VAVAILABILITY
+END:VCALENDAR
+VCAL;
+
+        $document = Reader::read($vcal);
+        $tz = new DateTimeZone('UTC');
+        $this->assertEquals(
+            [
+                new DateTimeImmutable('2015-07-17 16:22:00', $tz),
+                new DateTimeImmutable('2015-07-17 17:22:00', $tz),
+            ],
+            $document->VAVAILABILITY->getEffectiveStartEnd()
+        );
+
+    }
+
+    function testGetEffectiveStartDuration() {
+
+        $vcal = <<<VCAL
+BEGIN:VCALENDAR
+BEGIN:VAVAILABILITY
+DTSTART:20150717T162200Z
+DURATION:PT1H
+END:VAVAILABILITY
+END:VCALENDAR
+VCAL;
+
+        $document = Reader::read($vcal);
+        $tz = new DateTimeZone('UTC');
+        $this->assertEquals(
+            [
+                new DateTimeImmutable('2015-07-17 16:22:00', $tz),
+                new DateTimeImmutable('2015-07-17 17:22:00', $tz),
+            ],
+            $document->VAVAILABILITY->getEffectiveStartEnd()
+        );
+
+    }
+
+    function testGetEffectiveStartEndUnbound() {
+
+        $vcal = <<<VCAL
+BEGIN:VCALENDAR
+BEGIN:VAVAILABILITY
+END:VAVAILABILITY
+END:VCALENDAR
+VCAL;
+
+        $document = Reader::read($vcal);
+        $this->assertEquals(
+            [
+                null,
+                null,
+            ],
+            $document->VAVAILABILITY->getEffectiveStartEnd()
+        );
+
+    }
+
+    function testIsInTimeRangeUnbound() {
+
+        $vcal = <<<VCAL
+BEGIN:VCALENDAR
+BEGIN:VAVAILABILITY
+END:VAVAILABILITY
+END:VCALENDAR
+VCAL;
+
+        $document = Reader::read($vcal);
+        $this->assertTrue(
+            $document->VAVAILABILITY->isInTimeRange(new DateTimeImmutable('2015-07-17'), new DateTimeImmutable('2015-07-18'))
+        );
+
+    }
+
+    function testIsInTimeRangeOutside() {
+
+        $vcal = <<<VCAL
+BEGIN:VCALENDAR
+BEGIN:VAVAILABILITY
+DTSTART:20140101T000000Z
+DTEND:20140102T000000Z
+END:VAVAILABILITY
+END:VCALENDAR
+VCAL;
+
+        $document = Reader::read($vcal);
+        $this->assertFalse(
+            $document->VAVAILABILITY->isInTimeRange(new DateTimeImmutable('2015-07-17'), new DateTimeImmutable('2015-07-18'))
+        );
 
     }
 
@@ -85,7 +185,7 @@ VCAL
 
     function testRFCxxxSection3_1_availabilityprop_optional_once() {
 
-        $properties = array(
+        $properties = [
             'BUSYTYPE:BUSY',
             'CLASS:PUBLIC',
             'CREATED:20111005T135125Z',
@@ -97,17 +197,17 @@ VCAL
             'SEQUENCE:0',
             'SUMMARY:Bla bla',
             'URL:http://example.org/'
-        );
+        ];
 
         // They are all present, only once.
         $this->assertIsValid(Reader::read($this->template($properties)));
 
         // We duplicate each one to see if it fails.
         foreach ($properties as $property) {
-            $this->assertIsNotValid(Reader::read($this->template(array(
+            $this->assertIsNotValid(Reader::read($this->template([
                 $property,
                 $property
-            ))));
+            ])));
         }
 
     }
@@ -115,20 +215,20 @@ VCAL
     function testRFCxxxSection3_1_availabilityprop_dtend_duration() {
 
         // Only DTEND.
-        $this->assertIsValid(Reader::read($this->template(array(
+        $this->assertIsValid(Reader::read($this->template([
             'DTEND:21111005T133225Z'
-        ))));
+        ])));
 
         // Only DURATION.
-        $this->assertIsValid(Reader::read($this->template(array(
+        $this->assertIsValid(Reader::read($this->template([
             'DURATION:PT1H'
-        ))));
+        ])));
 
         // Both (not allowed).
-        $this->assertIsNotValid(Reader::read($this->template(array(
+        $this->assertIsNotValid(Reader::read($this->template([
             'DTEND:21111005T133225Z',
             'DURATION:PT1H'
-        ))));
+        ])));
     }
 
     function testAvailableSubComponent() {
@@ -243,42 +343,42 @@ VCAL
     function testRFCxxxSection3_1_available_dtend_duration() {
 
         // Only DTEND.
-        $this->assertIsValid(Reader::read($this->templateAvailable(array(
+        $this->assertIsValid(Reader::read($this->templateAvailable([
             'DTEND:21111005T133225Z'
-        ))));
+        ])));
 
         // Only DURATION.
-        $this->assertIsValid(Reader::read($this->templateAvailable(array(
+        $this->assertIsValid(Reader::read($this->templateAvailable([
             'DURATION:PT1H'
-        ))));
+        ])));
 
         // Both (not allowed).
-        $this->assertIsNotValid(Reader::read($this->templateAvailable(array(
+        $this->assertIsNotValid(Reader::read($this->templateAvailable([
             'DTEND:21111005T133225Z',
             'DURATION:PT1H'
-        ))));
+        ])));
     }
 
     function testRFCxxxSection3_1_available_optional_once() {
 
-        $properties = array(
+        $properties = [
             'CREATED:20111005T135125Z',
             'DESCRIPTION:Long bla bla',
             'LAST-MODIFIED:20111005T135325Z',
             'RECURRENCE-ID;RANGE=THISANDFUTURE:19980401T133000Z',
             'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
             'SUMMARY:Bla bla'
-        );
+        ];
 
         // They are all present, only once.
         $this->assertIsValid(Reader::read($this->templateAvailable($properties)));
 
         // We duplicate each one to see if it fails.
         foreach ($properties as $property) {
-            $this->assertIsNotValid(Reader::read($this->templateAvailable(array(
+            $this->assertIsNotValid(Reader::read($this->templateAvailable([
                 $property,
                 $property
-            ))));
+            ])));
         }
 
     }
@@ -286,9 +386,9 @@ VCAL
 
         $this->assertEquals(
             'BUSY',
-            Reader::read($this->templateAvailable(array(
+            Reader::read($this->templateAvailable([
                 'BUSYTYPE:BUSY'
-            )))
+            ]))
                 ->VAVAILABILITY
                 ->AVAILABLE
                 ->BUSYTYPE
@@ -297,9 +397,9 @@ VCAL
 
         $this->assertEquals(
             'BUSY-UNAVAILABLE',
-            Reader::read($this->templateAvailable(array(
+            Reader::read($this->templateAvailable([
                 'BUSYTYPE:BUSY-UNAVAILABLE'
-            )))
+            ]))
                 ->VAVAILABILITY
                 ->AVAILABLE
                 ->BUSYTYPE
@@ -308,9 +408,9 @@ VCAL
 
         $this->assertEquals(
             'BUSY-TENTATIVE',
-            Reader::read($this->templateAvailable(array(
+            Reader::read($this->templateAvailable([
                 'BUSYTYPE:BUSY-TENTATIVE'
-            )))
+            ]))
                 ->VAVAILABILITY
                 ->AVAILABLE
                 ->BUSYTYPE
@@ -321,6 +421,11 @@ VCAL
 
     protected function assertIsValid(VObject\Document $document) {
 
+        $validationResult = $document->validate();
+        if ($validationResult) {
+            $messages = array_map(function($item) { return $item['message']; }, $validationResult);
+            $this->fail('Failed to assert that the supplied document is a valid document. Validation messages: ' . implode(', ', $messages));
+        }
         $this->assertEmpty($document->validate());
 
     }

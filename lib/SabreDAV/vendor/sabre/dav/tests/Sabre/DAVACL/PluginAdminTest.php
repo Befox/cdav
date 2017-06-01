@@ -5,40 +5,45 @@ namespace Sabre\DAVACL;
 use Sabre\DAV;
 use Sabre\HTTP;
 
-
 require_once 'Sabre/DAVACL/MockACLNode.php';
 require_once 'Sabre/HTTP/ResponseMock.php';
 
 class PluginAdminTest extends \PHPUnit_Framework_TestCase {
 
-    function testNoAdminAccess() {
+    public $server;
+
+    function setUp() {
 
         $principalBackend = new PrincipalBackend\Mock();
 
-        $tree = array(
-            new MockACLNode('adminonly', array()),
+        $tree = [
+            new MockACLNode('adminonly', []),
             new PrincipalCollection($principalBackend),
-        );
+        ];
 
-        $fakeServer = new DAV\Server($tree);
-        $fakeServer->sapi = new HTTP\SapiMock();
-        $plugin = new DAV\Auth\Plugin(new DAV\Auth\Backend\Mock(),'realm');
-        $fakeServer->addPlugin($plugin);
+        $this->server = new DAV\Server($tree);
+        $this->server->sapi = new HTTP\SapiMock();
+        $plugin = new DAV\Auth\Plugin(new DAV\Auth\Backend\Mock());
+        $this->server->addPlugin($plugin);
+    }
+
+    function testNoAdminAccess() {
+
         $plugin = new Plugin();
-        $fakeServer->addPlugin($plugin);
+        $this->server->addPlugin($plugin);
 
-        $request = HTTP\Sapi::createFromServerArray(array(
+        $request = HTTP\Sapi::createFromServerArray([
             'REQUEST_METHOD' => 'OPTIONS',
-            'HTTP_DEPTH' => 1,
-            'REQUEST_URI' => '/adminonly',
-        ));
+            'HTTP_DEPTH'     => 1,
+            'REQUEST_URI'    => '/adminonly',
+        ]);
 
         $response = new HTTP\ResponseMock();
 
-        $fakeServer->httpRequest = $request;
-        $fakeServer->httpResponse = $response;
+        $this->server->httpRequest = $request;
+        $this->server->httpResponse = $response;
 
-        $fakeServer->exec();
+        $this->server->exec();
 
         $this->assertEquals(403, $response->status);
 
@@ -49,35 +54,24 @@ class PluginAdminTest extends \PHPUnit_Framework_TestCase {
      */
     function testAdminAccess() {
 
-        $principalBackend = new PrincipalBackend\Mock();
-
-        $tree = array(
-            new MockACLNode('adminonly', array()),
-            new PrincipalCollection($principalBackend),
-        );
-
-        $fakeServer = new DAV\Server($tree);
-        $fakeServer->sapi = new HTTP\SapiMock();
-        $plugin = new DAV\Auth\Plugin(new DAV\Auth\Backend\Mock(),'realm');
-        $fakeServer->addPlugin($plugin);
         $plugin = new Plugin();
-        $plugin->adminPrincipals = array(
+        $plugin->adminPrincipals = [
             'principals/admin',
-        );
-        $fakeServer->addPlugin($plugin);
+        ];
+        $this->server->addPlugin($plugin);
 
-        $request = HTTP\Sapi::createFromServerArray(array(
+        $request = HTTP\Sapi::createFromServerArray([
             'REQUEST_METHOD' => 'OPTIONS',
-            'HTTP_DEPTH' => 1,
-            'REQUEST_URI' => '/adminonly',
-        ));
+            'HTTP_DEPTH'     => 1,
+            'REQUEST_URI'    => '/adminonly',
+        ]);
 
         $response = new HTTP\ResponseMock();
 
-        $fakeServer->httpRequest = $request;
-        $fakeServer->httpResponse = $response;
+        $this->server->httpRequest = $request;
+        $this->server->httpResponse = $response;
 
-        $fakeServer->exec();
+        $this->server->exec();
 
         $this->assertEquals(200, $response->status);
 
