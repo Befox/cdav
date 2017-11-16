@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 3.7/3.8/3.9/4.0/5.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 3.7/3.8/3.9/4.0/5.0/6.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
 You can :
 
