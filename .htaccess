@@ -1,4 +1,5 @@
 ## HTTP Auth workaround for php in fastcgi mode
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 <IfModule mod_fastcgi.c>
 	<IfModule mod_rewrite.c>
 		RewriteEngine on
