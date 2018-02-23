@@ -43,7 +43,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 $langs->load("cdav");
 
 //parse Token
-$arrTmp = explode('+ø+', mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, base64url_decode(GETPOST('token')),MCRYPT_DECRYPT));
+$arrTmp = explode('+ø+', mcrypt_encrypt(MCRYPT_BLOWFISH, CDAV_URI_KEY, base64url_decode(GETPOST('token')), ecb));
 
 if (! isset($arrTmp[1]) || ! in_array(trim($arrTmp[1]), array('nolabel', 'full')))
 {
