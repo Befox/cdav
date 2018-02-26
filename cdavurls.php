@@ -131,15 +131,15 @@ elseif($type=='ICS')
 		{
 			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
 			
-			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+full', MCRYPT_ENCRYPT))."\n\n";
-			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
+			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_encrypt (MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+full', ecb))."\n\n";
+			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_encrypt (MCRYPT_BLOWFISH, CDAV_URI_KEY, $row['rowid'].'+ø+nolabel', ecb)).'</PRE><br/>';
 			
 		}
 	}
 	else
 	{
-		echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+full', MCRYPT_ENCRYPT))."\n\n";
-		echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_ecb(MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+nolabel', MCRYPT_ENCRYPT)).'</PRE><br/>';
+		echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_encrypt (MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+full', ecb))."\n\n";
+		echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(mcrypt_encrypt (MCRYPT_BLOWFISH, CDAV_URI_KEY, $user->id.'+ø+nolabel', ecb)).'</PRE><br/>';
 	}
 
 }
