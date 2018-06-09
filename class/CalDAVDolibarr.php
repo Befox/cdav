@@ -184,7 +184,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
                 '{urn:ietf:params:xml:ns:caldav}calendar-description'                => trim($row['firstname'].' '.$row['lastname']),
                 '{urn:ietf:params:xml:ns:caldav}calendar-timezone'                   => date_default_timezone_get(),
                 '{http://apple.com/ns/ical/}calendar-order'                          => $row['rowid']==$this->user->id?0:$row['rowid'],
-                '{http://apple.com/ns/ical/}calendar-color'                          => '#'.$row['color'],
+                '{http://apple.com/ns/ical/}calendar-color'                          => ($row['color']=='')?'':('#'.$row['color']),
 
                 // try unorthodox method :
                 '{http://calendarserver.org/ns/}subscribed-strip-todos'              => false,
