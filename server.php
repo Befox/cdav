@@ -55,6 +55,19 @@ if( isset($_SERVER['HTTP_AUTHORIZATION']) &&
 	}
 }
 
+// HTTP auth workaround for php in fastcgi mode REDIRECT_HTTP_AUTHORIZATION set by rewrite engine in .htaccess
+if( isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && 
+	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
+{
+    $rAuth = explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
+
+    if(count($rAuth)>1)
+    {
+		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
+		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
+	}
+}
+
 define('NOTOKENRENEWAL',1); 								// Disables token renewal
 if (! defined('NOLOGIN')) define('NOLOGIN','1');
 if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK','1');	// We accept to go on this page from external web site.
