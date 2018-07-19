@@ -439,7 +439,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						".(int)$calendarData['fullday'].",
 						1,
 						".(int)$calendarData['percent'].",
-						'".$this->db->escape($calendarData['location'])."',
+						'".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
 						".($calendarData['end'] - $calendarData['fullday'] - $calendarData['start']).",
 						'".$this->db->escape($calendarData['note'])."'
 					)";
@@ -521,7 +521,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						datep			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
 						datep2			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
 						fulldayevent	= ".(int)$calendarData['fullday'].",
-						location 		= '".$this->db->escape($calendarData['location'])."',
+						location 		= '".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
 						priority 		= '".$this->db->escape($calendarData['priority'])."',
 						transparency 	= '".$this->db->escape($calendarData['transparency'])."',
 						note 			= '".$this->db->escape($calendarData['note'])."',
@@ -733,7 +733,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						$start	= $component->DTSTART->getDateTime()->getTimeStamp();
 						$end	= isset($component->DTEND) ? $component->DTEND->getDateTime()->getTimeStamp() : $start+60*60;//date de fin = date début +1H par défaut               
 					}
-	                $location 		= isset($component->LOCATION) ? (string)$component->LOCATION : '';
+	                $location 		= isset($component->LOCATION) ? trim(str_replace(array("\r","\t","\n"),' ',(string)$component->LOCATION)) : '';
 	                $priority 		= isset($component->PRIORITY) ? (string)$component->PRIORITY : '5';
 	                $transparency 	= isset($component->TRANSP) ? (string)$component->TRANSP : '0';
 	                if ($transparency == 'OPAQUE')

@@ -105,7 +105,7 @@ class CdavLib
 			$categ[] = $this->langs->transnoentitiesnoconv('Customer');
 		}*/
 
-		$location=$obj->location;
+		$location=trim(str_replace(array("\r","\t","\n"),' ',$obj->location));
 		
 		// contact address
 		if(empty($location) && !empty($obj->address))
