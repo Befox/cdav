@@ -33,9 +33,10 @@ If you find the module is useful and want to finance improvements, consider to p
 
 PHP between 5.5.x and 7.0.x is required.
 
-Dolibarr native calendar module must be activated before installing CDav module.
+Dolibarr native calendar module must be activated *before* installing CDav module.
 
-Like all Dolibarr modules, _git clone_ this repository and install cdav directory in dolibarr/htdocs/
+* Clone repository _git clone https://github.com/Befox/cdav.git_ and install cdav directory in dolibarr/htdocs/
+* Or unzip [last release](https://github.com/Befox/cdav/archive/master.zip), rename _cdav-master_ to _cdav_ and copy it into dolibarr/htdocs/
 
 Enable CDav module in Interfaces Modules list.
 
