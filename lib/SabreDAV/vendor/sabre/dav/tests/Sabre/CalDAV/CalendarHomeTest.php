@@ -2,11 +2,8 @@
 
 namespace Sabre\CalDAV;
 
-use
-    Sabre\DAV,
-    Sabre\DAV\MkCol,
-    Sabre\DAVACL;
-
+use Sabre\DAV;
+use Sabre\DAV\MkCol;
 
 class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
 
@@ -14,24 +11,24 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
      * @var Sabre\CalDAV\CalendarHome
      */
     protected $usercalendars;
+
     /**
-     * @var Sabre\CalDAV\Backend\PDO
+     * @var Backend\BackendInterface
      */
     protected $backend;
 
     function setup() {
 
-        if (!SABRE_HASSQLITE) $this->markTestSkipped('SQLite driver is not available');
         $this->backend = TestUtil::getBackend();
-        $this->usercalendars = new CalendarHome($this->backend, array(
+        $this->usercalendars = new CalendarHome($this->backend, [
             'uri' => 'principals/user1'
-        ));
+        ]);
 
     }
 
     function testSimple() {
 
-        $this->assertEquals('user1',$this->usercalendars->getName());
+        $this->assertEquals('user1', $this->usercalendars->getName());
 
     }
 
@@ -66,48 +63,48 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
 
     function testGetACL() {
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'privilege' => '{DAV:}read',
                 'principal' => 'principals/user1',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}write',
                 'principal' => 'principals/user1',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}read',
                 'principal' => 'principals/user1/calendar-proxy-write',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}write',
                 'principal' => 'principals/user1/calendar-proxy-write',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}read',
                 'principal' => 'principals/user1/calendar-proxy-read',
                 'protected' => true,
-            ),
-        );
+            ],
+        ];
         $this->assertEquals($expected, $this->usercalendars->getACL());
 
     }
 
     /**
-     * @expectedException Sabre\DAV\Exception\MethodNotAllowed
+     * @expectedException \Sabre\DAV\Exception\Forbidden
      */
     function testSetACL() {
 
-        $this->usercalendars->setACL(array());
+        $this->usercalendars->setACL([]);
 
     }
 
     /**
-     * @expectedException Sabre\DAV\Exception\Forbidden
+     * @expectedException \Sabre\DAV\Exception\Forbidden
      * @depends testSimple
      */
     function testSetName() {
@@ -117,7 +114,7 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException Sabre\DAV\Exception\Forbidden
+     * @expectedException \Sabre\DAV\Exception\Forbidden
      * @depends testSimple
      */
     function testDelete() {
@@ -136,7 +133,7 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException Sabre\DAV\Exception\MethodNotAllowed
+     * @expectedException \Sabre\DAV\Exception\MethodNotAllowed
      * @depends testSimple
      */
     function testCreateFile() {
@@ -168,7 +165,7 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
         $result = $this->usercalendars->createExtendedCollection('newcalendar', $mkCol);
         $this->assertNull($result);
         $cals = $this->backend->getCalendarsForUser('principals/user1');
-        $this->assertEquals(3,count($cals));
+        $this->assertEquals(3, count($cals));
 
     }
 
@@ -211,7 +208,7 @@ class CalendarHomeTest extends \PHPUnit_Framework_TestCase {
      */
     function testShareReplyFail() {
 
-        $this->usercalendars->shareReply('uri', SharingPlugin::STATUS_DECLINED, 'curi', '1');
+        $this->usercalendars->shareReply('uri', DAV\Sharing\Plugin::INVITE_DECLINED, 'curi', '1');
 
     }
 

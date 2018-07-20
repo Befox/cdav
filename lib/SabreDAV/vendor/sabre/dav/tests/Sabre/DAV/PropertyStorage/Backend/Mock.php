@@ -15,7 +15,7 @@ class Mock implements BackendInterface {
      * This method received a PropFind object, which contains all the
      * information about the properties that need to be fetched.
      *
-     * Ususually you would just want to call 'get404Properties' on this object,
+     * Usually you would just want to call 'get404Properties' on this object,
      * as this will give you the _exact_ list of properties that need to be
      * fetched, and haven't yet.
      *
@@ -23,13 +23,13 @@ class Mock implements BackendInterface {
      * @param PropFind $propFind
      * @return void
      */
-    public function propFind($path, PropFind $propFind) {
+    function propFind($path, PropFind $propFind) {
 
         if (!isset($this->data[$path])) {
             return;
         }
 
-        foreach($this->data[$path] as $name=>$value) {
+        foreach ($this->data[$path] as $name => $value) {
             $propFind->set($name, $value);
         }
 
@@ -48,14 +48,14 @@ class Mock implements BackendInterface {
      * @param PropPatch $propPatch
      * @return void
      */
-    public function propPatch($path, PropPatch $propPatch) {
+    function propPatch($path, PropPatch $propPatch) {
 
         if (!isset($this->data[$path])) {
             $this->data[$path] = [];
         }
         $propPatch->handleRemaining(function($properties) use ($path) {
 
-            foreach($properties as $propName=>$propValue) {
+            foreach ($properties as $propName => $propValue) {
 
                 if (is_null($propValue)) {
                     unset($this->data[$path][$propName]);
@@ -74,8 +74,11 @@ class Mock implements BackendInterface {
      * This method is called after a node is deleted.
      *
      * This allows a backend to clean up all associated properties.
+     *
+     * @param string $path
+     * @return void
      */
-    public function delete($path) {
+    function delete($path) {
 
         unset($this->data[$path]);
 
@@ -92,9 +95,9 @@ class Mock implements BackendInterface {
      * @param string $destination
      * @return void
      */
-    public function move($source, $destination) {
+    function move($source, $destination) {
 
-        foreach($this->data as $path => $props) {
+        foreach ($this->data as $path => $props) {
 
             if ($path === $source) {
                 $this->data[$destination] = $props;
@@ -102,8 +105,8 @@ class Mock implements BackendInterface {
                 continue;
             }
 
-            if (strpos($path, $source . '/')===0) {
-                $this->data[$destination . substr($path, strlen($source)+1)] = $props;
+            if (strpos($path, $source . '/') === 0) {
+                $this->data[$destination . substr($path, strlen($source) + 1)] = $props;
                 unset($this->data[$path]);
             }
 

@@ -11,8 +11,8 @@ class BinaryTest extends \PHPUnit_Framework_TestCase {
      */
     function testMimeDir() {
 
-        $vcard = new VObject\Component\VCard();
-        $vcard->add('PHOTO', array('a','b'));
+        $vcard = new VObject\Component\VCard(['VERSION' => '3.0']);
+        $vcard->add('PHOTO', ['a', 'b']);
 
     }
 

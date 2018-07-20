@@ -2,13 +2,19 @@
 
 namespace Sabre\DAV\Locks;
 
-use Sabre\HTTP;
 use Sabre\DAV;
+use Sabre\HTTP;
 
 require_once 'Sabre/HTTP/ResponseMock.php';
 require_once 'Sabre/TestUtil.php';
 
 class MSWordTest extends \PHPUnit_Framework_TestCase {
+
+    function tearDown() {
+
+        \Sabre\TestUtil::clearTempDir();
+
+    }
 
     function testLockEtc() {
 
@@ -54,20 +60,14 @@ class MSWordTest extends \PHPUnit_Framework_TestCase {
 
     }
 
-    function tearDown() {
-
-        \Sabre\TestUtil::clearTempDir();
-
-    }
-
     function getLockRequest() {
 
-        $request = HTTP\Sapi::createFromServerArray(array(
+        $request = HTTP\Sapi::createFromServerArray([
            'REQUEST_METHOD'    => 'LOCK',
            'HTTP_CONTENT_TYPE' => 'application/xml',
            'HTTP_TIMEOUT'      => 'Second-3600',
            'REQUEST_URI'       => '/Nouveau%20Microsoft%20Office%20Excel%20Worksheet.xlsx',
-        ));
+        ]);
 
         $request->setBody('<D:lockinfo xmlns:D="DAV:">
     <D:lockscope>
@@ -86,12 +86,12 @@ class MSWordTest extends \PHPUnit_Framework_TestCase {
     }
     function getLockRequest2() {
 
-        $request = HTTP\Sapi::createFromServerArray(array(
+        $request = HTTP\Sapi::createFromServerArray([
            'REQUEST_METHOD'    => 'LOCK',
            'HTTP_CONTENT_TYPE' => 'application/xml',
            'HTTP_TIMEOUT'      => 'Second-3600',
            'REQUEST_URI'       => '/~$Nouveau%20Microsoft%20Office%20Excel%20Worksheet.xlsx',
-        ));
+        ]);
 
         $request->setBody('<D:lockinfo xmlns:D="DAV:">
     <D:lockscope>
@@ -111,11 +111,11 @@ class MSWordTest extends \PHPUnit_Framework_TestCase {
 
     function getPutRequest($lockToken) {
 
-        $request = HTTP\Sapi::createFromServerArray(array(
-           'REQUEST_METHOD'    => 'PUT',
-           'REQUEST_URI'       => '/Nouveau%20Microsoft%20Office%20Excel%20Worksheet.xlsx',
-           'HTTP_IF'           => 'If: ('.$lockToken.')',
-        ));
+        $request = HTTP\Sapi::createFromServerArray([
+           'REQUEST_METHOD' => 'PUT',
+           'REQUEST_URI'    => '/Nouveau%20Microsoft%20Office%20Excel%20Worksheet.xlsx',
+           'HTTP_IF'        => 'If: (' . $lockToken . ')',
+        ]);
         $request->setBody('FAKE BODY');
         return $request;
 

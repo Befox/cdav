@@ -93,7 +93,7 @@ class PDO extends AbstractBackend implements SyncSupport {
      * Calling the handle method is like telling the PropPatch object "I
      * promise I can handle updating this property".
      *
-     * Read the PropPatch documenation for more info and examples.
+     * Read the PropPatch documentation for more info and examples.
      *
      * @param string $addressBookId
      * @param \Sabre\DAV\PropPatch $propPatch
@@ -128,7 +128,7 @@ class PDO extends AbstractBackend implements SyncSupport {
                 } else {
                     $query .= ', ';
                 }
-                $query .= ' `' . $key . '` = :' . $key . ' ';
+                $query .= ' ' . $key . ' = :' . $key . ' ';
             }
             $query .= ' WHERE id = :addressbookid';
 
@@ -151,7 +151,7 @@ class PDO extends AbstractBackend implements SyncSupport {
      * @param string $principalUri
      * @param string $url Just the 'basename' of the url.
      * @param array $properties
-     * @return void
+     * @return int Last insert id
      */
     function createAddressBook($principalUri, $url, array $properties) {
 
@@ -180,7 +180,9 @@ class PDO extends AbstractBackend implements SyncSupport {
         $query = 'INSERT INTO ' . $this->addressBooksTableName . ' (uri, displayname, description, principaluri, synctoken) VALUES (:uri, :displayname, :description, :principaluri, 1)';
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($values);
-        return $this->pdo->lastInsertId();
+        return $this->pdo->lastInsertId(
+            $this->addressBooksTableName . '_id_seq'
+        );
 
     }
 
@@ -230,6 +232,7 @@ class PDO extends AbstractBackend implements SyncSupport {
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $row['etag'] = '"' . $row['etag'] . '"';
+            $row['lastmodified'] = (int)$row['lastmodified'];
             $result[] = $row;
         }
         return $result;
@@ -237,7 +240,7 @@ class PDO extends AbstractBackend implements SyncSupport {
     }
 
     /**
-     * Returns a specfic card.
+     * Returns a specific card.
      *
      * The same set of properties must be returned as with getCards. The only
      * exception is that 'carddata' is absolutely required.
@@ -258,6 +261,7 @@ class PDO extends AbstractBackend implements SyncSupport {
         if (!$result) return false;
 
         $result['etag'] = '"' . $result['etag'] . '"';
+        $result['lastmodified'] = (int)$result['lastmodified'];
         return $result;
 
     }
@@ -286,6 +290,7 @@ class PDO extends AbstractBackend implements SyncSupport {
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $row['etag'] = '"' . $row['etag'] . '"';
+            $row['lastmodified'] = (int)$row['lastmodified'];
             $result[] = $row;
         }
         return $result;
@@ -461,7 +466,7 @@ class PDO extends AbstractBackend implements SyncSupport {
 
         // Current synctoken
         $stmt = $this->pdo->prepare('SELECT synctoken FROM ' . $this->addressBooksTableName . ' WHERE id = ?');
-        $stmt->execute([ $addressBookId ]);
+        $stmt->execute([$addressBookId]);
         $currentToken = $stmt->fetchColumn(0);
 
         if (is_null($currentToken)) return null;

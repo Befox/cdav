@@ -3,7 +3,6 @@
 namespace Sabre\DAVACL;
 
 use Sabre\DAV\Exception\InvalidResourceType;
-use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\IExtendedCollection;
 use Sabre\DAV\MkCol;
 
@@ -18,6 +17,8 @@ use Sabre\DAV\MkCol;
  * @license http://sabre.io/license/ Modified BSD License
  */
 class PrincipalCollection extends AbstractPrincipalCollection implements IExtendedCollection, IACL {
+
+    use ACLTrait;
 
     /**
      * This method returns a node for a principal.
@@ -56,7 +57,7 @@ class PrincipalCollection extends AbstractPrincipalCollection implements IExtend
      *
      * @param string $name
      * @param MkCol $mkCol
-     * @throws Exception\InvalidResourceType
+     * @throws InvalidResourceType
      * @return void
      */
     function createExtendedCollection($name, MkCol $mkCol) {
@@ -70,28 +71,6 @@ class PrincipalCollection extends AbstractPrincipalCollection implements IExtend
             $mkCol
         );
 
-    }
-
-    /**
-     * Returns the owner principal
-     *
-     * This must be a url to a principal, or null if there's no owner
-     *
-     * @return string|null
-     */
-    function getOwner() {
-        return null;
-    }
-
-    /**
-     * Returns a group principal
-     *
-     * This must be a url to a principal, or null if there's no owner
-     *
-     * @return string|null
-     */
-    function getGroup() {
-        return null;
     }
 
     /**
@@ -114,38 +93,6 @@ class PrincipalCollection extends AbstractPrincipalCollection implements IExtend
                 'protected' => true,
             ],
         ];
-    }
-
-    /**
-     * Updates the ACL
-     *
-     * This method will receive a list of new ACE's as an array argument.
-     *
-     * @param array $acl
-     * @return void
-     */
-    function setACL(array $acl) {
-
-        throw new Forbidden('Updating ACLs is not allowed on this node');
-
-    }
-
-    /**
-     * Returns the list of supported privileges for this node.
-     *
-     * The returned data structure is a list of nested privileges.
-     * See Sabre\DAVACL\Plugin::getDefaultSupportedPrivilegeSet for a simple
-     * standard structure.
-     *
-     * If null is returned from this method, the default privilege set is used,
-     * which is fine for most common usecases.
-     *
-     * @return array|null
-     */
-    function getSupportedPrivilegeSet() {
-
-        return null;
-
     }
 
 }

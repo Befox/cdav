@@ -7,16 +7,18 @@ use Sabre\VObject;
 
 class VCalendarTest extends \PHPUnit_Framework_TestCase {
 
+    use VObject\PHPUnitAssertions;
+
     /**
      * @dataProvider expandData
      */
-    public function testExpand($input, $output, $timeZone = 'UTC', $start = '2011-12-01', $end = '2011-12-31') {
+    function testExpand($input, $output, $timeZone = 'UTC', $start = '2011-12-01', $end = '2011-12-31') {
 
         $vcal = VObject\Reader::read($input);
 
         $timeZone = new DateTimeZone($timeZone);
 
-        $vcal->expand(
+        $vcal = $vcal->expand(
             new \DateTime($start),
             new \DateTime($end),
             $timeZone
@@ -25,13 +27,13 @@ class VCalendarTest extends \PHPUnit_Framework_TestCase {
         // This will normalize the output
         $output = VObject\Reader::read($output)->serialize();
 
-        $this->assertEquals($output, $vcal->serialize());
+        $this->assertVObjectEqualsVObject($output, $vcal->serialize());
 
     }
 
-    public function expandData() {
+    function expandData() {
 
-        $tests = array();
+        $tests = [];
 
         // No data
         $input = 'BEGIN:VCALENDAR
@@ -41,7 +43,7 @@ END:VCALENDAR
 ';
 
         $output = $input;
-        $tests[] = array($input,$output);
+        $tests[] = [$input,$output];
 
 
         // Simple events
@@ -72,7 +74,7 @@ END:VEVENT
 END:VCALENDAR
 ';
 
-        $tests[] = array($input, $output);
+        $tests[] = [$input, $output];
 
         // Removing timezone info
         $input = 'BEGIN:VCALENDAR
@@ -100,7 +102,41 @@ END:VEVENT
 END:VCALENDAR
 ';
 
-        $tests[] = array($input, $output);
+        $tests[] = [$input, $output];
+
+        // Removing timezone info from sub-components. See Issue #278
+        $input = 'BEGIN:VCALENDAR
+CALSCALE:GREGORIAN
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:Europe/Paris
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:bla4
+SUMMARY:RemoveTZ info
+DTSTART;TZID=Europe/Paris:20111203T130102
+BEGIN:VALARM
+TRIGGER;VALUE=DATE-TIME;TZID=America/New_York:20151209T133200
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+';
+
+        $output = 'BEGIN:VCALENDAR
+CALSCALE:GREGORIAN
+VERSION:2.0
+BEGIN:VEVENT
+UID:bla4
+SUMMARY:RemoveTZ info
+DTSTART:20111203T120102Z
+BEGIN:VALARM
+TRIGGER;VALUE=DATE-TIME:20151209T183200Z
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+';
+
+        $tests[] = [$input, $output];
 
         // Recurrence rule
         $input = 'BEGIN:VCALENDAR
@@ -157,7 +193,7 @@ END:VEVENT
 END:VCALENDAR
 ';
 
-        $tests[] = array($input, $output);
+        $tests[] = [$input, $output];
 
         // Recurrence rule + override
         $input = 'BEGIN:VCALENDAR
@@ -221,7 +257,7 @@ END:VEVENT
 END:VCALENDAR
 ';
 
-        $tests[] = array($input, $output);
+        $tests[] = [$input, $output];
 
         // Floating dates and times.
         $input = <<<ICS
@@ -257,6 +293,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:bla3
 DTSTART;VALUE=DATE:20141112
+RECURRENCE-ID;VALUE=DATE:20141112
 END:VEVENT
 BEGIN:VEVENT
 UID:bla3
@@ -266,7 +303,7 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $tests[] = array($input, $output, 'America/Argentina/Buenos_Aires', '2014-01-01', '2015-01-01');
+        $tests[] = [$input, $output, 'America/Argentina/Buenos_Aires', '2014-01-01', '2015-01-01'];
 
         // Recurrence rule with no valid instances
         $input = 'BEGIN:VCALENDAR
@@ -289,15 +326,15 @@ VERSION:2.0
 END:VCALENDAR
 ';
 
-        $tests[] = array($input, $output);
+        $tests[] = [$input, $output];
         return $tests;
 
     }
 
     /**
-     * @expectedException LogicException
+     * @expectedException \Sabre\VObject\InvalidDataException
      */
-    public function testBrokenEventExpand() {
+    function testBrokenEventExpand() {
 
         $input = 'BEGIN:VCALENDAR
 CALSCALE:GREGORIAN
@@ -339,7 +376,7 @@ END:VCALENDAR
 ';
 
         $vcal = VObject\Reader::read($input);
-        $this->assertEquals(array(), $vcal->validate(), 'Got an error');
+        $this->assertEquals([], $vcal->validate(), 'Got an error');
 
     }
 
@@ -544,6 +581,55 @@ END:VCALENDAR
 
     }
 
+    function testGetBaseComponentWithFilter() {
+
+        $input = 'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:foo
+METHOD:REQUEST
+BEGIN:VEVENT
+SUMMARY:test
+DTSTART;VALUE=DATE:20111202
+UID:foo
+DTSTAMP:20140122T234434Z
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20111202
+UID:foo
+DTSTAMP:20140122T234434Z
+RECURRENCE-ID;VALUE=DATE:20111202
+END:VEVENT
+END:VCALENDAR
+';
+
+        $vcal = VObject\Reader::read($input);
+
+        $result = $vcal->getBaseComponent('VEVENT');
+        $this->assertEquals('test', $result->SUMMARY->getValue());
+
+    }
+
+    function testGetBaseComponentWithFilterNoResult() {
+
+        $input = 'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:foo
+METHOD:REQUEST
+BEGIN:VTODO
+SUMMARY:test
+UID:foo
+DTSTAMP:20140122T234434Z
+END:VTODO
+END:VCALENDAR
+';
+
+        $vcal = VObject\Reader::read($input);
+
+        $result = $vcal->getBaseComponent('VEVENT');
+        $this->assertNull($result);
+
+    }
+
     function testNoComponents() {
 
         $input = <<<ICS
@@ -676,8 +762,8 @@ ICS;
 
     function assertValidateResult($input, $expectedLevel, $expectedMessage = null) {
 
-        $messages = array();
-        foreach($input as $warning) {
+        $messages = [];
+        foreach ($input as $warning) {
             $messages[] = $warning['message'];
         }
 

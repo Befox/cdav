@@ -3,7 +3,6 @@
 namespace Sabre\DAVACL;
 
 use Sabre\DAV;
-use Sabre\HTTP;
 
 class BlockAccessTest extends \PHPUnit_Framework_TestCase {
 
@@ -21,7 +20,17 @@ class BlockAccessTest extends \PHPUnit_Framework_TestCase {
 
         $this->server = new DAV\Server($nodes);
         $this->plugin = new Plugin();
-        $this->plugin->allowAccessToNodesWithoutACL = false;
+        $this->plugin->setDefaultAcl([]);
+        $this->server->addPlugin(
+            new DAV\Auth\Plugin(
+                new DAV\Auth\Backend\Mock()
+            )
+        );
+        // Login
+        $this->server->getPlugin('auth')->beforeMethod(
+            new \Sabre\HTTP\Request(),
+            new \Sabre\HTTP\Response()
+        );
         $this->server->addPlugin($this->plugin);
 
     }
@@ -178,10 +187,10 @@ class BlockAccessTest extends \PHPUnit_Framework_TestCase {
             200 => [],
             404 => [],
             403 => [
-                '{DAV:}displayname' => null,
+                '{DAV:}displayname'      => null,
                 '{DAV:}getcontentlength' => null,
-                '{DAV:}bar' => null,
-                '{DAV:}owner' => null,
+                '{DAV:}bar'              => null,
+                '{DAV:}owner'            => null,
             ],
         ];
 

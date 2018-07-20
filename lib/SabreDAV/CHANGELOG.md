@@ -1,6 +1,249 @@
 ChangeLog
 =========
 
+3.2.2 (2017-02-14)
+------------------
+
+* #943: Fix CardDAV XML reporting bug, which was affecting several CardDAV
+  clients. Bug was introduced in 3.2.1.
+* The zip release ships with [sabre/vobject 4.1.2][vobj],
+  [sabre/http 4.2.2][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.2.0][uri] and [sabre/xml 1.5.0][xml].
+
+
+3.2.1 (2017-01-28)
+------------------
+
+* #877: Fix for syncing large calendars when using the Sqlite PDO backend.
+  (@theseer).
+* #889 Added support for filtering vCard properties in the addressbook-query
+  REPORT (@DeepDiver1975).
+* The zip release ships with [sabre/vobject 4.1.2][vobj],
+  [sabre/http 4.2.2][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.2.0][uri] and [sabre/xml 1.5.0][xml].
+
+
+3.2.0 (2016-06-27)
+------------------
+
+* The default ACL rules allow an unauthenticated user to read information
+  about nodes that don't have their own ACL defined. This was a security
+  problem.
+* The zip release ships with [sabre/vobject 4.1.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.2][xml].
+
+
+3.2.0-beta1 (2016-05-20)
+------------------------
+
+* #833: Calendars throw exceptions when the sharing plugin is not enabled.
+* #834: Return vCards exactly as they were stored if we don't need to convert
+  in between versions.
+* The zip release ships with [sabre/vobject 4.1.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
+3.2.0-alpha1 (2016-05-09)
+-------------------------
+
+* Database changes for CalDAV. If you are using the CalDAV PDO backends, you
+  must migrate. Run `./bin/migrateto32.php` for more info.
+* Support for WebDAV Resource Sharing, an upcoming standard.
+* Added support for sharing in the CalDAV PDO backend! Users can now invite
+  others to their calendar and give them read/read-write access!
+* #397: Support for PSR-3. You can now log exceptions with your favourite
+  psr3-compatible logging tool.
+* #825: Actual proper, tested support for PostgreSQL. We require version 9.5.
+* Removed database migration script for sabre/dav 1.7. To update from that
+  version you now first need to update to sabre/dav 3.1.
+* Removed deprecated function: `Sabre\DAV\Auth\Plugin::getCurrentUser()`.
+* #774: Fixes for getting free disk space on Windows.
+* #803: Major changes in the sharing API. If you were using an old sabre/dav
+  sharing api, head to the website for more detailed migration notes.
+* #657: Support for optional auth using `{DAV:}unauthorized` and `{DAV:}all`
+  privileges. This allows you to assign a privilege to a resource, allowing
+  non-authenticated users to access it. For instance, this could allow you
+  to create a public read-only collection.
+* #812 #814: ICS/VCF exporter now includes a more useful filename in its
+  `Content-Disposition` header. (@Xenopathic).
+* #801: BC break: If you were using the `Href` object before, it's behavior
+  now changed a bit, and `LocalHref` was added to replace the old, default
+  behavior of `Href`. See the migration doc for more info.
+* Removed `Sabre\DAVACL\Plugin::$allowAccessToNodesWithoutACL` setting.
+  Instead, you can provide a set of default ACL rules with
+  `Sabre\DAVACL\Plugin::setDefaultAcl()`.
+* Introduced `Sabre\DAVACL\ACLTrait` which contains a default implementation
+  of `Sabre\DAV\IACL` with some sane defaults. We're using this trait all over
+  the place now, reducing the amount of boilerplate.
+* Plugins can now control the "Supported Privilege Set".
+* Added Sharing, ICSExport and VCFExport plugins to `groupwareserver.php`
+  example.
+* The `{DAV:}all` privilege is now no longer abstract, so it can be assigned
+  directly. We're using the `{DAV:}all` privilege now in a lot of cases where
+  we before assigned both `{DAV:}read` and `{DAV:}write`.
+* Resources that are not collections no longer support the `{DAV:}bind` and
+  `{DAV:}unbind` privileges.
+* Corrected the CalDAV-scheduling related privileges.
+* Doing an `UNLOCK` no longer requires the `{DAV:}write-content` privilege.
+* Added a new `getPrincipalByUri` plugin event. Allowing plugins to request
+  quickly where a principal lives on a server.
+* Renamed `phpunit.xml` to `phpunit.xml.dist` to make local modifications easy.
+* Functionality from `IShareableCalendar` is merged into `ISharedCalendar`.
+* #751: Fixed XML responses from failing `MKCOL` requests.
+* #600: Support for `principal-match` ACL `REPORT`.
+* #599: Support for `acl-principal-prop-set` ACL `REPORT`.
+* #798: Added an index on `firstoccurence` field in MySQL CalDAV backend. This
+  should speed up common calendar-query requests.
+* #759: DAV\Client is now able to actually correctly resolve relative urls.
+* #671: We are no longer checking the `read-free-busy` privilege on individual
+  calendars during freebusy operations in the scheduling plugin. Instead, we
+  check the `schedule-query-freebusy` privilege on the target users' inbox,
+  which validates access for the entire account, per the spec.
+* The zip release ships with [sabre/vobject 4.1.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
+3.1.5 (????-??-??)
+------------------
+
+* Fixed: Creating a new calendar on some MySQL configurations caused an error.
+* #889 Added support for filtering vCard properties in the addressbook-query
+  REPORT (@DeepDiver1975).
+
+
+
+3.1.4 (2016-05-28)
+------------------
+
+* #834: Backport from `master`: Return vCards exactly as they were stored if
+  we don't need to convert in between versions. This should speed up many
+  large addressbook syncs sometimes up to 50%.
+* The zip release ships with [sabre/vobject 4.1.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.2][xml].
+
+
+3.1.3 (2016-04-06)
+------------------
+
+* Set minimum libxml version to 2.7.0 in `composer.json`.
+* #805: It wasn't possible to create calendars that hold events, journals and
+  todos using MySQL, because the `components` column was 1 byte too small.
+* The zip release ships with [sabre/vobject 4.1.0][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
+3.1.2 (2016-03-12)
+------------------
+
+* #784: Sync logs for address books were not correctly cleaned up after
+  deleting them.
+* #787: Cannot use non-seekable stream-wrappers with range requests.
+* Faster XML parsing and generating due to sabre/xml update.
+* #793: The Sqlite schema is now more strict and more similar to the MySQL
+  schema. This solves a problem within Baikal.
+* The zip release ships with [sabre/vobject 4.0.3][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
+3.1.1 (2016-01-25)
+------------------
+
+* #755: The brower plugin and some operations would break when scheduling and
+  delegation would both be enabled.
+* #757: A bunch of unittest improvements (@jakobsack).
+* The zip release ships with [sabre/vobject 4.0.2][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.3.0][xml].
+
+
+3.1.0 (2016-01-06)
+------------------
+
+* Better error message when the browser plugin is not enabled.
+* Added a super minimal server example.
+* #730: Switched all mysql tables to `utf8mb4` character set, allowing you to
+  use emoji in some tables where you couldn't before.
+* #710: Provide an Auth backend that acts as a helper for people implementing
+  OAuth2 Bearer token. (@fkooman).
+* #729: Not all calls to `Sabre\DAV\Tree::getChildren()` were properly cached.
+* #727: Added another workaround to make CalDAV work for Windows 10 clients.
+* #742: Fixes to make sure that vobject 4 is correctly supported.
+* #726: Better error reporting in `Client::propPatch`. We're now throwing
+  exceptions.
+* #608: When a HTTP error is triggered during `Client:propFind`, we're now
+  throwing `Sabre\HTTP\ClientHttpException` instead of `Sabre\DAV\Exception`.
+  This new exception contains a LOT more information about the problem.
+* #721: Events are now handled in the correct order for `COPY` requests.
+  Before this subtle bugs could appear that could cause data-loss.
+* #747: Now throwing exceptions and setting the HTTP status to 500 in subtle
+  cases where no other plugin set a correct HTTP status.
+* #686: Corrected PDO principal backend's findByURI for email addresses that
+  don't match the exact capitalization.
+* #512: The client now has it's own `User-Agent`.
+* #720: Some browser improvements.
+* The zip release ships with [sabre/vobject 4.0.1][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 3.0.0][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.3.0][xml].
+
+
+3.1.0-alpha2 (2015-09-05)
+-------------------------
+
+* Massive calendars and addressbooks should see a big drop in peak memory
+  usage.
+* Fixed a privilege bug in the availability system.
+* #697: Added a "tableName" member to the PropertyStorage PDO backend. (@Frzk).
+* #699: PostgreSQL fix for the Locks PDO backend. (@TCKnet)
+* Removed the `simplefsserver.php` example file. It's not simple enough.
+* #703: PropPatch in client is not correctly encoded.
+* #709: Throw exception when running into empty
+  `supported-calendar-component-set`.
+* #711: Don't trigger deserializers for empty elements in `{DAV:}prop`. This
+  fixes issues when using sabre/dav as a client.
+* The zip release ships with [sabre/vobject 4.0.0-alpha2][vobj],
+  [sabre/http 4.1.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.2.0][xml].
+
+
+3.1.0-alpha1 (2015-07-19)
+-------------------------
+
+* Now requires PHP 5.5
+* Upgraded to vobject 4, which is a lot faster.
+* Support for PHP 7.
+* #690: Support for `calendar-availability`, draft 05.
+  [reference][calendar-availability].
+* #691: Workaround for broken Windows Phone client.
+* The zip release ships with [sabre/vobject 4.0.0-alpha1][vobj],
+  [sabre/http 4.0.0][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.0.1][uri] and [sabre/xml 1.1.0][xml].
+
+
+3.0.10 (2016-??-??)
+------------------
+
+* #889 Added support for filtering vCard properties in the addressbook-query
+  REPORT (@DeepDiver1975).
+
+
+3.0.9 (2016-04-06)
+------------------
+
+* Set minimum libxml version to 2.7.0 in `composer.json`.
+* #727: Added another workaround to make CalDAV work for Windows 10 clients.
+* #805: It wasn't possible to create calendars that hold events, journals and
+  todos using MySQL, because the `components` column was 1 byte too small.
+* The zip release ships with [sabre/vobject 3.5.1][vobj],
+  [sabre/http 4.2.1][http], [sabre/event 2.0.2][evnt],
+  [sabre/uri 1.1.0][uri] and [sabre/xml 1.4.1][xml].
+
+
 3.0.8 (2016-03-12)
 ------------------
 
@@ -41,6 +284,7 @@ ChangeLog
 
 * #704: Fixed broken uri encoding in multistatus responses. This affected
   at least CyberDuck, but probably also others.
+* The zip release ships with [sabre/vobject 3.4.7][vobj],
 * The zip release ships with [sabre/vobject 3.4.7][vobj],
   [sabre/http 4.1.0][http], [sabre/event 2.0.2][evnt],
   [sabre/uri 1.0.1][uri] and [sabre/xml 1.2.0][xml].
@@ -191,6 +435,8 @@ ChangeLog
   its second argument, and no longer receives seperate properties and
   resourcetype arguments.
 * `MKCOL` now integrates better with propertystorage plugins.
+* #623: Remove need of temporary files when working with Range requests.
+  (@dratini0)
 * The zip release ships with [sabre/vobject 3.4.2][vobj],
   [sabre/http 4.0.0-alpha1][http], [sabre/event 2.0.1][evnt],
   [sabre/uri 1.0.0][uri] and [sabre/xml 0.4.3][xml].
@@ -249,11 +495,22 @@ ChangeLog
 * #193: Fix `Sabre\DAV\FSExt\Directory::getQuotaInfo()` on windows.
 
 
+2.1.11 (2016-10-06)
+-------------------
+
+* #805: It wasn't possible to create calendars that hold events, journals and
+  todos using MySQL, because the `components` column was 1 byte too small.
+* The zip release ships with [sabre/vobject 3.5.3][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
+
+
 2.1.10 (2016-03-10)
 -------------------
 
 * #784: Sync logs for address books were not correctly cleaned up after
   deleting them.
+* The zip release ships with [sabre/vobject 3.5.0][vobj],
+  [sabre/http 3.0.5][http], and [sabre/event 2.0.2][evnt].
 
 
 2.1.9 (2016-01-25)
@@ -406,7 +663,7 @@ ChangeLog
 * Added: Automatically converting between vCard 3, 4 and jCard using the
   `Accept:` header, in CardDAV reports, and automatically converting from
   jCard to vCard upon `PUT`. It's important to note that your backends _may_
-  now recieve both vCard 3.0 and 4.0.
+  now receive both vCard 3.0 and 4.0.
 * Added: #444. Collections can now opt-in to support high-speed `MOVE`.
 * Changed: PropertyStorage backends now have a `move` method.
 * Added: `beforeMove`, and `afterMove` events.
@@ -591,7 +848,7 @@ ChangeLog
 * Added: Support for the `{DAV:}supported-method-set` property server-wide.
 * Making it easier for implementors to override how the CardDAV addressbook
   home is located.
-* Fixed: Issue #422 Preconditions were not being set on PUT on non-existant
+* Fixed: Issue #422 Preconditions were not being set on PUT on non-existent
   files. Not really a chance for data-loss, but incorrect nevertheless.
 * Fixed: Issue #428: Etag check with `If:` fails if the target is a collection.
 * Fixed: Issues #430, #431, #433: Locks plugin didn't not properly release
@@ -803,7 +1060,7 @@ ChangeLog
 * Added: Sharee's can now also read out the list of invites for a shared
   calendar.
 * Added: The Proxy principal classes now both implement an interface, for
-  greater flexiblity.
+  greater flexibility.
 
 
 1.7.13 (2014-07-28)
@@ -821,7 +1078,7 @@ ChangeLog
   Sabre_DAV_PartialUpdate_IFile interface is now deprecated and will be removed
   in a future version.
 * Fixed: Restoring old setting after changing libxml_disable_entity_loader.
-* Fixed: Issue #422: Preconditions were not being set on PUT on non-existant
+* Fixed: Issue #422: Preconditions were not being set on PUT on non-existent
   files. Not really a chance for data-loss, but incorrect nevertheless.
 * Fixed: Issue #427: Now checking preconditions on DELETE requests.
 * Fixed: Issue #428: Etag check with If: fails if the target is a collection.
@@ -900,7 +1157,7 @@ ChangeLog
 ------------------
 
 * The zip release ships with sabre/vobject 2.0.5.
-* Changed: To be compatibile with MS Office 2011 for Mac, a workaround was
+* Changed: To be compatible with MS Office 2011 for Mac, a workaround was
   removed that was added to support old versions of Windows XP (pre-SP3).
   Indeed! We needed a crazy workaround to work with one MS product in the past,
   and we can't keep that workaround to be compatible with another MS product.
@@ -908,7 +1165,7 @@ ChangeLog
 * Fixed: Range requests now work for non-seekable streams. (Thanks Alfred
   Klomp).
 * Fixed: Changed serialization of {DAV:}getlastmodified and {DAV:}supportedlock
-  to improve compatiblity with MS Office 2011 for Mac.
+  to improve compatibility with MS Office 2011 for Mac.
 * Changed: reverted the automatic translation of 'DAV:' xml namespaces to
   'urn:DAV' when parsing files. Issues were reported with libxml 2.6.32, on a
   relatively recent debian release, so we'll wait till 2015 to take this one out
@@ -1785,7 +2042,7 @@ ChangeLog
 -------------------
 
 * Fixed: Issue 34: Invalid Lock-Token header response.
-* Added: Issue 35: Addign SabreDAV version to HTTP OPTIONS responses.
+* Added: Issue 35: Adding SabreDAV version to HTTP OPTIONS responses.
 
 
 1.0.9 (2010-03-19)
@@ -1916,7 +2173,7 @@ ChangeLog
 
 * Updated: Now in Beta
 * Updated: Pear package no longer includes docs/ directory. These just contained
-  rfc's, which are publically available. This reduces the package from ~800k to
+  rfc's, which are publicly available. This reduces the package from ~800k to
   ~60k
 * Added: generatePropfindResponse now takes a baseUri argument
 * Added: ResourceType property can now contain multiple resourcetypes.
@@ -1999,7 +2256,7 @@ ChangeLog
 * Added: Simple HTML directory plugin, for browser access.
 * Added: Server class now sends back standard pre-condition error xml bodies.
   This was new since RFC4918.
-* Added: Sabre_DAV_Tree_Aggregrate, which can 'host' multiple Tree objects into
+* Added: Sabre_DAV_Tree_Aggregate, which can 'host' multiple Tree objects into
   one.
 * Added: simple basis for HTTP REPORT method. This method is not used yet, but
   can be used by plugins to add reports.
@@ -2016,7 +2273,7 @@ ChangeLog
   8.2.
 * Fixed: TemporaryFileFilter now lets through GET's if they actually exist on
   the backend. (r274)
-* FIxed: Some methods didn't get passed through in the FilterTree (r283).
+* Fixed: Some methods didn't get passed through in the FilterTree (r283).
 * Fixed: LockManager is now slightly more complex, Tree classes slightly less.
   (r287)
 
@@ -2106,8 +2363,9 @@ ChangeLog
 
 * First release!
 * Passes litmus: basic, http and copymove test.
-* Fully working in Finder and DavFSv2 Project started: 2007-12-13
+* Fully working in Finder and DavFS2.
 
+Project started: 2007-12-13
 
 [vobj]: http://sabre.io/vobject/
 [evnt]: http://sabre.io/event/
@@ -2117,3 +2375,4 @@ ChangeLog
 [mi20]: http://sabre.io/dav/upgrade/1.8-to-2.0/
 [rfc6638]: http://tools.ietf.org/html/rfc6638 "CalDAV Scheduling"
 [rfc7240]: http://tools.ietf.org/html/rfc7240
+[calendar-availability]: https://tools.ietf.org/html/draft-daboo-calendar-availability-05

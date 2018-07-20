@@ -11,7 +11,7 @@ use Sabre\HTTP\URLUtil;
  *
  *
  * This backend assumes all principals are in a single collection. The default collection
- * is 'principals/', but this can be overriden.
+ * is 'principals/', but this can be overridden.
  *
  * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
@@ -65,7 +65,7 @@ class PDO extends AbstractBackend implements CreatePrincipalSupport {
     /**
      * Sets up the backend.
      *
-     * @param PDO $pdo
+     * @param \PDO $pdo
      */
     function __construct(\PDO $pdo) {
 
@@ -171,7 +171,7 @@ class PDO extends AbstractBackend implements CreatePrincipalSupport {
      * Calling the handle method is like telling the PropPatch object "I
      * promise I can handle updating this property".
      *
-     * Read the PropPatch documenation for more info and examples.
+     * Read the PropPatch documentation for more info and examples.
      *
      * @param string $path
      * @param DAV\PropPatch $propPatch
@@ -240,26 +240,25 @@ class PDO extends AbstractBackend implements CreatePrincipalSupport {
      * @return array
      */
     function searchPrincipals($prefixPath, array $searchProperties, $test = 'allof') {
+        if (count($searchProperties) == 0) return [];    //No criteria
 
-        $query = 'SELECT uri FROM ' . $this->tableName . ' WHERE 1=1 ';
+        $query = 'SELECT uri FROM ' . $this->tableName . ' WHERE ';
         $values = [];
         foreach ($searchProperties as $property => $value) {
-
             switch ($property) {
-
                 case '{DAV:}displayname' :
-                    $query .= ' AND displayname LIKE ?';
-                    $values[] = '%' . $value . '%';
+                    $column = "displayname";
                     break;
                 case '{http://sabredav.org/ns}email-address' :
-                    $query .= ' AND email LIKE ?';
-                    $values[] = '%' . $value . '%';
+                    $column = "email";
                     break;
                 default :
                     // Unsupported property
                     return [];
-
             }
+            if (count($values) > 0) $query .= (strcmp($test, "anyof") == 0 ? " OR " : " AND ");
+            $query .= 'lower(' . $column . ') LIKE lower(?)';
+            $values[] = '%' . $value . '%';
 
         }
         $stmt = $this->pdo->prepare($query);
@@ -278,6 +277,52 @@ class PDO extends AbstractBackend implements CreatePrincipalSupport {
 
         return $principals;
 
+    }
+
+    /**
+     * Finds a principal by its URI.
+     *
+     * This method may receive any type of uri, but mailto: addresses will be
+     * the most common.
+     *
+     * Implementation of this API is optional. It is currently used by the
+     * CalDAV system to find principals based on their email addresses. If this
+     * API is not implemented, some features may not work correctly.
+     *
+     * This method must return a relative principal path, or null, if the
+     * principal was not found or you refuse to find it.
+     *
+     * @param string $uri
+     * @param string $principalPrefix
+     * @return string
+     */
+    function findByUri($uri, $principalPrefix) {
+        $value = null;
+        $scheme = null;
+        list($scheme, $value) = explode(":", $uri, 2);
+        if (empty($value)) return null;
+
+        $uri = null;
+        switch ($scheme){
+            case "mailto":
+                $query = 'SELECT uri FROM ' . $this->tableName . ' WHERE lower(email)=lower(?)';
+                $stmt = $this->pdo->prepare($query);
+                $stmt->execute([$value]);
+            
+                while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                    // Checking if the principal is in the prefix
+                    list($rowPrefix) = URLUtil::splitPath($row['uri']);
+                    if ($rowPrefix !== $principalPrefix) continue;
+                    
+                    $uri = $row['uri'];
+                    break; //Stop on first match
+                }
+                break;
+            default:
+                //unsupported uri scheme
+                return null;
+        }
+        return $uri;
     }
 
     /**
