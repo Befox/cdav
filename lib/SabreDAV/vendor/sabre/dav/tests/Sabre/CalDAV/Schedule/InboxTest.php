@@ -1,6 +1,7 @@
 <?php
 
 namespace Sabre\CalDAV\Schedule;
+
 use Sabre\CalDAV;
 use Sabre\DAV;
 
@@ -13,90 +14,39 @@ class InboxTest extends \PHPUnit_Framework_TestCase {
             'principals/user1'
         );
         $this->assertEquals('inbox', $inbox->getName());
-        $this->assertEquals(array(), $inbox->getChildren());
+        $this->assertEquals([], $inbox->getChildren());
         $this->assertEquals('principals/user1', $inbox->getOwner());
         $this->assertEquals(null, $inbox->getGroup());
 
-        $this->assertEquals(array(
-            array(
+        $this->assertEquals([
+            [
                 'privilege' => '{DAV:}read',
-                'principal' => 'principals/user1',
+                'principal' => '{DAV:}authenticated',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}write-properties',
                 'principal' => 'principals/user1',
                 'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}unbind',
                 'principal' => 'principals/user1',
                 'protected' => true,
-            ),
-            array(
-                'privilege' => '{DAV:}read',
-                'principal' => 'principals/user1/calendar-proxy-read',
-                'protected' => true,
-            ),
-            array(
-                'privilege' => '{DAV:}read',
-                'principal' => 'principals/user1/calendar-proxy-write',
-                'protected' => true,
-            ),
-            array(
+            ],
+            [
                 'privilege' => '{DAV:}unbind',
                 'principal' => 'principals/user1/calendar-proxy-write',
                 'protected' => true,
-            ),
-            array(
-                'privilege' => '{urn:ietf:params:xml:ns:caldav}schedule-deliver-invite',
+            ],
+            [
+                'privilege' => '{urn:ietf:params:xml:ns:caldav}schedule-deliver',
                 'principal' => '{DAV:}authenticated',
                 'protected' => true,
-            ),
-            array(
-                'privilege' => '{urn:ietf:params:xml:ns:caldav}schedule-deliver-reply',
-                'principal' => '{DAV:}authenticated',
-                'protected' => true,
-            ),
-        ), $inbox->getACL());
+            ],
+        ], $inbox->getACL());
 
         $ok = false;
-        try {
-            $inbox->setACL(array());
-        } catch (DAV\Exception\MethodNotAllowed $e) {
-            $ok = true;
-        }
-        if (!$ok) {
-            $this->fail('Exception was not emitted');
-        }
-
-    }
-
-    function testGetSupportedPrivilegeSet() {
-
-        $inbox = new Inbox(
-            new CalDAV\Backend\MockScheduling(),
-            'principals/user1'
-        );
-        $r = $inbox->getSupportedPrivilegeSet();
-
-        $ok = 0;
-        foreach($r['aggregates'] as $priv) {
-
-            if ($priv['privilege'] == '{' . CalDAV\Plugin::NS_CALDAV . '}schedule-deliver') {
-                $ok++;
-                foreach($priv['aggregates'] as $subpriv) {
-                    if ($subpriv['privilege'] == '{' . CalDAV\Plugin::NS_CALDAV . '}schedule-deliver-invite') {
-                        $ok++;
-                    }
-                    if ($subpriv['privilege'] == '{' . CalDAV\Plugin::NS_CALDAV . '}schedule-deliver-reply') {
-                        $ok++;
-                    }
-                }
-            }
-        }
-
-        $this->assertEquals(3, $ok, "We're missing one or more privileges");
 
     }
 
@@ -175,9 +125,9 @@ class InboxTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(
             ['schedule1.ics'],
             $inbox->calendarQuery([
-                'name' => 'VCALENDAR',
-                'comp-filters' => [],
-                'prop-filters' => [],
+                'name'           => 'VCALENDAR',
+                'comp-filters'   => [],
+                'prop-filters'   => [],
                 'is-not-defined' => false
             ])
         );

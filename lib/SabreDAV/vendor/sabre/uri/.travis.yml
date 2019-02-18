@@ -3,8 +3,8 @@ php:
   - 5.4
   - 5.5
   - 5.6
-  - hhvm
   - 7
+  - 7.1
 
 script:
   - ./bin/phpunit --configuration tests/phpunit.xml.dist

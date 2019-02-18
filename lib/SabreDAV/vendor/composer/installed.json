@@ -1,27 +1,76 @@
 [
     {
-        "name": "sabre/uri",
+        "name": "psr/log",
         "version": "1.1.0",
         "version_normalized": "1.1.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-uri.git",
-            "reference": "9012116434d84ef6e5e37a89dfdbfbe2204a8704"
+            "url": "https://github.com/php-fig/log.git",
+            "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-uri/zipball/9012116434d84ef6e5e37a89dfdbfbe2204a8704",
-            "reference": "9012116434d84ef6e5e37a89dfdbfbe2204a8704",
+            "url": "https://api.github.com/repos/php-fig/log/zipball/6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
+            "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2018-11-20 15:27:04",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Psr\\Log\\": "Psr/Log/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
+            }
+        ],
+        "description": "Common interface for logging libraries",
+        "homepage": "https://github.com/php-fig/log",
+        "keywords": [
+            "log",
+            "psr",
+            "psr-3"
+        ]
+    },
+    {
+        "name": "sabre/uri",
+        "version": "1.2.1",
+        "version_normalized": "1.2.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/sabre-io/uri.git",
+            "reference": "ada354d83579565949d80b2e15593c2371225e61"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/sabre-io/uri/zipball/ada354d83579565949d80b2e15593c2371225e61",
+            "reference": "ada354d83579565949d80b2e15593c2371225e61",
             "shasum": ""
         },
         "require": {
             "php": ">=5.4.7"
         },
         "require-dev": {
-            "phpunit/phpunit": "*",
-            "sabre/cs": "~0.0.1"
+            "phpunit/phpunit": ">=4.0,<6.0",
+            "sabre/cs": "~1.0.0"
         },
-        "time": "2016-03-08 02:29:27",
+        "time": "2017-02-20 19:59:28",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -54,33 +103,38 @@
     },
     {
         "name": "sabre/event",
-        "version": "2.0.2",
-        "version_normalized": "2.0.2.0",
+        "version": "3.0.0",
+        "version_normalized": "3.0.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-event.git",
-            "reference": "337b6f5e10ea6e0b21e22c7e5788dd3883ae73ff"
+            "url": "https://github.com/sabre-io/event.git",
+            "reference": "831d586f5a442dceacdcf5e9c4c36a4db99a3534"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-event/zipball/337b6f5e10ea6e0b21e22c7e5788dd3883ae73ff",
-            "reference": "337b6f5e10ea6e0b21e22c7e5788dd3883ae73ff",
+            "url": "https://api.github.com/repos/sabre-io/event/zipball/831d586f5a442dceacdcf5e9c4c36a4db99a3534",
+            "reference": "831d586f5a442dceacdcf5e9c4c36a4db99a3534",
             "shasum": ""
         },
         "require": {
-            "php": ">=5.4.1"
+            "php": ">=5.5"
         },
         "require-dev": {
             "phpunit/phpunit": "*",
-            "sabre/cs": "~0.0.1"
+            "sabre/cs": "~0.0.4"
         },
-        "time": "2015-05-19 10:24:22",
+        "time": "2015-11-05 20:14:39",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
                 "Sabre\\Event\\": "lib/"
-            }
+            },
+            "files": [
+                "lib/coroutine.php",
+                "lib/Loop/functions.php",
+                "lib/Promise/functions.php"
+            ]
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
@@ -98,6 +152,7 @@
         "homepage": "http://sabre.io/event/",
         "keywords": [
             "EventEmitter",
+            "async",
             "events",
             "hooks",
             "plugin",
@@ -107,20 +162,21 @@
     },
     {
         "name": "sabre/http",
-        "version": "4.2.1",
-        "version_normalized": "4.2.1.0",
+        "version": "v4.2.4",
+        "version_normalized": "4.2.4.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-http.git",
-            "reference": "2e93bc8321524c67be4ca5b8415daebd4c8bf85e"
+            "url": "https://github.com/sabre-io/http.git",
+            "reference": "acccec4ba863959b2d10c1fa0fb902736c5c8956"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-http/zipball/2e93bc8321524c67be4ca5b8415daebd4c8bf85e",
-            "reference": "2e93bc8321524c67be4ca5b8415daebd4c8bf85e",
+            "url": "https://api.github.com/repos/sabre-io/http/zipball/acccec4ba863959b2d10c1fa0fb902736c5c8956",
+            "reference": "acccec4ba863959b2d10c1fa0fb902736c5c8956",
             "shasum": ""
         },
         "require": {
+            "ext-ctype": "*",
             "ext-mbstring": "*",
             "php": ">=5.4",
             "sabre/event": ">=1.0.0,<4.0.0",
@@ -133,7 +189,7 @@
         "suggest": {
             "ext-curl": " to make http requests with the Client class"
         },
-        "time": "2016-01-06 23:00:08",
+        "time": "2018-02-23 11:10:29",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -164,17 +220,17 @@
     },
     {
         "name": "sabre/xml",
-        "version": "1.4.1",
-        "version_normalized": "1.4.1.0",
+        "version": "1.5.1",
+        "version_normalized": "1.5.1.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-xml.git",
-            "reference": "59998046db252634259a878baf1af18159f508f3"
+            "url": "https://github.com/sabre-io/xml.git",
+            "reference": "a367665f1df614c3b8fefc30a54de7cd295e444e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-xml/zipball/59998046db252634259a878baf1af18159f508f3",
-            "reference": "59998046db252634259a878baf1af18159f508f3",
+            "url": "https://api.github.com/repos/sabre-io/xml/zipball/a367665f1df614c3b8fefc30a54de7cd295e444e",
+            "reference": "a367665f1df614c3b8fefc30a54de7cd295e444e",
             "shasum": ""
         },
         "require": {
@@ -182,14 +238,14 @@
             "ext-xmlreader": "*",
             "ext-xmlwriter": "*",
             "lib-libxml": ">=2.6.20",
-            "php": ">=5.4.1",
-            "sabre/uri": "~1.0"
+            "php": ">=5.5.5",
+            "sabre/uri": ">=1.0,<3.0.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "*",
-            "sabre/cs": "~0.0.2"
+            "phpunit/phpunit": "~4.8|~5.7",
+            "sabre/cs": "~1.0.0"
         },
-        "time": "2016-03-12 22:23:16",
+        "time": "2019-01-09 13:51:57",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -229,28 +285,31 @@
     },
     {
         "name": "sabre/vobject",
-        "version": "3.5.0",
-        "version_normalized": "3.5.0.0",
+        "version": "4.2.0",
+        "version_normalized": "4.2.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-vobject.git",
-            "reference": "061dd47ce40074bf63da8e3d6dbe7f18b5a4f3a4"
+            "url": "https://github.com/sabre-io/vobject.git",
+            "reference": "bd500019764e434ff65872d426f523e7882a0739"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-vobject/zipball/061dd47ce40074bf63da8e3d6dbe7f18b5a4f3a4",
-            "reference": "061dd47ce40074bf63da8e3d6dbe7f18b5a4f3a4",
+            "url": "https://api.github.com/repos/sabre-io/vobject/zipball/bd500019764e434ff65872d426f523e7882a0739",
+            "reference": "bd500019764e434ff65872d426f523e7882a0739",
             "shasum": ""
         },
         "require": {
             "ext-mbstring": "*",
-            "php": ">=5.3.1"
+            "php": ">=5.5",
+            "sabre/xml": ">=1.5 <3.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "*",
-            "squizlabs/php_codesniffer": "*"
+            "phpunit/phpunit": "> 4.8.35, <6.0.0"
         },
-        "time": "2016-01-11 18:13:23",
+        "suggest": {
+            "hoa/bench": "If you would like to run the benchmark scripts"
+        },
+        "time": "2019-02-19 13:05:37",
         "bin": [
             "bin/vobject",
             "bin/generate_vcards"
@@ -258,7 +317,7 @@
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.2.x-dev"
+                "dev-master": "4.0.x-dev"
             }
         },
         "installation-source": "dist",
@@ -283,31 +342,58 @@
                 "email": "dominik@fruux.com",
                 "homepage": "http://tobschall.de/",
                 "role": "Developer"
+            },
+            {
+                "name": "Ivan Enderlin",
+                "email": "ivan.enderlin@hoa-project.net",
+                "homepage": "http://mnt.io/",
+                "role": "Developer"
             }
         ],
         "description": "The VObject library for PHP allows you to easily parse and manipulate iCalendar and vCard objects",
         "homepage": "http://sabre.io/vobject/",
         "keywords": [
-            "VObject",
+            "availability",
+            "freebusy",
             "iCalendar",
+            "ical",
+            "ics",
             "jCal",
             "jCard",
-            "vCard"
+            "recurrence",
+            "rfc2425",
+            "rfc2426",
+            "rfc2739",
+            "rfc4770",
+            "rfc5545",
+            "rfc5546",
+            "rfc6321",
+            "rfc6350",
+            "rfc6351",
+            "rfc6474",
+            "rfc6638",
+            "rfc6715",
+            "rfc6868",
+            "vCalendar",
+            "vCard",
+            "vcf",
+            "xCal",
+            "xCard"
         ]
     },
     {
         "name": "sabre/dav",
-        "version": "3.0.8",
-        "version_normalized": "3.0.8.0",
+        "version": "3.2.3",
+        "version_normalized": "3.2.3.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/fruux/sabre-dav.git",
-            "reference": "69c5080ae689247d06a3c30fba05aba22bb81cf5"
+            "url": "https://github.com/sabre-io/dav.git",
+            "reference": "a9780ce4f35560ecbd0af524ad32d9d2c8954b80"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/fruux/sabre-dav/zipball/69c5080ae689247d06a3c30fba05aba22bb81cf5",
-            "reference": "69c5080ae689247d06a3c30fba05aba22bb81cf5",
+            "url": "https://api.github.com/repos/sabre-io/dav/zipball/a9780ce4f35560ecbd0af524ad32d9d2c8954b80",
+            "reference": "a9780ce4f35560ecbd0af524ad32d9d2c8954b80",
             "shasum": ""
         },
         "require": {
@@ -315,28 +401,30 @@
             "ext-date": "*",
             "ext-dom": "*",
             "ext-iconv": "*",
-            "ext-libxml": "*",
             "ext-mbstring": "*",
             "ext-pcre": "*",
             "ext-simplexml": "*",
             "ext-spl": "*",
-            "php": ">=5.4.1",
-            "sabre/event": "~2.0",
-            "sabre/http": "~4.0",
-            "sabre/uri": "~1.0",
-            "sabre/vobject": "^3.3.4",
-            "sabre/xml": "~1.0"
+            "lib-libxml": ">=2.7.0",
+            "php": ">=5.5.0",
+            "psr/log": "^1.0",
+            "sabre/event": ">=2.0.0, <4.0.0",
+            "sabre/http": "^4.2.1",
+            "sabre/uri": "^1.0.1",
+            "sabre/vobject": "^4.1.0",
+            "sabre/xml": "^1.4.0"
         },
         "require-dev": {
             "evert/phpdoc-md": "~0.1.0",
-            "phpunit/phpunit": "~4.2",
-            "sabre/cs": "~0.0.2"
+            "monolog/monolog": "^1.18",
+            "phpunit/phpunit": "> 4.8, <6.0.0",
+            "sabre/cs": "^1.0.0"
         },
         "suggest": {
             "ext-curl": "*",
             "ext-pdo": "*"
         },
-        "time": "2016-03-12 22:36:59",
+        "time": "2018-10-19 09:58:27",
         "bin": [
             "bin/sabredav",
             "bin/naturalselection"
@@ -344,7 +432,7 @@
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.0.0-dev"
+                "dev-master": "3.1.0-dev"
             }
         },
         "installation-source": "dist",

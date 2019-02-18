@@ -2,10 +2,11 @@
 
 namespace Sabre\VObject\Component;
 
+use DateTimeInterface;
 use Sabre\VObject;
 
 /**
- * VJournal component
+ * VJournal component.
  *
  * This component contains some additional functionality specific for VJOURNALs.
  *
@@ -13,8 +14,8 @@ use Sabre\VObject;
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
-class VJournal extends VObject\Component {
-
+class VJournal extends VObject\Component
+{
     /**
      * Returns true or false depending on if the event falls in the specified
      * time-range. This is used for filtering purposes.
@@ -22,24 +23,24 @@ class VJournal extends VObject\Component {
      * The rules used to determine if an event falls within the specified
      * time-range is based on the CalDAV specification.
      *
-     * @param DateTime $start
-     * @param DateTime $end
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     *
      * @return bool
      */
-    public function isInTimeRange(\DateTime $start, \DateTime $end) {
-
-        $dtstart = isset($this->DTSTART)?$this->DTSTART->getDateTime():null;
+    public function isInTimeRange(DateTimeInterface $start, DateTimeInterface $end)
+    {
+        $dtstart = isset($this->DTSTART) ? $this->DTSTART->getDateTime() : null;
         if ($dtstart) {
-            $effectiveEnd = clone $dtstart;
+            $effectiveEnd = $dtstart;
             if (!$this->DTSTART->hasTime()) {
-                $effectiveEnd->modify('+1 day');
+                $effectiveEnd = $effectiveEnd->modify('+1 day');
             }
 
-            return ($start <= $effectiveEnd && $end > $dtstart);
-
+            return $start <= $effectiveEnd && $end > $dtstart;
         }
-        return false;
 
+        return false;
     }
 
     /**
@@ -57,9 +58,9 @@ class VJournal extends VObject\Component {
      *
      * @var array
      */
-    public function getValidationRules() {
-
-        return array(
+    public function getValidationRules()
+    {
+        return [
             'UID' => 1,
             'DTSTAMP' => 1,
 
@@ -85,7 +86,19 @@ class VJournal extends VObject\Component {
             'EXDATE' => '*',
             'RELATED-TO' => '*',
             'RDATE' => '*',
-        );
+        ];
+    }
 
+    /**
+     * This method should return a list of default property values.
+     *
+     * @return array
+     */
+    protected function getDefaults()
+    {
+        return [
+            'UID' => 'sabre-vobject-'.VObject\UUIDUtil::getUUID(),
+            'DTSTAMP' => gmdate('Ymd\\THis\\Z'),
+        ];
     }
 }

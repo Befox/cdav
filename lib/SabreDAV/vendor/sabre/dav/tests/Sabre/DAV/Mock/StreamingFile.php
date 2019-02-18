@@ -14,12 +14,14 @@ namespace Sabre\DAV\Mock;
  */
 class StreamingFile extends File {
 
+    protected $size;
+
     /**
      * Updates the data
      *
      * The data argument is a readable stream resource.
      *
-     * After a succesful put operation, you may choose to return an ETag. The
+     * After a successful put operation, you may choose to return an ETag. The
      * etag must always be surrounded by double-quotes. These quotes must
      * appear in the actual string you're returning.
      *
@@ -81,7 +83,19 @@ class StreamingFile extends File {
      */
     function getSize() {
 
-        return null;
+        return $this->size;
+
+    }
+
+    /**
+     * Allows testing scripts to set the resource's file size.
+     *
+     * @param int $size
+     * @return void
+     */
+    function setSize($size) {
+
+        $this->size = $size;
 
     }
 

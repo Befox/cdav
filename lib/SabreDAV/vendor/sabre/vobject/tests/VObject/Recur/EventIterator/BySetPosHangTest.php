@@ -2,20 +2,20 @@
 
 namespace Sabre\VObject\Recur;
 
-use
-    Sabre\VObject\Reader,
-    DateTime;
+use DateTime;
+use PHPUnit\Framework\TestCase;
+use Sabre\VObject\Reader;
 
-class BySetPosHangTest extends \PHPUnit_Framework_TestCase {
-
+class BySetPosHangTest extends TestCase
+{
     /**
      * Using this iCalendar object, including BYSETPOS=-2 causes the iterator
      * to hang, as reported in ticket #212.
      *
      * See: https://github.com/fruux/sabre-vobject/issues/212
      */
-    function testExpand() {
-
+    public function testExpand()
+    {
         $ics = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -33,29 +33,28 @@ ICS;
         $vcal = Reader::read($ics);
         $this->assertInstanceOf('Sabre\\VObject\\Component\\VCalendar', $vcal);
 
-        $vcal->expand(new DateTime('2015-01-01'), new DateTime('2016-01-01'));
+        $vcal = $vcal->expand(new DateTime('2015-01-01'), new DateTime('2016-01-01'));
 
         foreach ($vcal->VEVENT as $event) {
             $dates[] = $event->DTSTART->getValue();
         }
 
-        $expectedDates = array(
-            "20150101T160000Z",
-            "20150122T160000Z",
-            "20150219T160000Z",
-            "20150319T160000Z",
-            "20150423T150000Z",
-            "20150521T150000Z",
-            "20150618T150000Z",
-            "20150723T150000Z",
-            "20150820T150000Z",
-            "20150917T150000Z",
-            "20151022T150000Z",
-            "20151119T160000Z",
-            "20151224T160000Z",
-        );
+        $expectedDates = [
+            '20150101T160000Z',
+            '20150122T160000Z',
+            '20150219T160000Z',
+            '20150319T160000Z',
+            '20150423T150000Z',
+            '20150521T150000Z',
+            '20150618T150000Z',
+            '20150723T150000Z',
+            '20150820T150000Z',
+            '20150917T150000Z',
+            '20151022T150000Z',
+            '20151119T160000Z',
+            '20151224T160000Z',
+        ];
 
         $this->assertEquals($expectedDates, $dates);
     }
-
 }

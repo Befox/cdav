@@ -68,6 +68,7 @@ if($type=='CardDAV')
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
 	echo '<PRE>';
 	echo dol_buildpath('cdav', 2)."\n";
+	echo dol_buildpath('cdav/server.php', 2)."\n";
 	echo dol_buildpath('cdav', 2)."/server.php/principals/".$user->login."/";
 	echo '</PRE>';
 	
@@ -79,6 +80,7 @@ elseif($type=='CalDAV')
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
 	echo '<PRE>';
 	echo dol_buildpath('cdav', 2)."\n";
+	echo dol_buildpath('cdav/server.php', 2)."\n";
 	echo dol_buildpath('cdav', 2)."/server.php/principals/".$user->login."/";
 	echo '</PRE>';
 	

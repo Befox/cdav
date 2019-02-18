@@ -3,7 +3,7 @@
 namespace Sabre\VObject\Property;
 
 /**
- * FlatText property
+ * FlatText property.
  *
  * This object represents certain TEXT values.
  *
@@ -22,10 +22,10 @@ namespace Sabre\VObject\Property;
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
-class FlatText extends Text {
-
+class FlatText extends Text
+{
     /**
-     * Field separator
+     * Field separator.
      *
      * @var string
      */
@@ -37,13 +37,10 @@ class FlatText extends Text {
      * Overriding this so we're not splitting on a ; delimiter.
      *
      * @param string $val
-     * @return void
      */
-    public function setQuotedPrintableValue($val) {
-
+    public function setQuotedPrintableValue($val)
+    {
         $val = quoted_printable_decode($val);
         $this->setValue($val);
-
     }
-
 }

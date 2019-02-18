@@ -2,10 +2,10 @@
 
 namespace Sabre\VObject\ITip;
 
-class BrokerUpdateTest extends BrokerTester {
-
-    function testInviteChange() {
-
+class BrokerUpdateEventTest extends BrokerTester
+{
+    public function testInviteChange()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -22,7 +22,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -43,8 +42,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'CANCEL',
                 'component' => 'VEVENT',
@@ -61,6 +60,7 @@ CALSCALE:GREGORIAN
 METHOD:CANCEL
 BEGIN:VEVENT
 UID:foobar
+DTSTAMP:**ANY**
 SEQUENCE:2
 SUMMARY:foo
 DTSTART:20140716T120000Z
@@ -70,9 +70,8 @@ ATTENDEE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -100,9 +99,8 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -130,16 +128,14 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteChangeFromNonSchedulingToSchedulingObject() {
-
+    public function testInviteChangeFromNonSchedulingToSchedulingObject()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -151,7 +147,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -169,8 +164,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -194,17 +189,14 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteChangeFromSchedulingToNonSchedulingObject() {
-
+    public function testInviteChangeFromSchedulingToNonSchedulingObject()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -218,7 +210,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -234,8 +225,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'CANCEL',
                 'component' => 'VEVENT',
@@ -247,6 +238,7 @@ CALSCALE:GREGORIAN
 METHOD:CANCEL
 BEGIN:VEVENT
 UID:foobar
+DTSTAMP:**ANY**
 SEQUENCE:1
 DTSTART:20140716T120000Z
 DTEND:20140716T130000Z
@@ -255,17 +247,14 @@ ATTENDEE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testNoAttendees() {
-
+    public function testNoAttendees()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -277,7 +266,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -293,13 +281,12 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array();
+        $expected = [];
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testRemoveInstance() {
-
+    public function testRemoveInstance()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -314,7 +301,6 @@ RRULE:FREQ=WEEKLY
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -334,8 +320,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -361,12 +347,10 @@ EXDATE;TZID=America/Toronto:20140724T120000
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
     /**
@@ -375,8 +359,8 @@ ICS
      *
      * This should ensure that the message is significant for every attendee,
      */
-    function testInviteChangeSignificantChange() {
-
+    public function testInviteChangeSignificantChange()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -394,7 +378,6 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -414,8 +397,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'CANCEL',
                 'component' => 'VEVENT',
@@ -432,6 +415,7 @@ CALSCALE:GREGORIAN
 METHOD:CANCEL
 BEGIN:VEVENT
 UID:foobar
+DTSTAMP:**ANY**
 SEQUENCE:2
 DTSTART:20140716T120000Z
 DTEND:20140716T130000Z
@@ -440,9 +424,8 @@ ATTENDEE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -470,9 +453,8 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -500,16 +482,14 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteNoChange() {
-
+    public function testInviteNoChange()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -524,7 +504,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -543,8 +522,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -570,17 +549,14 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteNoChangeForceSend() {
-
+    public function testInviteNoChangeForceSend()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -595,7 +571,6 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -614,8 +589,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -641,17 +616,14 @@ DTEND:20140716T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteRemoveAttendees() {
-
+    public function testInviteRemoveAttendees()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -669,7 +641,6 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -685,8 +656,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'CANCEL',
                 'component' => 'VEVENT',
@@ -703,6 +674,7 @@ CALSCALE:GREGORIAN
 METHOD:CANCEL
 BEGIN:VEVENT
 UID:foobar
+DTSTAMP:**ANY**
 SEQUENCE:2
 SUMMARY:foo
 DTSTART:20140716T120000Z
@@ -712,9 +684,8 @@ ATTENDEE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'CANCEL',
                 'component' => 'VEVENT',
@@ -731,6 +702,7 @@ CALSCALE:GREGORIAN
 METHOD:CANCEL
 BEGIN:VEVENT
 UID:foobar
+DTSTAMP:**ANY**
 SEQUENCE:2
 SUMMARY:foo
 DTSTART:20140716T120000Z
@@ -740,16 +712,14 @@ ATTENDEE;CN=Two:mailto:two@example.org
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-        );
+            ],
+        ];
 
         $result = $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 
-    function testInviteChangeExdateOrder() {
-
+    public function testInviteChangeExdateOrder()
+    {
         $oldMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -773,7 +743,6 @@ EXDATE:20150108T160000Z
 END:VEVENT
 END:VCALENDAR
 ICS;
-
 
         $newMessage = <<<ICS
 BEGIN:VCALENDAR
@@ -799,8 +768,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -831,11 +800,9 @@ EXDATE:20150108T160000Z,20141225T160000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-        );
+            ],
+        ];
 
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:strunk@example.org');
-
     }
 }

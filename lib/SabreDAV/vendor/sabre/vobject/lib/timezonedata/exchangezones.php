@@ -3,7 +3,7 @@
 /**
  * Microsoft exchange timezones
  * Source:
- * http://msdn.microsoft.com/en-us/library/ms988620%28v=exchg.65%29.aspx
+ * http://msdn.microsoft.com/en-us/library/ms988620%28v=exchg.65%29.aspx.
  *
  * Correct timezones deduced with help from:
  * http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
@@ -11,11 +11,11 @@
  * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
-return array(
+return [
     'Universal Coordinated Time' => 'UTC',
     'Casablanca, Monrovia' => 'Africa/Casablanca',
     'Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London' => 'Europe/Lisbon',
-    'Greenwich Mean Time; Dublin, Edinburgh, London' =>  'Europe/London',
+    'Greenwich Mean Time; Dublin, Edinburgh, London' => 'Europe/London',
     'Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna' => 'Europe/Berlin',
     'Belgrade, Pozsony, Budapest, Ljubljana, Prague' => 'Europe/Prague',
     'Brussels, Copenhagen, Madrid, Paris' => 'Europe/Paris',
@@ -85,9 +85,10 @@ return array(
     'Saskatchewan' => 'America/Edmonton',
     'Arizona' => 'America/Phoenix',
     'Mountain Time (US & Canada)' => 'America/Denver', // Best guess
+    'Pacific Time (US & Canada)' => 'America/Los_Angeles', // Best guess
     'Pacific Time (US & Canada); Tijuana' => 'America/Los_Angeles', // Best guess
     'Alaska' => 'America/Anchorage',
     'Hawaii' => 'Pacific/Honolulu',
     'Midway Island, Samoa' => 'Pacific/Midway',
     'Eniwetok, Kwajalein, Dateline Time' => 'Pacific/Kwajalein',
-);
+];

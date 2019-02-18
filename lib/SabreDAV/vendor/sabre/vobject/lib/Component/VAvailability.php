@@ -2,10 +2,11 @@
 
 namespace Sabre\VObject\Component;
 
+use DateTimeInterface;
 use Sabre\VObject;
 
 /**
- * The VAvailability component
+ * The VAvailability component.
  *
  * This component adds functionality to a component, specific for VAVAILABILITY
  * components.
@@ -14,7 +15,60 @@ use Sabre\VObject;
  * @author Ivan Enderlin
  * @license http://sabre.io/license/ Modified BSD License
  */
-class VAvailability extends VObject\Component {
+class VAvailability extends VObject\Component
+{
+    /**
+     * Returns true or false depending on if the event falls in the specified
+     * time-range. This is used for filtering purposes.
+     *
+     * The rules used to determine if an event falls within the specified
+     * time-range is based on:
+     *
+     * https://tools.ietf.org/html/draft-daboo-calendar-availability-05#section-3.1
+     *
+     * @param DateTimeInterface $start
+     * @param DateTimeInterface $end
+     *
+     * @return bool
+     */
+    public function isInTimeRange(DateTimeInterface $start, DateTimeInterface $end)
+    {
+        list($effectiveStart, $effectiveEnd) = $this->getEffectiveStartEnd();
+
+        return
+            (is_null($effectiveStart) || $start < $effectiveEnd) &&
+            (is_null($effectiveEnd) || $end > $effectiveStart)
+        ;
+    }
+
+    /**
+     * Returns the 'effective start' and 'effective end' of this VAVAILABILITY
+     * component.
+     *
+     * We use the DTSTART and DTEND or DURATION to determine this.
+     *
+     * The returned value is an array containing DateTimeImmutable instances.
+     * If either the start or end is 'unbounded' its value will be null
+     * instead.
+     *
+     * @return array
+     */
+    public function getEffectiveStartEnd()
+    {
+        $effectiveStart = null;
+        $effectiveEnd = null;
+
+        if (isset($this->DTSTART)) {
+            $effectiveStart = $this->DTSTART->getDateTime();
+        }
+        if (isset($this->DTEND)) {
+            $effectiveEnd = $this->DTEND->getDateTime();
+        } elseif ($effectiveStart && isset($this->DURATION)) {
+            $effectiveEnd = $effectiveStart->add(VObject\DateTimeParser::parseDuration($this->DURATION));
+        }
+
+        return [$effectiveStart, $effectiveEnd];
+    }
 
     /**
      * A simple list of validation rules.
@@ -31,9 +85,9 @@ class VAvailability extends VObject\Component {
      *
      * @var array
      */
-    function getValidationRules() {
-
-        return array(
+    public function getValidationRules()
+    {
+        return [
             'UID' => 1,
             'DTSTAMP' => 1,
 
@@ -54,8 +108,7 @@ class VAvailability extends VObject\Component {
             'CATEGORIES' => '*',
             'COMMENT' => '*',
             'CONTACT' => '*',
-        );
-
+        ];
     }
 
     /**
@@ -79,21 +132,21 @@ class VAvailability extends VObject\Component {
      *   3 - An error.
      *
      * @param int $options
+     *
      * @return array
      */
-    function validate($options = 0) {
-
+    public function validate($options = 0)
+    {
         $result = parent::validate($options);
 
         if (isset($this->DTEND) && isset($this->DURATION)) {
-            $result[] = array(
+            $result[] = [
                 'level' => 3,
                 'message' => 'DTEND and DURATION cannot both be present',
-                'node' => $this
-            );
+                'node' => $this,
+            ];
         }
 
         return $result;
-
     }
 }

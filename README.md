@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 3.7/3.8/3.9/4.0/5.0/6.0/7.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 3.7/3.8/3.9/4.0/5.0/6.0/7.0/8.0/9.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
 
 You can :
 
@@ -10,6 +10,7 @@ You can :
  * Read and Edit addressBooks through CardDAV
  * Read calendars through ICS Full version or only Free/Busy (hide details)
  * Access Dolibarr documents through WebDAV (if admin)
+ * Generate project tasks from documents like proposals and/or orders
 
 Each user can access his/her contacts address book (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
 
@@ -24,6 +25,38 @@ It is possible to select which contacts to sync with CDAV_CONTACT_TAG configurat
 Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
 
 Recurring events are not handled (Dolibarr does not handle them).
+
+New in version 2.x (since Dolibarr 8.0 & 9.0) : automatic tasks generation in projects with services from linked Propositions and/or Orders 
+Module setup offer you to :
+
+ * generate tasks from linked docuement(s) OR not
+ * synchronize project tasks as calendar events AND/OR todo tasks 
+ * set up 3 initial tasks that will appear before services coming from document(s)
+ * set up 3 final tasks that will appear after services coming from document(s)
+ * define user role in project to select user to attribute on generated tasks from document(s)
+ * define user role on new project task creation
+ * define start and end time of a working day
+ * restrict services to be converted as task by specifying a tag
+ * force generation of tasks for each service lines from attached documents with cdav duration if tag is missing
+
+Durations are retrieved from service's card if defined (minutes, hours, days or weeks only), otherwise from extrafield filled in documents
+All tasks are begining at the starting date of the project, at the begining of the working day
+Multi-day durations tasks are maintained as a single task, eg from 31/07/2018 at 8am to 02/08/2018 at 7pm
+ 
+Usage :
+
+ * Manually create a project, link it to a third party, and set up the date ; leave it in draft status
+ * Attach document(s) : proposals or orders including at least 1 concerned service.
+ * Affect contact(s) with correct role
+ * Validate project : all tasks are created ; use your ics client software to retrieve and drag-drop events if necessary
+ 
+Notes :
+
+ * Description of services are useful to create subtasks if '- ' are detected at the begining of a line ; then, with DAVx⁵ (CalDAV/CardDAV Synchronization and Client) and Tasks (Keep track of your list of goals) you will be able to use checkboxes for these tasks
+ * If you chose to synchronize project tasks as calendar events AND todo tasks, modifying a task will autoamticaly modify the corresponding event and reciprocally.
+ * Tasks can be modified from client application but not cancelled : Dolibarr keep trace of last affectation
+ * After generating tasks, you can modify/complete each of them or create more tasks manually (here too you can fill description zone with '- ' at the begining of lines to create subtasks)
+
 
 ## Help improvements
 

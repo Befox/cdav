@@ -2,13 +2,13 @@
 
 namespace Sabre\VObject\Component;
 
-use Sabre\VObject;
+use PHPUnit\Framework\TestCase;
 use Sabre\VObject\Reader;
 
-class VTimeZoneTest extends \PHPUnit_Framework_TestCase {
-
-    function testValidate() {
-
+class VTimeZoneTest extends TestCase
+{
+    public function testValidate()
+    {
         $input = <<<HI
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -22,17 +22,16 @@ HI;
         $obj = Reader::read($input);
 
         $warnings = $obj->validate();
-        $messages = array();
-        foreach($warnings as $warning) {
+        $messages = [];
+        foreach ($warnings as $warning) {
             $messages[] = $warning['message'];
         }
 
-        $this->assertEquals(array(), $messages);
-
+        $this->assertEquals([], $messages);
     }
 
-    function testGetTimeZone() {
-
+    public function testGetTimeZone()
+    {
         $input = <<<HI
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -51,7 +50,5 @@ HI;
             $tz,
             $obj->VTIMEZONE->getTimeZone()
         );
-
     }
-
 }

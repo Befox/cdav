@@ -2,19 +2,20 @@
 
 namespace Sabre\VObject\Recur\EventIterator;
 
-use Sabre\VObject\Recur;
+use PHPUnit\Framework\TestCase;
 use Sabre\VObject\Reader;
+use Sabre\VObject\Recur;
 
-class FifthTuesdayProblemTest extends \PHPUnit_Framework_TestCase {
-
+class FifthTuesdayProblemTest extends TestCase
+{
     /**
      * A pretty slow test. Had to be marked as 'medium' for phpunit to not die
      * after 1 second. Would be good to optimize later.
      *
      * @medium
      */
-    function testGetDTEnd() {
-
+    public function testGetDTEnd()
+    {
         $ics = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -38,9 +39,9 @@ END:VCALENDAR
 ICS;
 
         $vObject = Reader::read($ics);
-        $it = new Recur\EventIterator($vObject, (string)$vObject->VEVENT->UID);
+        $it = new Recur\EventIterator($vObject, (string) $vObject->VEVENT->UID);
 
-        while($it->valid()) {
+        while ($it->valid()) {
             $it->next();
         }
 
@@ -48,7 +49,5 @@ ICS;
         // system before would fail on the 5th tuesday of the month, if the 5th
         // tuesday did not exist.
         $this->assertTrue(true);
-
     }
-
 }

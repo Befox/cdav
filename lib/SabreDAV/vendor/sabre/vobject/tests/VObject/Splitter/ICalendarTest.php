@@ -2,27 +2,29 @@
 
 namespace Sabre\VObject\Splitter;
 
+use PHPUnit\Framework\TestCase;
 use Sabre\VObject;
 
-class ICalendarTest extends \PHPUnit_Framework_TestCase {
-
+class ICalendarTest extends TestCase
+{
     protected $version;
 
-    function setUp() {
+    public function setUp()
+    {
         $this->version = VObject\Version::VERSION;
     }
 
-    function createStream($data) {
-
-        $stream = fopen('php://memory','r+');
+    public function createStream($data)
+    {
+        $stream = fopen('php://memory', 'r+');
         fwrite($stream, $data);
         rewind($stream);
-        return $stream;
 
+        return $stream;
     }
 
-    function testICalendarImportValidEvent() {
-
+    public function testICalendarImportValidEvent()
+    {
         $data = <<<EOT
 BEGIN:VCALENDAR
 BEGIN:VEVENT
@@ -36,18 +38,18 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
-        while($object=$objects->getNext()) {
+        $return = '';
+        while ($object = $objects->getNext()) {
             $return .= $object->serialize();
         }
-        $this->assertEquals(array(), VObject\Reader::read($return)->validate());
+        $this->assertEquals([], VObject\Reader::read($return)->validate());
     }
 
     /**
-     * @expectedException Sabre\VObject\ParseException
+     * @expectedException \Sabre\VObject\ParseException
      */
-    function testICalendarImportWrongType() {
-
+    public function testICalendarImportWrongType()
+    {
         $data = <<<EOT
 BEGIN:VCARD
 UID:foo1
@@ -59,10 +61,10 @@ EOT;
         $tempFile = $this->createStream($data);
 
         $objects = new ICalendar($tempFile);
-
     }
 
-    function testICalendarImportEndOfData() {
+    public function testICalendarImportEndOfData()
+    {
         $data = <<<EOT
 BEGIN:VCALENDAR
 BEGIN:VEVENT
@@ -75,26 +77,26 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
-        while($object=$objects->getNext()) {
+        $return = '';
+        while ($object = $objects->getNext()) {
             $return .= $object->serialize();
         }
-        $this->assertNull($object=$objects->getNext());
+        $this->assertNull($object = $objects->getNext());
     }
 
     /**
-     * @expectedException Sabre\VObject\ParseException
+     * @expectedException \Sabre\VObject\ParseException
      */
-    function testICalendarImportInvalidEvent() {
+    public function testICalendarImportInvalidEvent()
+    {
         $data = <<<EOT
 EOT;
         $tempFile = $this->createStream($data);
         $objects = new ICalendar($tempFile);
-
     }
 
-    function testICalendarImportMultipleValidEvents() {
-
+    public function testICalendarImportMultipleValidEvents()
+    {
         $event[] = <<<EOT
 BEGIN:VEVENT
 UID:foo1
@@ -103,7 +105,7 @@ DTSTART:20140101T050000Z
 END:VEVENT
 EOT;
 
-$event[] = <<<EOT
+        $event[] = <<<EOT
 BEGIN:VEVENT
 UID:foo2
 DTSTAMP:20140122T233226Z
@@ -122,10 +124,9 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
+        $return = '';
         $i = 0;
-        while($object=$objects->getNext()) {
-
+        while ($object = $objects->getNext()) {
             $expected = <<<EOT
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -139,13 +140,13 @@ EOT;
             $return .= $object->serialize();
             $expected = str_replace("\n", "\r\n", $expected);
             $this->assertEquals($expected, $object->serialize());
-            $i++;
+            ++$i;
         }
-        $this->assertEquals(array(), VObject\Reader::read($return)->validate());
+        $this->assertEquals([], VObject\Reader::read($return)->validate());
     }
 
-    function testICalendarImportEventWithoutUID() {
-
+    public function testICalendarImportEventWithoutUID()
+    {
         $data = <<<EOT
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -162,8 +163,8 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
-        while($object=$objects->getNext()) {
+        $return = '';
+        while ($object = $objects->getNext()) {
             $return .= $object->serialize();
         }
 
@@ -171,17 +172,17 @@ EOT;
 
         if ($messages) {
             $messages = array_map(
-                function($item) { return $item['message']; },
+                function ($item) { return $item['message']; },
                 $messages
             );
-            $this->fail('Validation errors: ' . implode("\n", $messages));
+            $this->fail('Validation errors: '.implode("\n", $messages));
         } else {
-            $this->assertEquals(array(), $messages);
+            $this->assertEquals([], $messages);
         }
     }
 
-    function testICalendarImportMultipleVTIMEZONESAndMultipleValidEvents() {
-
+    public function testICalendarImportMultipleVTIMEZONESAndMultipleValidEvents()
+    {
         $timezones = <<<EOT
 BEGIN:VTIMEZONE
 TZID:Europe/Berlin
@@ -256,10 +257,9 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
+        $return = '';
         $i = 0;
-        while($object=$objects->getNext()) {
-
+        while ($object = $objects->getNext()) {
             $expected = <<<EOT
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -274,15 +274,14 @@ EOT;
 
             $this->assertEquals($expected, $object->serialize());
             $return .= $object->serialize();
-            $i++;
-
+            ++$i;
         }
 
-        $this->assertEquals(array(), VObject\Reader::read($return)->validate());
+        $this->assertEquals([], VObject\Reader::read($return)->validate());
     }
 
-    function testICalendarImportWithOutVTIMEZONES() {
-
+    public function testICalendarImportWithOutVTIMEZONES()
+    {
         $data = <<<EOT
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -313,13 +312,12 @@ EOT;
 
         $objects = new ICalendar($tempFile);
 
-        $return = "";
-        while($object=$objects->getNext()) {
+        $return = '';
+        while ($object = $objects->getNext()) {
             $return .= $object->serialize();
         }
 
         $messages = VObject\Reader::read($return)->validate();
-        $this->assertEquals(array(), $messages);
+        $this->assertEquals([], $messages);
     }
-
 }

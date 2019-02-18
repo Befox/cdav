@@ -1,6 +1,7 @@
 <?php
 
 namespace Sabre\DAV;
+
 use Sabre\HTTP;
 
 require_once 'Sabre/DAV/AbstractServer.php';
@@ -13,11 +14,11 @@ class ServerEventsTest extends AbstractServer {
 
     function testAfterBind() {
 
-        $this->server->on('afterBind', [$this,'afterBindHandler']);
+        $this->server->on('afterBind', [$this, 'afterBindHandler']);
         $newPath = 'afterBind';
 
         $this->tempPath = '';
-        $this->server->createFile($newPath,'body');
+        $this->server->createFile($newPath, 'body');
         $this->assertEquals($newPath, $this->tempPath);
 
     }
@@ -30,15 +31,17 @@ class ServerEventsTest extends AbstractServer {
 
     function testAfterResponse() {
 
-        $mock = $this->getMock('stdClass', array('afterResponseCallback'));
+        $mock = $this->getMockBuilder('stdClass')
+            ->setMethods(['afterResponseCallback'])
+            ->getMock();
         $mock->expects($this->once())->method('afterResponseCallback');
 
         $this->server->on('afterResponse', [$mock, 'afterResponseCallback']);
 
-        $this->server->httpRequest = HTTP\Sapi::createFromServerArray(array(
-            'REQUEST_METHOD'    => 'GET',
-            'REQUEST_URI'       => '/test.txt',
-        ));
+        $this->server->httpRequest = HTTP\Sapi::createFromServerArray([
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI'    => '/test.txt',
+        ]);
 
         $this->server->exec();
 
@@ -46,23 +49,23 @@ class ServerEventsTest extends AbstractServer {
 
     function testBeforeBindCancel() {
 
-        $this->server->on('beforeBind', [$this,'beforeBindCancelHandler']);
-        $this->assertFalse($this->server->createFile('bla','body'));
+        $this->server->on('beforeBind', [$this, 'beforeBindCancelHandler']);
+        $this->assertFalse($this->server->createFile('bla', 'body'));
 
         // Also testing put()
-        $req = HTTP\Sapi::createFromServerArray(array(
+        $req = HTTP\Sapi::createFromServerArray([
             'REQUEST_METHOD' => 'PUT',
-            'REQUEST_URI' => '/barbar',
-        ));
+            'REQUEST_URI'    => '/barbar',
+        ]);
 
         $this->server->httpRequest = $req;
         $this->server->exec();
 
-        $this->assertEquals('',$this->server->httpResponse->status);
+        $this->assertEquals(500, $this->server->httpResponse->getStatus());
 
     }
 
-    function beforeBindCancelHandler() {
+    function beforeBindCancelHandler($path) {
 
         return false;
 
@@ -72,10 +75,10 @@ class ServerEventsTest extends AbstractServer {
 
         $this->server->on('exception', [$this, 'exceptionHandler']);
 
-        $req = HTTP\Sapi::createFromServerArray(array(
+        $req = HTTP\Sapi::createFromServerArray([
             'REQUEST_METHOD' => 'GET',
-            'REQUEST_URI' => '/not/exisitng',
-        ));
+            'REQUEST_URI'    => '/not/exisitng',
+        ]);
         $this->server->httpRequest = $req;
         $this->server->exec();
 
@@ -92,29 +95,31 @@ class ServerEventsTest extends AbstractServer {
     function testMethod() {
 
         $k = 1;
-        $this->server->on('method', function() use (&$k) {
+        $this->server->on('method', function($request, $response) use (&$k) {
 
-            $k+=1;
-
-            return false;
-
-        });
-        $this->server->on('method', function() use (&$k) {
-
-            $k+=2;
+            $k += 1;
 
             return false;
 
         });
+        $this->server->on('method', function($request, $response) use (&$k) {
 
-        $this->server->invokeMethod(
-            new HTTP\Request('BLABLA', '/'),
-            new HTTP\Response(),
-            false
-        );
+            $k += 2;
 
-        $this->assertEquals(2, $k);
+            return false;
 
+        });
+
+        try {
+            $this->server->invokeMethod(
+                new HTTP\Request('BLABLA', '/'),
+                new HTTP\Response(),
+                false
+            );
+        } catch (Exception $e) {}
+
+        // Fun fact, PHP 7.1 changes the order when sorting-by-callback.
+        $this->assertTrue($k >= 2 && $k <= 3);
 
     }
 

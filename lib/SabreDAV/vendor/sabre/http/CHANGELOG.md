@@ -1,19 +1,37 @@
 ChangeLog
 =========
 
+4.2.4 (2018-02-23)
+------------------
+
+* #69: Sending `charset="UTF-8"` on Basic authentication challenges per
+  [rfc7617][rfc7617].
+
+
+4.2.3 (2017-06-12)
+------------------
+
+* #74, #77: Work around 4GB file size limit at 32 Bit systems
+
+
+4.2.2 (2017-01-02)
+------------------
+
+* #72: Handling clients that send invalid `Content-Length` headers.
+
 4.2.1 (2016-01-06)
 ------------------
 
 * #56: `getBodyAsString` now returns at most as many bytes as the contents of
   the `Content-Length` header. This allows users to pass much larger strings
   without having to copy and truncate them.
+* The client now sets a default `User-Agent` header identifying this library.
 
 
 4.2.0 (2016-01-04)
 ------------------
 
 * This package now supports sabre/event 3.0.
-* The client now sets a default `User-Agent` header identifying this library.
 
 
 4.1.0 (2015-09-04)
@@ -247,4 +265,5 @@ Before 2.0.0, this package was built-into SabreDAV, where it first appeared in
 January 2009.
 
 [psr-http]: https://github.com/php-fig/fig-standards/blob/master/proposed/http-message.md
-[rfc-7240]: http://tools.ietf.org/html/rfc7240
+[rfc7240]: http://tools.ietf.org/html/rfc7240
+[rfc7617]: https://tools.ietf.org/html/rfc7617

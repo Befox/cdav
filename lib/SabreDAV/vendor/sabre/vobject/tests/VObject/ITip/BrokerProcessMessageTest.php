@@ -2,10 +2,10 @@
 
 namespace Sabre\VObject\ITip;
 
-class BrokerProcessMessageTest extends BrokerTester {
-
-    function testRequestNew() {
-
+class BrokerProcessMessageTest extends BrokerTester
+{
+    public function testRequestNew()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -19,7 +19,7 @@ ICS;
 
         $expected = <<<ICS
 BEGIN:VCALENDAR
-%foo%
+VERSION:2.0
 BEGIN:VEVENT
 SEQUENCE:1
 UID:foobar
@@ -28,11 +28,10 @@ END:VCALENDAR
 ICS;
 
         $result = $this->process($itip, null, $expected);
-
     }
 
-    function testRequestUpdate() {
-
+    public function testRequestUpdate()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -46,7 +45,6 @@ ICS;
 
         $old = <<<ICS
 BEGIN:VCALENDAR
-%foo%
 BEGIN:VEVENT
 SEQUENCE:1
 UID:foobar
@@ -56,7 +54,6 @@ ICS;
 
         $expected = <<<ICS
 BEGIN:VCALENDAR
-%foo%
 BEGIN:VEVENT
 SEQUENCE:2
 UID:foobar
@@ -65,11 +62,10 @@ END:VCALENDAR
 ICS;
 
         $result = $this->process($itip, $old, $expected);
-
     }
 
-    function testCancel() {
-
+    public function testCancel()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -83,7 +79,6 @@ ICS;
 
         $old = <<<ICS
 BEGIN:VCALENDAR
-%foo%
 BEGIN:VEVENT
 SEQUENCE:1
 UID:foobar
@@ -93,21 +88,19 @@ ICS;
 
         $expected = <<<ICS
 BEGIN:VCALENDAR
-%foo%
 BEGIN:VEVENT
-SEQUENCE:2
 UID:foobar
 STATUS:CANCELLED
+SEQUENCE:2
 END:VEVENT
 END:VCALENDAR
 ICS;
 
         $result = $this->process($itip, $old, $expected);
-
     }
 
-    function testCancelNoExistingEvent() {
-
+    public function testCancelNoExistingEvent()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -123,11 +116,10 @@ ICS;
         $expected = null;
 
         $result = $this->process($itip, $old, $expected);
-
     }
 
-    function testUnsupportedComponent() {
-
+    public function testUnsupportedComponent()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -142,11 +134,10 @@ ICS;
         $expected = null;
 
         $result = $this->process($itip, $old, $expected);
-
     }
 
-    function testUnsupportedMethod() {
-
+    public function testUnsupportedMethod()
+    {
         $itip = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -162,7 +153,5 @@ ICS;
         $expected = null;
 
         $result = $this->process($itip, $old, $expected);
-
     }
-
 }

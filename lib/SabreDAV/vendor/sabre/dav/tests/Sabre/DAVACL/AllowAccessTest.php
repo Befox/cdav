@@ -3,7 +3,6 @@
 namespace Sabre\DAVACL;
 
 use Sabre\DAV;
-use Sabre\HTTP;
 
 class AllowAccessTest extends \PHPUnit_Framework_TestCase {
 
@@ -14,13 +13,24 @@ class AllowAccessTest extends \PHPUnit_Framework_TestCase {
 
     function setUp() {
 
-        $nodes = array(
-            new DAV\SimpleCollection('testdir'),
-        );
+        $nodes = [
+            new DAV\Mock\Collection('testdir', [
+                'file1.txt' => 'contents',
+            ]),
+        ];
 
         $this->server = new DAV\Server($nodes);
+        $this->server->addPlugin(
+            new DAV\Auth\Plugin(
+                new DAV\Auth\Backend\Mock()
+            )
+        );
+        // Login
+        $this->server->getPlugin('auth')->beforeMethod(
+            new \Sabre\HTTP\Request(),
+            new \Sabre\HTTP\Response()
+        );
         $aclPlugin = new Plugin();
-        $aclPlugin->allowAccessToNodesWithoutACL = true;
         $this->server->addPlugin($aclPlugin);
 
     }
@@ -64,16 +74,7 @@ class AllowAccessTest extends \PHPUnit_Framework_TestCase {
     function testPUT() {
 
         $this->server->httpRequest->setMethod('PUT');
-        $this->server->httpRequest->setUrl('/testdir');
-
-        $this->assertTrue($this->server->emit('beforeMethod', [$this->server->httpRequest, $this->server->httpResponse]));
-
-    }
-
-    function testACL() {
-
-        $this->server->httpRequest->setMethod('ACL');
-        $this->server->httpRequest->setUrl('/testdir');
+        $this->server->httpRequest->setUrl('/testdir/file1.txt');
 
         $this->assertTrue($this->server->emit('beforeMethod', [$this->server->httpRequest, $this->server->httpResponse]));
 

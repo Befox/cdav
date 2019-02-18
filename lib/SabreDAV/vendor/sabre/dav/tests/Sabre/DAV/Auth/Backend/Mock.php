@@ -2,10 +2,8 @@
 
 namespace Sabre\DAV\Auth\Backend;
 
-use
-    Sabre\DAV,
-    Sabre\HTTP\RequestInterface,
-    Sabre\HTTP\ResponseInterface;
+use Sabre\HTTP\RequestInterface;
+use Sabre\HTTP\ResponseInterface;
 
 class Mock implements BackendInterface {
 
@@ -78,6 +76,8 @@ class Mock implements BackendInterface {
      * append your own WWW-Authenticate header instead of overwriting the
      * existing one.
      *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
      * @return void
      */
     function challenge(RequestInterface $request, ResponseInterface $response) {

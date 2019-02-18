@@ -138,7 +138,8 @@ class Service {
      * @param string|string[] $rootElementName
      * @param string|resource $input
      * @param string|null $contextUri
-     * @return void
+     * @throws ParseException
+     * @return array|object|string
      */
     function expect($rootElementName, $input, $contextUri = null) {
 
@@ -151,8 +152,14 @@ class Service {
         $r->contextUri = $contextUri;
         $r->xml($input);
 
+        $rootElementName = (array)$rootElementName;
+
+        foreach ($rootElementName as &$rEl) {
+            if ($rEl[0] !== '{') $rEl = '{}' . $rEl;
+        }
+
         $result = $r->parse();
-        if (!in_array($result['name'], (array)$rootElementName, true)) {
+        if (!in_array($result['name'], $rootElementName, true)) {
             throw new ParseException('Expected ' . implode(' or ', (array)$rootElementName) . ' but received ' . $result['name'] . ' as the root element');
         }
         return $result['value'];

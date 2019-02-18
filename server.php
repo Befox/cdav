@@ -24,13 +24,13 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 		debug_log("Error $errno : $errstr - $errfile @ $errline");
 		foreach(debug_backtrace(false) as $trace)
 			debug_log(" - ".$trace['file'].'@'.$trace['line'].' '.$trace['function'].'(...)');
-    }
-    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+	}
+	throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 }
 
 // debug
-//$debug_file = fopen('/tmp/cdav_'.date('Ymd').'.log','a');
-$debug_file = false;
+$debug_file = fopen('/tmp/cdav_'.date('Ymd').'.log','a');
+//$debug_file = false;
 
 function debug_log($txt)
 {
@@ -46,10 +46,10 @@ function debug_log($txt)
 if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
 	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
 {
-    $rAuth = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+	$rAuth = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
 
-    if(count($rAuth)>1)
-    {
+	if(count($rAuth)>1)
+	{
 		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
 		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
 	}
@@ -59,10 +59,10 @@ if( isset($_SERVER['HTTP_AUTHORIZATION']) &&
 if( isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && 
 	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
 {
-    $rAuth = explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
+	$rAuth = explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
 
-    if(count($rAuth)>1)
-    {
+	if(count($rAuth)>1)
+	{
 		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
 		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
 	}
@@ -116,6 +116,42 @@ if(!defined('CDAV_URI_KEY'))
 		define('CDAV_URI_KEY', substr(md5($_SERVER['HTTP_HOST']),0,8));
 }
 
+// define CDAV_TASK_USER_ROLE if not
+if(!defined('CDAV_TASK_USER_ROLE'))
+{
+	if(isset($conf->global->CDAV_TASK_USER_ROLE))
+		define('CDAV_TASK_USER_ROLE', $conf->global->CDAV_TASK_USER_ROLE);
+	else
+		die('Module CDav is not properly configured : Project user role not set !');
+}
+
+// define CDAV_SYNC_PAST if not
+if(!defined('CDAV_SYNC_PAST'))
+{
+	if(isset($conf->global->CDAV_SYNC_PAST))
+		define('CDAV_SYNC_PAST', $conf->global->CDAV_SYNC_PAST);
+	else
+		die('Module CDav is not properly configured : Period to sync not set !');
+}
+
+// define CDAV_SYNC_FUTURE if not
+if(!defined('CDAV_SYNC_FUTURE'))
+{
+	if(isset($conf->global->CDAV_SYNC_FUTURE))
+		define('CDAV_SYNC_FUTURE', $conf->global->CDAV_SYNC_FUTURE);
+	else
+		die('Module CDav is not properly configured : Period to sync not set !');
+}
+
+// define CDAV_TASK_SYNC if not
+if(!defined('CDAV_TASK_SYNC'))
+{
+	if(isset($conf->global->CDAV_TASK_SYNC))
+		define('CDAV_TASK_SYNC', $conf->global->CDAV_TASK_SYNC);
+	else
+		define('CDAV_TASK_SYNC', '0');
+}
+
 // Sabre/dav configuration
 
 use Sabre\DAV;
@@ -146,11 +182,20 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	
 	
 	if ( ! isset($user->login) || $user->login=='')
+	{
+		debug_log("Authentication failed 1 for user $username with pass ".str_pad('', strlen($password), '*'));
 		return false;
+	}
 	if ($user->societe_id!=0)
+	{
+		debug_log("Authentication failed 2 for user $username with pass ".str_pad('', strlen($password), '*'));
 		return false;
+	}
 	if ($user->login!=$username)
+	{
+		debug_log("Authentication failed 3 for user $username with pass ".str_pad('', strlen($password), '*'));
 		return false;
+	}
 	/*if ($user->pass_indatabase_crypted == '' || dol_hash($password) != $user->pass_indatabase_crypted)
 		return false;*/
 	
@@ -160,12 +205,15 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 	$authmode = explode(',',$dolibarr_main_authentication);
 	$entity = (GETPOST('entity','int') ? GETPOST('entity','int') : (!empty($conf->entity) ? $conf->entity : 1));
 	if(checkLoginPassEntity($username,$password,$entity,$authmode)!=$username)
+	{
+		debug_log("Authentication failed 4 for user $username with pass ".str_pad('', strlen($password), '*'));
 		return false;
+	}
+	debug_log("Authentication OK for user $username ");
 	return true;
 });
 
 $authBackend->setRealm('Dolibarr');
-
 
 // The lock manager is reponsible for making sure users don't overwrite
 // each others changes.
@@ -176,23 +224,22 @@ $principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
 
 // CardDav & CalDav Backend
 $carddavBackend   = new Sabre\CardDAV\Backend\Dolibarr($user,$db,$langs);
-$caldavBackend    = new Sabre\CalDAV\Backend\Dolibarr($user,$db,$langs, $cdavLib);
+$caldavBackend	= new Sabre\CalDAV\Backend\Dolibarr($user,$db,$langs, $cdavLib);
 
 // Setting up the directory tree //
 $nodes = array(
-    // /principals
+	// /principals
 	new DAVACL\PrincipalCollection($principalBackend),
-    // /addressbook
-    new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
-    // /calendars
-    new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
-    // / Public docs
+	// /addressbook
+	new \Sabre\CardDAV\AddressBookRoot($principalBackend, $carddavBackend),
+	// /calendars
+	new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend),
+	// / Public docs
 	new DAV\FS\Directory($dolibarr_main_data_root. '/cdav/public')
 );
 // admin can access all dolibarr documents
 if($user->admin)
 	$nodes[] = new DAV\FS\Directory($dolibarr_main_data_root);
-
 
 // The server object is responsible for making sense out of the WebDAV protocol
 $server = new DAV\Server($nodes);
@@ -207,8 +254,11 @@ $server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
 $server->addPlugin(new \Sabre\CardDAV\Plugin());
 $server->addPlugin(new \Sabre\CalDAV\Plugin());
-$server->addPlugin(new \Sabre\DAVACL\Plugin());
-// $server->addPlugin(new \Sabre\DAV\Sync\Plugin());
+$DAVACL_plugin = new \Sabre\DAVACL\Plugin();
+$DAVACL_plugin->allowUnauthenticatedAccess = false;
+$server->addPlugin($DAVACL_plugin);
+
+debug_log("Ready : ".$user->login);
 
 // All we need to do now, is to fire up the server
 $server->exec();

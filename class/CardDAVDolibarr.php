@@ -149,7 +149,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$sql = 'SELECT p.*, co.label country_label, GREATEST(COALESCE(s.tms, p.tms), p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
 					s.nom soc_nom, s.name_alias soc_name_alias, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax,
 					s.email soc_email, s.url soc_url, s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public, spc.sourceuid,
-					GROUP_CONCAT(DISTINCT cat.label ORDER BY cat.label ASC SEPARATOR \',\') category_label
+					GROUP_CONCAT(DISTINCT cat.label ORDER BY cat.label ASC SEPARATOR \',\') category_label,
+					GROUP_CONCAT(DISTINCT cc.fk_categorie ORDER BY cc.fk_categorie ASC SEPARATOR \',\') category_ids
 				FROM '.MAIN_DB_PREFIX.'socpeople as p
 				LEFT JOIN '.MAIN_DB_PREFIX.'socpeople_cdav AS spc ON (p.rowid = spc.fk_object)
 				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = p.fk_pays
@@ -163,8 +164,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				'.$sqlWhere.'
 				GROUP BY p.rowid';
 
-		if(CDAV_CONTACT_TAG!='')
-			$sql.= " HAVING CONCAT(',',category_label,',') like '%,".$this->db->escape(CDAV_CONTACT_TAG).",%'";
+		if(intval(CDAV_CONTACT_TAG)>0)
+			$sql.= " HAVING CONCAT(',',category_ids,',') LIKE '%,".$this->db->escape(CDAV_CONTACT_TAG).",%'";
 
 		return $sql;
 	}
@@ -684,21 +685,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return;
 		}
         
-        if (! empty($conf->categorie->enabled) && CDAV_CONTACT_TAG!='')
-        {
-            // TODO : correct create categorie
-            $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."categorie
-                    WHERE label LIKE '".$this->db->escape(CDAV_CONTACT_TAG)."'
-                    AND type = 4";
-            $res = $this->db->query($sql);
-            if($row = $this->db->fetch_array($res))
-            {
-                $tagid = $row['rowid'];
-                $sql = "INSERT INTO ".MAIN_DB_PREFIX."categorie_contact (`fk_categorie`, `fk_socpeople`)
-                        VALUES ( ".$tagid.", ".$id.")";
-                $this->db->query($sql);
-            }
-        }
+		if (! empty($conf->categorie->enabled) && intval(CDAV_CONTACT_TAG)>0)
+		{
+			$tagid = intval(CDAV_CONTACT_TAG);
+			$sql = "INSERT INTO ".MAIN_DB_PREFIX."categorie_contact (`fk_categorie`, `fk_socpeople`)
+					VALUES ( ".$tagid.", ".$id.")";
+			$this->db->query($sql);
+		}
 
 		//Insérer l'UUID externe
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."socpeople_cdav (`fk_object`, `uuidext`, `sourceuid`)

@@ -9,4 +9,4 @@ Busy=Busy
 URLGeneric=These URL can be used by a CalDAV/CardDAV synchronisation client tool :
 URLforCardDAV=If your client does not detect your address book this full URL can be specified :
 URLforCalDAV=If your client does not detect your agendas these full URLs can be specified :
-
+DurationEx=Duration (ex: 4H, 3D)

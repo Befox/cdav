@@ -1,6 +1,32 @@
 ChangeLog
 =========
 
+1.5.1 (2019-01-09)
+------------------
+
+* #161: Prevent infinite loop on empty xml elements
+
+
+1.5.0 (2016-10-09)
+------------------
+
+* Now requires PHP 5.5.
+* Using `finally` to always roll back the context stack when serializing.
+* #94: Fixed an infinite loop condition when reading some invalid XML
+  documents.
+
+
+1.4.2 (2016-05-19)
+------------------
+
+* The `contextStack` in the Reader object is now correctly rolled back in
+  error conditions (@staabm).
+* repeatingElements deserializer now still parses if a bare element name
+  without clark notation was given.
+* `$elementMap` in the Reader now also supports bare element names.
+* `Service::expect()` can now also work with bare element names.
+
+
 1.4.1 (2016-03-12)
 -----------------
 

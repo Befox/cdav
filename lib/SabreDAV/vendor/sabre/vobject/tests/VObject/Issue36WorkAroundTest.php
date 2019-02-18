@@ -2,10 +2,12 @@
 
 namespace Sabre\VObject;
 
-class Issue36WorkAroundTest extends \PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
 
-    function testWorkaround() {
-
+class Issue36WorkAroundTest extends TestCase
+{
+    public function testWorkaround()
+    {
         // See https://github.com/fruux/sabre-vobject/issues/36
         $event = <<<ICS
 BEGIN:VCALENDAR
@@ -31,9 +33,7 @@ ICS;
         $obj = Reader::read($event);
 
         // If this does not throw an exception, it's all good.
-        $it = new Recur\EventIterator($obj,'1833bd44-188b-405c-9f85-1a12105318aa');
-        $this->assertInstanceOf('Sabre\\VObject\\Recur\EventIterator', $it);
-
+        $it = new Recur\EventIterator($obj, '1833bd44-188b-405c-9f85-1a12105318aa');
+        $this->assertInstanceOf('Sabre\\VObject\\Recur\\EventIterator', $it);
     }
-
 }

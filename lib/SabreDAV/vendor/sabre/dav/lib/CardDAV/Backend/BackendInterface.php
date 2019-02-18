@@ -46,7 +46,7 @@ interface BackendInterface {
      * Calling the handle method is like telling the PropPatch object "I
      * promise I can handle updating this property".
      *
-     * Read the PropPatch documenation for more info and examples.
+     * Read the PropPatch documentation for more info and examples.
      *
      * @param string $addressBookId
      * @param \Sabre\DAV\PropPatch $propPatch
@@ -55,12 +55,15 @@ interface BackendInterface {
     function updateAddressBook($addressBookId, \Sabre\DAV\PropPatch $propPatch);
 
     /**
-     * Creates a new address book
+     * Creates a new address book.
+     *
+     * This method should return the id of the new address book. The id can be
+     * in any format, including ints, strings, arrays or objects.
      *
      * @param string $principalUri
      * @param string $url Just the 'basename' of the url.
      * @param array $properties
-     * @return void
+     * @return mixed
      */
     function createAddressBook($principalUri, $url, array $properties);
 

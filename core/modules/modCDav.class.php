@@ -58,7 +58,7 @@ class modCDav extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.11d';
+		$this->version = '2.00';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -87,22 +87,24 @@ class modCDav extends DolibarrModules
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
-		$this->module_parts = array();
+		$this->module_parts = array(
+			'hooks' => array('projectcard', 'projecttaskscard'),
+		);
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
 		$this->dirs = array('/cdav','/cdav/public');
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-		$this->config_page_url = array();
+		$this->config_page_url = array('setup.php@cdav');
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module
 		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$this->phpmin = array(5,4);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(3,7);	// Minimum version of Dolibarr required by module
+		$this->phpmin = array(5,6);					// Minimum version of PHP required by module
+		$this->need_dolibarr_version = array(7,0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array();
 
 		// Constants
@@ -111,8 +113,24 @@ class modCDav extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array(
-			0 => array('CDAV_URI_KEY', 'chaine', substr(md5(time()),0,8),'Change it to force client to resync',1,'current',0),
-			1 => array('CDAV_CONTACT_TAG', 'chaine', '', 'Contact tag to restrict contacts to sync, leave blank for all',1,'current',1),
+			0 => array('CDAV_URI_KEY', 'chaine', substr(md5(time()),0,8),'Change it to force client to resync',0,'current',0),
+			1 => array('CDAV_CONTACT_TAG', 'chaine', '', 'Contact tag to restrict contacts to sync, leave blank for all',0,'current',0),
+			2 => array('CDAV_SYNC_PAST', 'chaine', '31', 'Number of days to sync before today',0,'current',0),
+			3 => array('CDAV_SYNC_FUTURE', 'chaine', '365', 'Number of days to sync after today',0,'current',0),
+			4 => array('CDAV_TASK_SYNC', 'chaine', '0', 'How to sync project tasks',0,'current',0),
+			5 => array('CDAV_GENTASK', 'chaine', '0', 'Convert documents to tasks',0,'current',0),
+			5 => array('CDAV_GENTASK_INI1', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			5 => array('CDAV_GENTASK_INI2', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			5 => array('CDAV_GENTASK_INI3', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			5 => array('CDAV_GENTASK_END1', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			5 => array('CDAV_GENTASK_END2', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			5 => array('CDAV_GENTASK_END3', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			6 => array('CDAV_PROJ_USER_ROLE', 'chaine', '', 'Project user role to find default task owner',0,'current',0),
+			7 => array('CDAV_TASK_USER_ROLE', 'chaine', '', 'Project task user role when creating a new project task',0,'current',0),
+			8 => array('CDAV_GENTASK_SERVICE_TAG', 'chaine', '', 'Service tag to restrict services to be converted as task, leave blank to sync all',0,'current',0),
+			8 => array('CDAV_EXTRAFIELD_DURATION', 'chaine', '', 'Duration services',0,'current',0),
+			8 => array('CDAV_TASK_HOUR_INI', 'chaine', '', 'Begining of a working day',0,'current',0),
+			8 => array('CDAV_TASK_HOUR_END', 'chaine', '', 'Ending of a working day',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs
@@ -285,8 +303,27 @@ class modCDav extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $langs;
 		$sql = array();
-
+		
+		// Create 2 extrafields
+		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+		$extrafields_cmd = new ExtraFields($this->db);
+		//function addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique=0, $required=0, $default_value='', $param='', $alwayseditable=0, $perms='', $list='-1', $help='', $computed='', $entity='', $langfile='', $enabled='1')
+		$result_cmd=$extrafields_cmd->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'commandedet', 0, 0, '', '', 1, '', '1');
+		if( ! $result_cmd )
+		{
+			$this->error=$extrafields_cmd->error;
+			return -1;
+		}
+		$extrafields_prop = new ExtraFields($this->db);
+		$result_prop=$extrafields_prop->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'propaldet', 0, 0, '', '', 1, '', '1');
+		if( ! $result_prop )
+		{
+			$this->error=$extrafields_prop->error;
+			return -1;
+		}
+		
 		$result=$this->_load_tables('/cdav/sql/');
 
 		return $this->_init($sql, $options);

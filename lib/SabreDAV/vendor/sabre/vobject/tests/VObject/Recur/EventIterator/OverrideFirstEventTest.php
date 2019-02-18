@@ -2,15 +2,19 @@
 
 namespace Sabre\VObject\RecurrenceIterator;
 
-use Sabre\VObject\Reader;
 use DateTime;
+use PHPUnit\Framework\TestCase;
+use Sabre\VObject\Reader;
 
-class OverrideFirstEventTest extends \PHPUnit_Framework_TestCase {
+class OverrideFirstEventTest extends TestCase
+{
+    use \Sabre\VObject\PHPUnitAssertions;
 
-    function testOverrideFirstEvent() {
-
-        $input =  <<<ICS
+    public function testOverrideFirstEvent()
+    {
+        $input = <<<ICS
 BEGIN:VCALENDAR
+VERSION:2.0
 BEGIN:VEVENT
 UID:foobar
 DTSTART:20140803T120000Z
@@ -27,10 +31,11 @@ END:VCALENDAR
 ICS;
 
         $vcal = Reader::read($input);
-        $vcal->expand(new DateTime('2014-08-01'), new DateTime('2014-09-01'));
+        $vcal = $vcal->expand(new DateTime('2014-08-01'), new DateTime('2014-09-01'));
 
         $expected = <<<ICS
 BEGIN:VCALENDAR
+VERSION:2.0
 BEGIN:VEVENT
 UID:foobar
 RECURRENCE-ID:20140803T120000Z
@@ -62,23 +67,19 @@ SUMMARY:Original
 RECURRENCE-ID:20140831T120000Z
 END:VEVENT
 END:VCALENDAR
-
 ICS;
 
-        $newIcs = $vcal->serialize();
-        $newIcs = str_replace("\r\n","\n", $newIcs);
-        $this->assertEquals(
+        $this->assertVObjectEqualsVObject(
             $expected,
-            $newIcs
+            $vcal
         );
-
-
     }
 
-    function testRemoveFirstEvent() {
-
-        $input =  <<<ICS
+    public function testRemoveFirstEvent()
+    {
+        $input = <<<ICS
 BEGIN:VCALENDAR
+VERSION:2.0
 BEGIN:VEVENT
 UID:foobar
 DTSTART:20140803T120000Z
@@ -90,10 +91,11 @@ END:VCALENDAR
 ICS;
 
         $vcal = Reader::read($input);
-        $vcal->expand(new DateTime('2014-08-01'), new DateTime('2014-08-19'));
+        $vcal = $vcal->expand(new DateTime('2014-08-01'), new DateTime('2014-08-19'));
 
         $expected = <<<ICS
 BEGIN:VCALENDAR
+VERSION:2.0
 BEGIN:VEVENT
 UID:foobar
 DTSTART:20140810T120000Z
@@ -107,16 +109,11 @@ SUMMARY:Original
 RECURRENCE-ID:20140817T120000Z
 END:VEVENT
 END:VCALENDAR
-
 ICS;
 
-        $newIcs = $vcal->serialize();
-        $newIcs = str_replace("\r\n","\n", $newIcs);
-        $this->assertEquals(
+        $this->assertVObjectEqualsVObject(
             $expected,
-            $newIcs
+            $vcal
         );
-
-
     }
 }

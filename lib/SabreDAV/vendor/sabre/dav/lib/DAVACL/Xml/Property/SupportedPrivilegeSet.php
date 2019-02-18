@@ -4,8 +4,8 @@ namespace Sabre\DAVACL\Xml\Property;
 
 use Sabre\DAV\Browser\HtmlOutput;
 use Sabre\DAV\Browser\HtmlOutputHelper;
-use Sabre\Xml\XmlSerializable;
 use Sabre\Xml\Writer;
+use Sabre\Xml\XmlSerializable;
 
 /**
  * SupportedPrivilegeSet property
@@ -53,12 +53,12 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
     }
 
     /**
-     * The xmlSerialize metod is called during xml writing.
+     * The xmlSerialize method is called during xml writing.
      *
      * Use the $writer argument to write its own xml serialization.
      *
      * An important note: do _not_ create a parent element. Any element
-     * implementing XmlSerializble should only ever write what's considered
+     * implementing XmlSerializable should only ever write what's considered
      * its 'inner xml'.
      *
      * The parent of the current element is responsible for writing a
@@ -73,7 +73,7 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
      */
     function xmlSerialize(Writer $writer) {
 
-        $this->serializePriv($writer, $this->privileges);
+        $this->serializePriv($writer, '{DAV:}all', ['aggregates' => $this->privileges]);
 
     }
 
@@ -93,9 +93,9 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
      */
     function toHtml(HtmlOutputHelper $html) {
 
-        $traverse = function($priv) use (&$traverse, $html) {
+        $traverse = function($privName, $priv) use (&$traverse, $html) {
             echo "<li>";
-            echo $html->xmlName($priv['privilege']);
+            echo $html->xmlName($privName);
             if (isset($priv['abstract']) && $priv['abstract']) {
                 echo " <i>(abstract)</i>";
             }
@@ -104,8 +104,8 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
             }
             if (isset($priv['aggregates'])) {
                 echo "\n<ul>\n";
-                foreach ($priv['aggregates'] as $subPriv) {
-                    $traverse($subPriv);
+                foreach ($priv['aggregates'] as $subPrivName => $subPriv) {
+                    $traverse($subPrivName, $subPriv);
                 }
                 echo "</ul>";
             }
@@ -114,7 +114,7 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
 
         ob_start();
         echo "<ul class=\"tree\">";
-        $traverse($this->getValue(), '');
+        $traverse('{DAV:}all', ['aggregates' => $this->getValue()]);
         echo "</ul>\n";
 
         return ob_get_clean();
@@ -129,15 +129,16 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
      * This is a recursive function.
      *
      * @param Writer $writer
+     * @param string $privName
      * @param array $privilege
      * @return void
      */
-    private function serializePriv(Writer $writer, $privilege) {
+    private function serializePriv(Writer $writer, $privName, $privilege) {
 
         $writer->startElement('{DAV:}supported-privilege');
 
         $writer->startElement('{DAV:}privilege');
-        $writer->writeElement($privilege['privilege']);
+        $writer->writeElement($privName);
         $writer->endElement(); // privilege
 
         if (!empty($privilege['abstract'])) {
@@ -147,8 +148,8 @@ class SupportedPrivilegeSet implements XmlSerializable, HtmlOutput {
             $writer->writeElement('{DAV:}description', $privilege['description']);
         }
         if (isset($privilege['aggregates'])) {
-            foreach ($privilege['aggregates'] as $subPrivilege) {
-                $this->serializePriv($writer, $subPrivilege);
+            foreach ($privilege['aggregates'] as $subPrivName => $subPrivilege) {
+                $this->serializePriv($writer, $subPrivName, $subPrivilege);
             }
         }
 

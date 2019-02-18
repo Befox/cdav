@@ -2,11 +2,8 @@
 
 namespace Sabre\VObject\Property\VCard;
 
-use
-    Sabre\VObject\DateTimeParser;
-
 /**
- * DateTime property
+ * DateTime property.
  *
  * This object encodes DATE-TIME values for vCards.
  *
@@ -14,8 +11,8 @@ use
  * @author Evert Pot (http://evertpot.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
-class DateTime extends DateAndOrTime {
-
+class DateTime extends DateAndOrTime
+{
     /**
      * Returns the type of value.
      *
@@ -24,10 +21,8 @@ class DateTime extends DateAndOrTime {
      *
      * @return string
      */
-    public function getValueType() {
-
-        return "DATE-TIME";
-
+    public function getValueType()
+    {
+        return 'DATE-TIME';
     }
-
 }

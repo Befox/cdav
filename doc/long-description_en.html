@@ -1,0 +1,35 @@
+<p>CardDAV / CalDAV and ICS synchronisation. It uses included <a href="http://sabre.io/dav/">Sabre/DAV</a> library.</p>
+<p>You can :</p>
+<ul>
+<li>Read and Edit Dolibarr calendars through CalDAV</li>
+<li>Read and Edit Dolibarr project tasks through CalDAV</li>
+<li>Read and Edit Dolibarr addressBooks through CardDAV</li>
+<li>Read Dolibarr calendars through ICS Full version or only Free/Busy (hide details)</li>
+<li>Access Dolibarr documents through WebDAV (if admin)</li>
+</ul>
+<p>Each user can access his/her contacts address book (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.</p>
+<p>Dolibarr contact informations fill personnal informations in client software cards.</p>
+<p>Society informations (to which contact is attached) fill professional informations in client software cards.</p>
+<p>Cards updated in client software fill only Dolibarr contacts (not Society).</p>
+<p>It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).</p>
+<p>Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).</p>
+<p>Recurring events are not handled.</p>
+<p>Module version: <strong><span class="module_version_desc">auto</span></strong><br /> Publisher/Licence: <strong>Befox SARL</strong> / <strong>GPLv3</strong><br /> User interface language: <strong>English/French</strong><br /> Help/Support: <strong>http://www.befox.fr/contact</strong><br /> Prerequisites:</p>
+<ul>
+<li>Dolibarr min version: <strong><strong><span class="dolibarr_min_desc">auto</span></strong></strong></li>
+<li>Dolibarr max version: <strong><span class="dolibarr_max_desc">auto</span></strong></li>
+</ul>
+<p>Install:</p>
+<ul>
+<li>Download the archive file of module (.zip file) from web site <a title="http://www.dolistore.com" href="http://www.dolistore.com/" target="_blank">DoliStore.com</a></li>
+<li>Put the file into the root directory of Dolibarr.</li>
+<li>Uncompress the zip file, for example with command</li>
+</ul>
+<div dir="ltr" style="text-align: left;">
+<div style="font-family: monospace;">
+<pre>unzip modulefile.zip</pre>
+</div>
+</div>
+<ul>
+<li>Module is then available and can be activated.</li>
+</ul>

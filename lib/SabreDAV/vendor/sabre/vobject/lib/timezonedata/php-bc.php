@@ -1,8 +1,9 @@
 <?php
+
 /**
  * A list of additional PHP timezones that are returned by
  * DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC)
- * valid for new DateTimeZone()
+ * valid for new DateTimeZone().
  *
  * This list does not include those timezone identifiers that we have to map to
  * a different identifier for some PHP versions (see php-workaround.php).
@@ -14,7 +15,7 @@
  * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @license http://sabre.io/license/ Modified BSD License
  */
-return array(
+return [
     'Africa/Asmera',
     'Africa/Timbuktu',
     'America/Argentina/ComodRivadavia',
@@ -67,7 +68,6 @@ return array(
     'Brazil/West',
     'Canada/Atlantic',
     'Canada/Central',
-    'Canada/East-Saskatchewan',
     'Canada/Eastern',
     'Canada/Mountain',
     'Canada/Newfoundland',
@@ -150,4 +150,4 @@ return array(
     'US/Pacific-New',
     'US/Samoa',
     'WET',
-);
+];

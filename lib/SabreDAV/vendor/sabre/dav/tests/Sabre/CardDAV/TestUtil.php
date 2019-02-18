@@ -2,8 +2,6 @@
 
 namespace Sabre\CardDAV;
 
-use PDO;
-
 class TestUtil {
 
     static function getBackend() {
@@ -15,41 +13,37 @@ class TestUtil {
 
     static function getSQLiteDB() {
 
-        if (file_exists(SABRE_TEMPDIR . '/testdb.sqlite'))
-            unlink(SABRE_TEMPDIR . '/testdb.sqlite');
+        $pdo = Backend\PDOSqliteTest::getSQLite();
 
-        $pdo = new PDO('sqlite:' . SABRE_TEMPDIR . '/testdb.sqlite');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-
-        // Yup this is definitely not 'fool proof', but good enough for now.
-        $queries = explode(';', file_get_contents(__DIR__ . '/../../../examples/sql/sqlite.addressbooks.sql'));
-        foreach($queries as $query) {
-            $pdo->exec($query);
-        }
         // Inserting events through a backend class.
         $backend = new Backend\PDO($pdo);
         $addressbookId = $backend->createAddressBook(
             'principals/user1',
             'UUID-123467',
-            array(
-                '{DAV:}displayname' => 'user1 addressbook',
+            [
+                '{DAV:}displayname'                                       => 'user1 addressbook',
                 '{urn:ietf:params:xml:ns:carddav}addressbook-description' => 'AddressBook description',
-            )
+            ]
         );
         $backend->createAddressBook(
             'principals/user1',
             'UUID-123468',
-            array(
-                '{DAV:}displayname' => 'user1 addressbook2',
+            [
+                '{DAV:}displayname'                                       => 'user1 addressbook2',
                 '{urn:ietf:params:xml:ns:carddav}addressbook-description' => 'AddressBook description',
-            )
+            ]
         );
         $backend->createCard($addressbookId, 'UUID-2345', self::getTestCardData());
         return $pdo;
 
     }
 
-    static function getTestCardData($type = 1) {
+    static function deleteSQLiteDB() {
+        $sqliteTest = new Backend\PDOSqliteTest();
+        $pdo = $sqliteTest->tearDown();
+    }
+
+    static function getTestCardData() {
 
         $addressbookData = 'BEGIN:VCARD
 VERSION:3.0

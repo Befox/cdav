@@ -2,13 +2,15 @@
 
 namespace Sabre\VObject;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Assorted vcard 2.1 tests.
  */
-class VCard21Test extends \PHPUnit_Framework_TestCase {
-
-    function testPropertyWithNoName() {
-
+class VCard21Test extends TestCase
+{
+    public function testPropertyWithNoName()
+    {
         $input = <<<VCF
 BEGIN:VCARD\r
 VERSION:2.1\r
@@ -18,14 +20,13 @@ END:VCARD\r
 VCF;
 
         $vobj = Reader::read($input);
-        $output = $vobj->serialize($input);
+        $output = $vobj->serialize();
 
         $this->assertEquals($input, $output);
-
     }
 
-    function testPropertyPadValueCount() {
-
+    public function testPropertyPadValueCount()
+    {
         $input = <<<VCF
 BEGIN:VCARD
 VERSION:2.1
@@ -35,7 +36,7 @@ END:VCARD
 VCF;
 
         $vobj = Reader::read($input);
-        $output = $vobj->serialize($input);
+        $output = $vobj->serialize();
 
         $expected = <<<VCF
 BEGIN:VCARD\r
@@ -45,8 +46,6 @@ END:VCARD\r
 
 VCF;
 
-
         $this->assertEquals($expected, $output);
-
     }
 }

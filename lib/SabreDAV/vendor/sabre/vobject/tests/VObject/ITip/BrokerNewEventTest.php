@@ -2,10 +2,10 @@
 
 namespace Sabre\VObject\ITip;
 
-class BrokerNewEventTest extends \PHPUnit_Framework_TestCase {
-
-    function testNoAttendee() {
-
+class BrokerNewEventTest extends BrokerTester
+{
+    public function testNoAttendee()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 BEGIN:VEVENT
@@ -16,12 +16,11 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->parse($message);
-
+        $result = $this->parse(null, $message, []);
     }
 
-    function testVTODO() {
-
+    public function testVTODO()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 BEGIN:VTODO
@@ -30,12 +29,11 @@ END:VTODO
 END:VCALENDAR
 ICS;
 
-        $result = $this->parse($message);
-
+        $result = $this->parse(null, $message, []);
     }
 
-    function testSimpleInvite() {
-
+    public function testSimpleInvite()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -66,8 +64,8 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -76,18 +74,17 @@ ICS;
                 'recipient' => 'mailto:white@example.org',
                 'recipientName' => 'White',
                 'message' => $expectedMessage,
-            ),
-        );
+            ],
+        ];
 
-        $result = $this->parse($message, $expected);
-
+        $this->parse(null, $message, $expected, 'mailto:strunk@example.org');
     }
 
     /**
      * @expectedException \Sabre\VObject\ITip\ITipException
      */
-    function testBrokenEventUIDMisMatch() {
-
+    public function testBrokenEventUIDMisMatch()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -104,15 +101,14 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $expected = array();
-        $this->parse($message, array());
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
+
     /**
      * @expectedException \Sabre\VObject\ITip\ITipException
      */
-    function testBrokenEventOrganizerMisMatch() {
-
+    public function testBrokenEventOrganizerMisMatch()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -129,13 +125,11 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $expected = array();
-        $this->parse($message, array());
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
 
-    function testRecurrenceInvite() {
-
+    public function testRecurrenceInvite()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -163,8 +157,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -190,9 +184,8 @@ EXDATE:20140717T120000Z,20140718T120000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -227,9 +220,8 @@ DURATION:PT1H
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -254,16 +246,14 @@ DURATION:PT1H
 END:VEVENT
 END:VCALENDAR
 ICS
+            ],
+        ];
 
-            ),
-        );
-
-        $result = $this->parse($message, $expected);
-
+        $this->parse(null, $message, $expected, 'mailto:strunk@example.org');
     }
 
-    function testRecurrenceInvite2() {
-
+    public function testRecurrenceInvite2()
+    {
         // This method tests a nearly identical path, but in this case the
         // master event does not have an EXDATE.
         $message = <<<ICS
@@ -292,8 +282,8 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -319,9 +309,8 @@ EXDATE:20140718T120000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -355,9 +344,8 @@ DTEND:20140718T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
-
-            ),
-            array(
+            ],
+            [
                 'uid' => 'foobar',
                 'method' => 'REQUEST',
                 'component' => 'VEVENT',
@@ -382,16 +370,64 @@ DTEND:20140718T130000Z
 END:VEVENT
 END:VCALENDAR
 ICS
+            ],
+        ];
 
-            ),
-        );
-
-        $result = $this->parse($message, $expected);
-
+        $this->parse(null, $message, $expected, 'mailto:strunk@example.org');
     }
 
-    function testScheduleAgentClient() {
+    public function testRecurrenceInvite3()
+    {
+        // This method tests a complex rrule
+        $message = <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:foobar
+ORGANIZER;CN=Strunk:mailto:strunk@example.org
+ATTENDEE;CN=One:mailto:one@example.org
+DTSTART:20140716T120000Z
+DTEND:20140716T130000Z
+RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=8;BYDAY=SA,SU
+END:VEVENT
+END:VCALENDAR
+ICS;
 
+        $version = \Sabre\VObject\Version::VERSION;
+
+        $expected = [
+            [
+                'uid' => 'foobar',
+                'method' => 'REQUEST',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+                'senderName' => 'Strunk',
+                'recipient' => 'mailto:one@example.org',
+                'recipientName' => 'One',
+                'message' => <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sabre//Sabre VObject $version//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:foobar
+ORGANIZER;CN=Strunk:mailto:strunk@example.org
+ATTENDEE;CN=One;PARTSTAT=NEEDS-ACTION:mailto:one@example.org
+DTSTART:20140716T120000Z
+DTEND:20140716T130000Z
+RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=8;BYDAY=SA,SU
+END:VEVENT
+END:VCALENDAR
+ICS
+            ],
+        ];
+
+        $this->parse(null, $message, $expected, 'mailto:strunk@example.org');
+    }
+
+    public function testScheduleAgentClient()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -407,16 +443,14 @@ ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
 
-        $expected = array();
-        $result = $this->parse($message, $expected);
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
 
     /**
-     * @expectedException Sabre\VObject\ITip\ITipException
+     * @expectedException \Sabre\VObject\ITip\ITipException
      */
-    function testMultipleUID() {
-
+    public function testMultipleUID()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -442,16 +476,14 @@ END:VCALENDAR
 ICS;
 
         $version = \Sabre\VObject\Version::VERSION;
-        $result = $this->parse($message, array());
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
 
     /**
-     * @expectedException Sabre\VObject\ITip\SameOrganizerForAllComponentsException
-     *
+     * @expectedException \Sabre\VObject\ITip\SameOrganizerForAllComponentsException
      */
-    function testChangingOrganizers() {
-
+    public function testChangingOrganizers()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -476,12 +508,58 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $version = \Sabre\VObject\Version::VERSION;
-        $result = $this->parse($message, array());
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
-    function testNoOrganizerHasAttendee() {
 
+    public function testCaseInsensitiveOrganizers()
+    {
+        $message = <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:foobar
+ORGANIZER;CN=Strunk:mailto:strunk@example.org
+ATTENDEE;CN=One:mailto:one@example.org
+ATTENDEE;CN=Two:mailto:two@example.org
+DTSTART:20140716T120000Z
+DTEND:20140716T130000Z
+RRULE:FREQ=DAILY
+END:VEVENT
+BEGIN:VEVENT
+UID:foobar
+RECURRENCE-ID:20140718T120000Z
+ORGANIZER;CN=Strunk:mailto:Strunk@example.org
+ATTENDEE;CN=Two:mailto:two@example.org
+ATTENDEE;CN=Three:mailto:three@example.org
+DTSTART:20140718T120000Z
+DTEND:20140718T130000Z
+END:VEVENT
+END:VCALENDAR
+ICS;
+
+        $this->parse(null, $message, [
+            [
+                'uid' => 'foobar',
+                'method' => 'REQUEST',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+            ],
+            [
+                'uid' => 'foobar',
+                'method' => 'REQUEST',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+            ],
+            ['uid' => 'foobar',
+                'method' => 'REQUEST',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+            ],
+        ], 'mailto:strunk@example.org');
+    }
+
+    public function testNoOrganizerHasAttendee()
+    {
         $message = <<<ICS
 BEGIN:VCALENDAR
 BEGIN:VEVENT
@@ -493,36 +571,6 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $this->parse($message, array());
-
+        $this->parse(null, $message, [], 'mailto:strunk@example.org');
     }
-
-    function parse($message, $expected = array()) {
-
-        $broker = new Broker();
-        $result = $broker->parseEvent($message, 'mailto:strunk@example.org');
-
-        $this->assertEquals(count($expected), count($result));
-
-        foreach($expected as $index=>$ex) {
-
-            $message = $result[$index];
-
-            foreach($ex as $key=>$val) {
-
-                if ($key==='message') {
-                    $this->assertEquals(
-                        str_replace("\n", "\r\n", $val),
-                        rtrim($message->message->serialize(), "\r\n")
-                    );
-                } else {
-                    $this->assertEquals($val, $message->$key);
-                }
-
-            }
-
-        }
-
-    }
-
 }

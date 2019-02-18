@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 5.2.7.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="2019-04-17T17:15:37.487724497"/>
+	<style type="text/css">
+		pre.cjk { font-family: "Courier New", monospace }
+	</style>
+</head>
+<body lang="fr-FR" dir="ltr">
+<p>CardDAV / CalDAV and ICS synchronisation. It uses included
+<a href="http://sabre.io/dav/">Sabre/DAV</a> library.</p>
+<p>You can :</p>
+<ul>
+	<li/>
+<p style="margin-bottom: 0cm">Read and Edit Dolibarr calendars
+	through CalDAV 
+	</p>
+	<li/>
+	<li/>
+<p style="margin-bottom: 0cm">Read and Edit Dolibarr project tasks
+	through CalDAV 
+	</p>
+	<li/>
+<p style="margin-bottom: 0cm">Read and Edit Dolibarr
+	addressBooks through CardDAV 
+	</p>
+	<li/>
+<p style="margin-bottom: 0cm">Read Dolibarr calendars through
+	ICS Full version or only Free/Busy (hide details) 
+	</p>
+	<li/>
+<p>Access Dolibarr documents through WebDAV (if admin) 
+	</p>
+</ul>
+<p>Each user can access his/her contacts address book (public and own
+private contacts), his/her own calendar and other users calendars
+according to his/her rights.</p>
+<p>Dolibarr contact informations fill personnal informations in
+client software cards.</p>
+<p>Society informations (to which contact is attached) fill
+professional informations in client software cards.</p>
+<p>Cards updated in client software fill only Dolibarr contacts (not
+Society).</p>
+<p>It is possible to select which contacts to sync with
+CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup.
+Enter a contact tag value and then only contacts with this tag will
+be synced (empty value for all).</p>
+<p>Calendar records with &quot;Status / Percentage&quot; set to &quot;Not
+applicable&quot; are converted to events in CalDAV (VEVENT), others
+are converted to tasks (VTODO).<br/>
+Recurring events are not
+handled.</p>
+<p lang="en-US">Project tasks are synchronized to the calendar and/or
+remote tasks (no duplication in Dolibarr). Tasks descriptions
+containing lines beginning with “- “ generate new items that can
+then be checked, which advance the percentage of completion (<i>Declared
+progress</i>)<br/>
+Previously, task generation can be created
+automatically from documents attached to the project (proposals and /
+or orders) in a customizable way.</p>
+<p>Module version: <strong>auto</strong><br/>
+Publisher/Licence:
+<strong>Befox SARL</strong> / <strong>GPLv3</strong><br/>
+User
+interface language: <strong>English/French</strong><br/>
+Help/Support:
+<strong>http://www.befox.fr/contact</strong><br/>
+Prerequisites:</p>
+<ul>
+	<li/>
+<p style="margin-bottom: 0cm">Dolibarr min version: <strong>auto</strong>
+		</p>
+	<li/>
+<p>Dolibarr max version: <strong>auto</strong> 
+	</p>
+</ul>
+<p>Install:</p>
+<ul>
+	<li/>
+<p style="margin-bottom: 0cm">Download the archive file of
+	module (.zip file) from web site <a href="http://www.dolistore.com/" target="_blank">DoliStore.com</a>
+		</p>
+	<li/>
+<p style="margin-bottom: 0cm">Put the file into the root
+	directory of Dolibarr. 
+	</p>
+	<li/>
+<p>Uncompress the zip file, for example with command 
+	</p>
+</ul>
+<pre class="western" style="margin-bottom: 0.5cm; text-align: left"><font face="monospace">unzip modulefile.zip</font></pre>
+<ul>
+	<li/>
+<p>Module is then available and can be activated. 
+	</p>
+</ul>
+</body>
+</html>
