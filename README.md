@@ -2,13 +2,13 @@
 
 ## What is it ?
 
-This module for Dolibarr 7.0/8.0/9.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) library.
+This module for Dolibarr 7.0/8.0/9.0 add CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) server library.
 
 You can :
 
- * Read and Edit calendars through CalDAV
- * Read and Edit project tasks through CalDAV
- * Read and Edit addressBooks through CardDAV
+ * Read and edit calendars through CalDAV
+ * Read and edit project tasks through CalDAV
+ * Read and edit address books through CardDAV
  * Read calendars through ICS Full version or only Free/Busy (hide details)
  * Access Dolibarr documents through WebDAV (if admin)
  * Generate project tasks from documents like proposals and/or orders
@@ -61,11 +61,11 @@ Notes :
 
 ## Help improvements
 
-If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
+If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/fr/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
 
 ## How to install
 
-PHP between 5.5.x and 7.0.x is required.
+PHP between 5.6.x and 7.3.x is required.
 
 Dolibarr native calendar module must be activated *before* installing CDav module.
 
@@ -89,21 +89,23 @@ Use these URLs in your CardDAV or CalDAV client software.
 
 ### Thunderbird
 
-[Thunderbird](https://www.mozilla.org/thunderbird/) (with [Lightning](https://addons.mozilla.org/thunderbird/addon/lightning/) and [SoGo Connector](http://www.sogo.nu/downloads/frontends.html) addons) needs a precise URL for each address book and calendar :
+[Thunderbird](https://www.thunderbird.net) (with [Lightning](https://addons.mozilla.org/thunderbird/addon/lightning/), [TBSync](https://addons.thunderbird.net/thunderbird/addon/tbsync/) and its [Provider for CalDAV/CardDAV](https://addons.thunderbird.net/thunderbird/addon/dav-4-tbsync/) addons) needs a precise URL for each address book and calendar :
 
     https://server.example.com/dolibarr/htdocs/cdav/server.php/calendars/<connected-user-login>/<calendar-user-id>-cal-<calendar-user-login>
 
     https://server.example.com/dolibarr/htdocs/cdav/server.php/addressbooks/<connected-user-login>/default/
 
-### DAVDroid
+### DAVx⁵
 
-[DAVDroid](https://davdroid.bitfire.at/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
+[DAVx⁵](https://www.davx5.com/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
 
     https://server.example.com/dolibarr/htdocs/cdav/
 
-You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVDroid is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
+You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVx⁵ is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
 
-Be carefull, if you use https, DAVDroid needs a valid SSL certificate, excluding auto-signed certificates.
+Be carefull, if you use https, DAVx⁵ needs a valid SSL certificate, excluding auto-signed certificates.
+
+DAVx⁵ is also available on [F-Droid](https://f-droid.org/packages/at.bitfire.davdroid/).
 
 ### iOS
 
@@ -119,7 +121,7 @@ Admin users can also access Dolibarr documents through WebDAV with WebDAV URL :
 
 ## Troubleshooting
 
-To test cdav module, you can use DAVDroid url https://server.example.com/dolibarr/htdocs/cdav/ in a web browser. Error messages are clearer.
+To test cdav module, you can use DAVx⁵ url https://server.example.com/dolibarr/htdocs/cdav/ in a web browser. Error messages are clearer.
 
 ### Apache web server
 
