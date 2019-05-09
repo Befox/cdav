@@ -798,6 +798,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		debug_log("_parseData( $calendarData )");
 
 		$vObject = VObject\Reader::read($calendarData);
+		debug_log("VObject( ".print_r($vObject,true)." )");
 		$componentType = null;
 		$component = null;
 		$firstOccurence = null;
@@ -847,18 +848,42 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 					$label 			= isset($component->SUMMARY) ? (string)$component->SUMMARY : '';
 					if(substr($label,0,1)=='[' && strpos($label, ']')!==false)
 						$label = trim(substr($label,strpos($label, ']')+1));
-					$fullday		= (! $component->DTSTART->hasTime()) ? 1 : 0;
+					$fullday		= ! ( isset($component->DTSTART) && $component->DTSTART->hasTime() );
 					if ($fullday == 1)
 					{
-						$tmp 	= $component->DTSTART->__toString();
+						if(isset($component->DTSTART))
+							$tmp 	= $component->DTSTART->__toString();
+						elseif(isset($component->DTEND))
+							$tmp 	= $component->DTEND->__toString();
+						elseif(isset($component->DUE))
+							$tmp 	= $component->DUE->__toString();
+						else
+							$tmp	= date('Ymd');
 						$start	= mktime(0, 0, 0, substr($tmp, 4, 2), substr($tmp, 6, 2), substr($tmp, 0, 4));
-						$tmp 	= $component->DTEND->__toString();
+						
+						if(isset($component->DTEND))
+							$tmp 	= $component->DTEND->__toString();
+						elseif(isset($component->DUE))
+							$tmp 	= $component->DUE->__toString();
 						$end	= mktime(0, 0, 0, substr($tmp, 4, 2), substr($tmp, 6, 2), substr($tmp, 0, 4));
 					}
 					else
 					{
-						$start	= $component->DTSTART->getDateTime()->getTimeStamp();
-						$end	= isset($component->DTEND) ? $component->DTEND->getDateTime()->getTimeStamp() : $start+60*60;//date de fin = date début +1H par défaut               
+						if(isset($component->DTSTART))
+							$start 	= $component->DTSTART->getDateTime()->getTimeStamp();
+						elseif(isset($component->DTEND))
+							$start 	= $component->DTEND->getDateTime()->getTimeStamp();
+						elseif(isset($component->DUE))
+							$start 	= $component->DUE->getDateTime()->getTimeStamp();
+						else
+							$start  = time();
+							
+						if(isset($component->DTEND))
+							$end 	= $component->DTEND->getDateTime()->getTimeStamp();
+						elseif(isset($component->DUE))
+							$end 	= $component->DUE->getDateTime()->getTimeStamp();
+						else
+							$end 	= $start+60*60;//date de fin = date début +1H par défaut
 					}
 					$location 		= isset($component->LOCATION) ? trim(str_replace(array("\r","\t","\n"),' ',(string)$component->LOCATION)) : '';
 					$priority 		= isset($component->PRIORITY) ? (string)$component->PRIORITY : '5';
