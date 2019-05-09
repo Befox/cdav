@@ -848,7 +848,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 					$label 			= isset($component->SUMMARY) ? (string)$component->SUMMARY : '';
 					if(substr($label,0,1)=='[' && strpos($label, ']')!==false)
 						$label = trim(substr($label,strpos($label, ']')+1));
-					$fullday		= ! ( isset($component->DTSTART) && $component->DTSTART->hasTime() );
+					$fullday		= ! (  isset($component->DTSTART) && $component->DTSTART->hasTime() 
+										|| isset($component->DTEND) && $component->DTEND->hasTime()
+										|| isset($component->DUE) && $component->DUE->hasTime());
 					if ($fullday == 1)
 					{
 						if(isset($component->DTSTART))
