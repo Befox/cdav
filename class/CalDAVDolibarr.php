@@ -798,6 +798,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		debug_log("_parseData( $calendarData )");
 
 		$vObject = VObject\Reader::read($calendarData);
+		$vObject->validate(VObject\Node::REPAIR | VObject\Node::PROFILE_CALDAV);
 		debug_log("VObject( ".print_r($vObject,true)." )");
 		$componentType = null;
 		$component = null;
