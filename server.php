@@ -200,11 +200,15 @@ $authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password
 		return false;*/
 	
 	// Authentication mode
+	// disable googlerecaptcha
+	$dolibarr_main_authentication = str_replace('googlerecaptcha','dolibarr', $dolibarr_main_authentication);
 	if (empty($dolibarr_main_authentication))
 		$dolibarr_main_authentication='http,dolibarr';
 	$authmode = explode(',',$dolibarr_main_authentication);
 	$entity = (GETPOST('entity','int') ? GETPOST('entity','int') : (!empty($conf->entity) ? $conf->entity : 1));
-	if(checkLoginPassEntity($username,$password,$entity,$authmode)!=$username)
+	if( ((float) DOL_VERSION < 11.0) && checkLoginPassEntity($username,$password,$entity,$authmode)!=$username
+		||
+		((float) DOL_VERSION >= 11.0) && checkLoginPassEntity($username,$password,$entity,$authmode,'dav')!=$username )
 	{
 		debug_log("Authentication failed 4 for user $username with pass ".str_pad('', strlen($password), '*'));
 		return false;
