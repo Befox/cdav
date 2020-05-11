@@ -138,6 +138,10 @@ or
     	</IfModule>
     </IfModule>
 
+or (this is usefull on Plesk when nginx is proxying Apache)
+
+    FcgidPassHeader AUTHORIZATION
+
 It is recommanded to *disable* these Apache modules : *dav* / *dav_fs* / *dav_lock*
 
 ### nginx web server
