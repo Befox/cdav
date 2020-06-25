@@ -487,7 +487,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		if(!$oid)	// new event
 		{
 			debug_log("    creating event");
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, punctual, percent, location, durationp, note)
+			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
 						VALUES (
 							1,
 							'".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
@@ -503,7 +503,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							".(int)$calendarData['priority'].",
 							".(int)$calendarData['transparency'].",
 							".(int)$calendarData['fullday'].",
-							1,
 							".(int)$calendarData['percent'].",
 							'".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
 							".($calendarData['end'] - $calendarData['fullday'] - $calendarData['start']).",
