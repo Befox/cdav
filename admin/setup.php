@@ -189,6 +189,7 @@ dol_fiche_head('', 'setup', $langs->trans("CDav"), 0, "cdav@cdav");
 print_titre($langs->trans("CDav Setting Value"));
 print '<br>';
 print '<form method="post" action="setup.php">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="action" value="setvalue">';
 print '<table class="noborder" >';
 print '<tr class="liste_titre">';

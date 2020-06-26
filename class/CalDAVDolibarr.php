@@ -166,7 +166,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						AND a.entity IN ('.getEntity('societe', 1).')
 						AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>"systemauto")
 						AND ar.fk_element = u.rowid) as lastupd_ev, ';
-		if($conf->projet->enabled && !$conf->global->PROJECT_HIDE_TASKS && intval(CDAV_TASK_SYNC)>0)
+		if($conf->projet->enabled && (!isset($conf->global->PROJECT_HIDE_TASKS) || !$conf->global->PROJECT_HIDE_TASKS) && intval(CDAV_TASK_SYNC)>0)
 		{
 			$sql.='(SELECT MAX(pt.tms) 
 						FROM '.MAIN_DB_PREFIX.'projet_task AS pt

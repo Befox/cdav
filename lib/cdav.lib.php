@@ -106,7 +106,7 @@ class CdavLib
 	{
 		global $conf;
 		
-		if(!$conf->projet->enabled || $conf->global->PROJECT_HIDE_TASKS)
+		if(!$conf->projet->enabled || (isset($conf->global->PROJECT_HIDE_TASKS) && $conf->global->PROJECT_HIDE_TASKS))
 			return false;
 		
 		if(intval(CDAV_TASK_SYNC)==0 || (intval(CDAV_TASK_SYNC)==1 && $elem_source=='pt'))
