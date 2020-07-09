@@ -92,8 +92,8 @@ if (!$res && @file_exists("../../main.inc.php")) $res = @include "../../main.inc
 if (!$res && @file_exists("../../../main.inc.php")) $res = @include "../../../main.inc.php";
 if (!$res) die("Include of main fails");
 
-require $dir.'core/lib/security2.lib.php';	// auth method
-require_once $dir.'/contact/class/contact.class.php';
+require DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';	// auth method
+require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !');
