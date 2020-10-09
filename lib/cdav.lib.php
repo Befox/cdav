@@ -51,6 +51,9 @@ class CdavLib
 					s.town soc_town,
 					cos.label soc_country_label,
 					s.phone soc_phone,
+					p.ref proj_ref,
+					p.title proj_title,
+					p.description proj_desc,
 					ac.sourceuid,
 					(SELECT GROUP_CONCAT(u.login) FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar
 						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=fk_element) 
@@ -70,7 +73,8 @@ class CdavLib
 					LEFT JOIN '.MAIN_DB_PREFIX.'actioncomm_cdav AS ac ON (a.id = ac.fk_object)';
 		}
 
-		$sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = sp.fk_pays
+		$sql.=' LEFT JOIN '.MAIN_DB_PREFIX.'projet AS p ON (p.rowid = ac.fk_project)
+				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = sp.fk_pays
 				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as cos ON cos.rowid = s.fk_pays
 				WHERE 	a.id IN (SELECT ar.fk_actioncomm FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar WHERE ar.element_type=\'user\' AND ar.fk_element='.intval($calid).')
 						AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
@@ -272,6 +276,10 @@ class CdavLib
 			}
 		
 			$caldata.="DESCRIPTION:";
+			if(!empty($obj->proj_ref))
+				$caldata.="💼📋 [".$obj->proj_ref."/".$obj->ref."] ".$obj->proj_title."\\n";
+			if(!empty($obj->proj_desc))
+				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
 			if(!empty($obj->soc_town))
 				$caldata.="💼🏁 ".$obj->soc_town."\\n";
 			if(!empty($obj->soc_nom))
