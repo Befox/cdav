@@ -277,7 +277,7 @@ class CdavLib
 		
 			$caldata.="DESCRIPTION:";
 			if(!empty($obj->proj_ref))
-				$caldata.="💼📋 [".$obj->proj_ref."/".$obj->ref."] ".$obj->proj_title."\\n";
+				$caldata.="💼📋 [".$obj->proj_ref."] ".$obj->proj_title."\\n";
 			if(!empty($obj->proj_desc))
 				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
 			if(!empty($obj->soc_town))
