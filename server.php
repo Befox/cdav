@@ -92,6 +92,9 @@ if (!$res && @file_exists("../../main.inc.php")) $res = @include "../../main.inc
 if (!$res && @file_exists("../../../main.inc.php")) $res = @include "../../../main.inc.php";
 if (!$res) die("Include of main fails");
 
+if(!defined('DOL_DOCUMENT_ROOT'))
+	define('DOL_DOCUMENT_ROOT', $dolibarr_main_document_root);
+
 require DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';	// auth method
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 
