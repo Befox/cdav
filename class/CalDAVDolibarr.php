@@ -903,7 +903,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						if (mb_strpos($line, '💼', 0, 'UTF-8')!==0
 							&& mb_strpos($line, '??', 0, 'UTF-8')!==0				// 💼 could be converted in ?? if utf8 char is truncated on 2 VCal lines
 							&& mb_strpos($line, '*DOLIBARR-', 0, 'UTF-8')===false)
-							$arrNote[] = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",$line); // remove utf8mb4 chars
+						{
+							$noteline = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",$line); // remove utf8mb4 chars
+							$noteline = strtr($noteline, array("- ["=>"[", "[x] [ ]"=>"[x]", "[ ] [x]"=>"[x]", "[x] [x]"=>"[x]", "[ ] [ ]"=>"[ ]",));
+							$arrNote[] = $noteline;
+						}
 					}
 					$note = trim(implode("\n", $arrNote));
 					$percent = -1;

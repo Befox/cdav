@@ -296,7 +296,7 @@ class CdavLib
 			if($type=='VEVENT')
 				$caldata.=strtr(trim($obj->note), array("\n"=>"\\n", "\r"=>""));
 			else
-				$caldata.=strtr("\n".trim($obj->note), array("\n- "=>"\\n[ ] ", "\n"=>"\\n", "\r"=>""));
+				$caldata.=strtr("\n".trim($obj->note), array("\n- ["=>"\\n[", "\n- "=>"\\n[ ] ", "[x] [ ]"=>"[x]", "[ ] [x]"=>"[x]", "[x] [x]"=>"[x]", "[ ] [ ]"=>"[ ]", "\n"=>"\\n", "\r"=>""));
 			$caldata.="\n";
 			 
 			$caldata.="END:".$type."\n";
@@ -380,7 +380,7 @@ class CdavLib
 	//removed because unable to swap from one calendar to an other with external client
 	//		if(!empty($obj->note_private))
 	//			$caldata.="💼🔒 ".strtr(trim(strip_tags($obj->note_private)), array("\n"=>"\\n💼🔒 ", "\r"=>""))."\\n";
-			$caldata.=strtr("\n".trim($obj->description), array("\n- "=>"\\n[ ] ", "\n"=>"\\n", "\r"=>""));
+			$caldata.=strtr("\n".trim($obj->description), array("\n- ["=>"\\n[", "\n- "=>"\\n[ ] ", "[x] [ ]"=>"[x]", "[ ] [x]"=>"[x]", "[x] [x]"=>"[x]", "[ ] [ ]"=>"[ ]", "\n"=>"\\n", "\r"=>""));
 	// removed because unable to swap from one calendar to an other with external client
 	//		if(strpos($obj->other_users,',')) // several
 	//			$caldata.="💼USR: ".$obj->other_users."\\n";
