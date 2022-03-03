@@ -486,9 +486,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			
 		if(!$oid)	// new event
 		{
+			if((float) DOL_VERSION >= 14.0)
+			{
+				$reffield='ref,';
+				$refvalue='NOW(),';
+			}
+			else
+			{
+				$reffield='';
+				$refvalue='';
+			}
+			
 			debug_log("    creating event");
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
-						VALUES (
+			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (".$reffield."entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
+						VALUES (".$refvalue."
 							1,
 							'".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
 							'".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
@@ -523,6 +534,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				return;
 			}
 			debug_log("    event $oid created");
+			if((float) DOL_VERSION >= 14.0)
+			{
+				$sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET ref=id WHERE id=".$oid;
+				$this->db->query($sql);
+			}
 			//Insérer l'UUID externe
 			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
 					VALUES (
