@@ -65,6 +65,12 @@ $tasksync_method=array(
 	'3' => $langs->trans("Sync as calendar events and todo tasks"),
 );
 
+$thirdsync_method=array(
+	'0' => $langs->trans("Not synchonized"),
+	'1' => $langs->trans("Only thirdparties without contact"),
+	'2' => $langs->trans("All thirdparties"),
+);
+
 $form = new Form($db);
 /*
  * Actions
@@ -84,6 +90,10 @@ if ($action == 'setvalue') {
 	dolibarr_set_const(
 									$db, "CDAV_CONTACT_TAG",
 									GETPOST('CDAV_CONTACT_TAG', 'text'), 'chaine', 0, '', $conf->entity
+	);
+	dolibarr_set_const(
+									$db, "CDAV_THIRD_SYNC",
+									GETPOST('CDAV_THIRD_SYNC', 'text'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_SYNC_PAST",
@@ -166,6 +176,7 @@ print_fiche_titre($page_name, $linkback, 'title_setup');
 
 $CDAV_URI_KEY=substr($conf->global->CDAV_URI_KEY,0,8);
 $CDAV_CONTACT_TAG=$conf->global->CDAV_CONTACT_TAG;
+$CDAV_THIRD_SYNC=$conf->global->CDAV_THIRD_SYNC;
 $CDAV_SYNC_PAST=$conf->global->CDAV_SYNC_PAST;
 $CDAV_SYNC_FUTURE=$conf->global->CDAV_SYNC_FUTURE;
 $CDAV_TASK_SYNC=$conf->global->CDAV_TASK_SYNC;
@@ -207,6 +218,12 @@ print '<tr >';
 print '<td  align=left><strong>'.$langs->trans("Contacts filter").'</strong><br/>'.$langs->trans("Contact tag to restrict contacts to sync, leave blank to sync all").'</td>';
 print '<td  align=left>';
 print $form->select_all_categories("contact", $CDAV_CONTACT_TAG, 'CDAV_CONTACT_TAG', 0);
+print '</td></tr>'."\n";
+
+print '<tr >';
+print '<td  align=left><strong>'.$langs->trans("Enable thirdparties sync").'</strong><br/>'.$langs->trans("How to synchronize thirparties").'</td>';
+print '<td  align=left>';
+print $form->selectarray('CDAV_THIRD_SYNC', $thirdsync_method, $CDAV_THIRD_SYNC);
 print '</td></tr>'."\n";
 
 print '<tr >';

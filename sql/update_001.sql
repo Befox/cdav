@@ -18,4 +18,3 @@
 -- ============================================================================
 
 ALTER TABLE `llx_actioncomm_cdav` ADD `sourceuid` VARCHAR(255) NOT NULL AFTER `uuidext`;
-ALTER TABLE `llx_socpeople_cdav` ADD `sourceuid` VARCHAR(255) NOT NULL AFTER `uuidext`;

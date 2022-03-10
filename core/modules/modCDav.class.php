@@ -58,7 +58,7 @@ class modCDav extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '2.05';
+		$this->version = '2.10';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -115,22 +115,23 @@ class modCDav extends DolibarrModules
 		$this->const = array(
 			0 => array('CDAV_URI_KEY', 'chaine', substr(md5(time()),0,8),'Change it to force client to resync',0,'current',0),
 			1 => array('CDAV_CONTACT_TAG', 'chaine', '', 'Contact tag to restrict contacts to sync, leave blank for all',0,'current',0),
-			2 => array('CDAV_SYNC_PAST', 'chaine', '31', 'Number of days to sync before today',0,'current',0),
-			3 => array('CDAV_SYNC_FUTURE', 'chaine', '365', 'Number of days to sync after today',0,'current',0),
-			4 => array('CDAV_TASK_SYNC', 'chaine', '0', 'How to sync project tasks',0,'current',0),
-			5 => array('CDAV_GENTASK', 'chaine', '0', 'Convert documents to tasks',0,'current',0),
-			5 => array('CDAV_GENTASK_INI1', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
-			5 => array('CDAV_GENTASK_INI2', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
-			5 => array('CDAV_GENTASK_INI3', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
-			5 => array('CDAV_GENTASK_END1', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
-			5 => array('CDAV_GENTASK_END2', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
-			5 => array('CDAV_GENTASK_END3', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
-			6 => array('CDAV_PROJ_USER_ROLE', 'chaine', '', 'Project user role to find default task owner',0,'current',0),
-			7 => array('CDAV_TASK_USER_ROLE', 'chaine', '', 'Project task user role when creating a new project task',0,'current',0),
-			8 => array('CDAV_GENTASK_SERVICE_TAG', 'chaine', '', 'Service tag to restrict services to be converted as task, leave blank to sync all',0,'current',0),
-			8 => array('CDAV_EXTRAFIELD_DURATION', 'chaine', '', 'Duration services',0,'current',0),
-			8 => array('CDAV_TASK_HOUR_INI', 'chaine', '', 'Begining of a working day',0,'current',0),
-			8 => array('CDAV_TASK_HOUR_END', 'chaine', '', 'Ending of a working day',0,'current',0),
+			2 => array('CDAV_THIRD_SYNC', 'chaine', '0', 'How to sync thirdparties',0,'current',0),
+			3 => array('CDAV_SYNC_PAST', 'chaine', '31', 'Number of days to sync before today',0,'current',0),
+			4 => array('CDAV_SYNC_FUTURE', 'chaine', '365', 'Number of days to sync after today',0,'current',0),
+			5 => array('CDAV_TASK_SYNC', 'chaine', '0', 'How to sync project tasks',0,'current',0),
+			6 => array('CDAV_GENTASK', 'chaine', '0', 'Convert documents to tasks',0,'current',0),
+			7 => array('CDAV_GENTASK_INI1', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			8 => array('CDAV_GENTASK_INI2', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			9 => array('CDAV_GENTASK_INI3', 'chaine', '0', 'Generate initial tasks from services',0,'current',0),
+			10 => array('CDAV_GENTASK_END1', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			11 => array('CDAV_GENTASK_END2', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			12 => array('CDAV_GENTASK_END3', 'chaine', '0', 'Generate final tasks from services',0,'current',0),
+			13 => array('CDAV_PROJ_USER_ROLE', 'chaine', '', 'Project user role to find default task owner',0,'current',0),
+			14 => array('CDAV_TASK_USER_ROLE', 'chaine', '', 'Project task user role when creating a new project task',0,'current',0),
+			15 => array('CDAV_GENTASK_SERVICE_TAG', 'chaine', '', 'Service tag to restrict services to be converted as task, leave blank to sync all',0,'current',0),
+			16 => array('CDAV_EXTRAFIELD_DURATION', 'chaine', '', 'Duration services',0,'current',0),
+			17 => array('CDAV_TASK_HOUR_INI', 'chaine', '', 'Begining of a working day',0,'current',0),
+			18 => array('CDAV_TASK_HOUR_END', 'chaine', '', 'Ending of a working day',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs

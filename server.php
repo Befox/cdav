@@ -161,6 +161,17 @@ if(!defined('CDAV_TASK_SYNC'))
 		define('CDAV_TASK_SYNC', '0');
 }
 
+// define CDAV_THIRD_SYNC if not
+if(!defined('CDAV_THIRD_SYNC'))
+{
+	if(isset($conf->global->CDAV_THIRD_SYNC))
+		define('CDAV_THIRD_SYNC', $conf->global->CDAV_THIRD_SYNC);
+	else
+		define('CDAV_THIRD_SYNC', '0');
+}
+
+define('CDAV_ADDRESSBOOK_ID_SHIFT', 100000);
+
 // Sabre/dav configuration
 
 use Sabre\DAV;
