@@ -13,13 +13,13 @@ You can :
  * Access Dolibarr documents through WebDAV (if admin)
  * Generate project tasks from documents like proposals and/or orders
 
-Each user can access his/her contacts address book (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
+Each user can access his/her contacts and thirdparties address books (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
 
 Dolibarr contact informations fill personnal informations in client software cards (including contact photo).
 
-Society informations (to which contact is attached) fill professional informations in client software cards.
+Society (thirdparty) informations (to which contact is attached) fill professional informations in client software cards.
 
-Cards updated in client software fill only Dolibarr contacts (not Society).
+Two adress books are proposed to sync : Contacts and Thirdparties. If you ant to modify a thirdparty infomation, do it in thirdparties address book.
 
 It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).
 
