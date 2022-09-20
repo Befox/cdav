@@ -36,3 +36,5 @@ Made at fruux
 -------------
 
 SabreDAV is being developed by [fruux](https://fruux.com/). Drop us a line for commercial services or enterprise support.
+
+Note : Sabre 4.4.0 is PHP 8 compatible
