@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 7.0/8.0/9.0/10.0/11.0/12.0/13.0/14.0 adds CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) server library.
+This module for Dolibarr 7.0/8.0/9.0/10.0/11.0/12.0/13.0/14.0/15.0 adds CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) server library.
 
 You can :
 
@@ -65,7 +65,7 @@ If you find the module is useful and want to finance improvements, consider to p
 
 ## How to install
 
-PHP between 5.6.x and 7.3.x is required.
+PHP between 5.6.x and 8.0 is required.
 
 Dolibarr native calendar module must be activated *before* installing CDav module.
 
