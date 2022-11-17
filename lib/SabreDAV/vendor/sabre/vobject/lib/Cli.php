@@ -2,8 +2,7 @@
 
 namespace Sabre\VObject;
 
-use
-    InvalidArgumentException;
+use InvalidArgumentException;
 
 /**
  * This is the CLI interface for sabre-vobject.
@@ -29,7 +28,7 @@ class Cli
     protected $showHelp = false;
 
     /**
-     * Wether to spit out 'mimedir' or 'json' format.
+     * Whether to spit out 'mimedir' or 'json' format.
      *
      * @var string
      */
@@ -137,17 +136,14 @@ class Cli
                             // jcard/jcal documents
                             case 'jcard':
                             case 'jcal':
-
                             // specific document versions
                             case 'vcard21':
                             case 'vcard30':
                             case 'vcard40':
                             case 'icalendar20':
-
                             // specific formats
                             case 'json':
                             case 'mimedir':
-
                             // icalendar/vcad
                             case 'icalendar':
                             case 'vcard':
@@ -183,7 +179,6 @@ class Cli
                             case 'vcard30':
                             case 'vcard40':
                             case 'icalendar20':
-
                                 $this->inputFormat = 'mimedir';
                                 break;
 
@@ -211,7 +206,7 @@ class Cli
             }
 
             if (!in_array($positional[0], ['validate', 'repair', 'convert', 'color'])) {
-                throw new InvalidArgumentException('Uknown command: '.$positional[0]);
+                throw new InvalidArgumentException('Unknown command: '.$positional[0]);
             }
         } catch (InvalidArgumentException $e) {
             $this->showHelp();
@@ -289,7 +284,7 @@ class Cli
         $this->log($this->colorize('green', '  validate').' source_file              Validates a file for correctness.');
         $this->log($this->colorize('green', '  repair').' source_file [output_file]  Repairs a file.');
         $this->log($this->colorize('green', '  convert').' source_file [output_file] Converts a file.');
-        $this->log($this->colorize('green', '  color').' source_file                 Colorize a file, useful for debbugging.');
+        $this->log($this->colorize('green', '  color').' source_file                 Colorize a file, useful for debugging.');
         $this->log(
         <<<HELP
 
@@ -311,8 +306,6 @@ HELP
 
     /**
      * Validates a VObject file.
-     *
-     * @param Component $vObj
      *
      * @return int
      */
@@ -353,8 +346,6 @@ HELP
 
     /**
      * Repairs a VObject file.
-     *
-     * @param Component $vObj
      *
      * @return int
      */
@@ -462,12 +453,10 @@ HELP
      * Colorizes a file.
      *
      * @param Component $vObj
-     *
-     * @return int
      */
     protected function color($vObj)
     {
-        fwrite($this->stdout, $this->serializeComponent($vObj));
+        $this->serializeComponent($vObj);
     }
 
     /**
@@ -516,7 +505,7 @@ HELP
          *
          * A higher score means the item will be lower in the list.
          * To avoid score collisions, each "score category" has a reasonable
-         * space to accomodate elements. The $key is added to the $score to
+         * space to accommodate elements. The $key is added to the $score to
          * preserve the original relative order of elements.
          *
          * @param int   $key
@@ -582,8 +571,6 @@ HELP
 
     /**
      * Colorizes a property.
-     *
-     * @param Property $property
      */
     protected function serializeProperty(Property $property)
     {
@@ -642,8 +629,6 @@ HELP
 
     /**
      * Parses the list of arguments.
-     *
-     * @param array $argv
      */
     protected function parseArguments(array $argv)
     {

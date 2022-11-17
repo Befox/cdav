@@ -111,7 +111,7 @@ class Text extends Property
         // that.
         //
         // We also don't have to unescape \\, so all we need to look for is a ;
-        // that's not preceeded with a \.
+        // that's not preceded with a \.
         $regex = '# (?<!\\\\) ; #x';
         $matches = preg_split($regex, $val);
         $this->setValue($matches);
@@ -136,16 +136,18 @@ class Text extends Property
             }
 
             foreach ($item as &$subItem) {
-                $subItem = strtr(
-                    $subItem,
-                    [
-                        '\\' => '\\\\',
-                        ';' => '\;',
-                        ',' => '\,',
-                        "\n" => '\n',
-                        "\r" => '',
-                    ]
-                );
+                if (!is_null($subItem)) {
+                    $subItem = strtr(
+                        $subItem,
+                        [
+                            '\\' => '\\\\',
+                            ';' => '\;',
+                            ',' => '\,',
+                            "\n" => '\n',
+                            "\r" => '',
+                        ]
+                    );
+                }
             }
             $item = implode(',', $item);
         }

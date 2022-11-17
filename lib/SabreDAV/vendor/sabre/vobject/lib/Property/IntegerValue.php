@@ -2,14 +2,13 @@
 
 namespace Sabre\VObject\Property;
 
-use
-    Sabre\VObject\Property;
+use Sabre\VObject\Property;
 
 /**
  * Integer property.
  *
  * This object represents INTEGER values. These are always a single integer.
- * They may be preceeded by either + or -.
+ * They may be preceded by either + or -.
  *
  * @copyright Copyright (C) fruux GmbH (https://fruux.com/)
  * @author Evert Pot (http://evertpot.com/)
@@ -68,8 +67,6 @@ class IntegerValue extends Property
     /**
      * Hydrate data from a XML subtree, as it would appear in a xCard or xCal
      * object.
-     *
-     * @param array $value
      */
     public function setXmlValue(array $value)
     {

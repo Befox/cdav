@@ -104,7 +104,6 @@ class Broker
      *
      * If the iTip message was not supported, we will always return false.
      *
-     * @param Message   $itipMessage
      * @param VCalendar $existingObject
      *
      * @return VCalendar|null
@@ -163,7 +162,7 @@ class Broker
      *
      * @return array
      */
-    public function parseEvent($calendar = null, $userHref, $oldCalendar = null)
+    public function parseEvent($calendar, $userHref, $oldCalendar = null)
     {
         if ($oldCalendar) {
             if (is_string($oldCalendar)) {
@@ -263,8 +262,6 @@ class Broker
      * This is message from an organizer, and is either a new event
      * invite, or an update to an existing one.
      *
-     *
-     * @param Message   $itipMessage
      * @param VCalendar $existingObject
      *
      * @return VCalendar|null
@@ -300,7 +297,6 @@ class Broker
      * attendee got removed from an event, or an event got cancelled
      * altogether.
      *
-     * @param Message   $itipMessage
      * @param VCalendar $existingObject
      *
      * @return VCalendar|null
@@ -326,7 +322,6 @@ class Broker
      * The message is a reply. This is for example an attendee telling
      * an organizer he accepted the invite, or declined it.
      *
-     * @param Message   $itipMessage
      * @param VCalendar $existingObject
      *
      * @return VCalendar|null
@@ -452,10 +447,6 @@ class Broker
      * We will detect which attendees got added, which got removed and create
      * specific messages for these situations.
      *
-     * @param VCalendar $calendar
-     * @param array     $eventInfo
-     * @param array     $oldEventInfo
-     *
      * @return array
      */
     protected function parseEventForOrganizer(VCalendar $calendar, array $eventInfo, array $oldEventInfo)
@@ -505,23 +496,25 @@ class Broker
             $message->recipient = $attendee['href'];
             $message->recipientName = $attendee['name'];
 
+            // Creating the new iCalendar body.
+            $icalMsg = new VCalendar();
+
+            foreach ($calendar->select('VTIMEZONE') as $timezone) {
+                $icalMsg->add(clone $timezone);
+            }
+
             if (!$attendee['newInstances']) {
                 // If there are no instances the attendee is a part of, it
                 // means the attendee was removed and we need to send him a
                 // CANCEL.
                 $message->method = 'CANCEL';
 
-                // Creating the new iCalendar body.
-                $icalMsg = new VCalendar();
                 $icalMsg->METHOD = $message->method;
-
-                foreach ($calendar->select('VTIMEZONE') as $timezone) {
-                    $icalMsg->add(clone $timezone);
-                }
 
                 $event = $icalMsg->add('VEVENT', [
                     'UID' => $message->uid,
                     'SEQUENCE' => $message->sequence,
+                    'DTSTAMP' => gmdate('Ymd\\THis\\Z'),
                 ]);
                 if (isset($calendar->VEVENT->SUMMARY)) {
                     $event->add('SUMMARY', $calendar->VEVENT->SUMMARY->getValue());
@@ -544,13 +537,7 @@ class Broker
                 // The attendee gets the updated event body
                 $message->method = 'REQUEST';
 
-                // Creating the new iCalendar body.
-                $icalMsg = new VCalendar();
                 $icalMsg->METHOD = $message->method;
-
-                foreach ($calendar->select('VTIMEZONE') as $timezone) {
-                    $icalMsg->add(clone $timezone);
-                }
 
                 // We need to find out that this change is significant. If it's
                 // not, systems may opt to not send messages.
@@ -560,9 +547,13 @@ class Broker
                 // properties changed in the event, or simply if there's a
                 // difference in instances that the attendee is invited to.
 
+                $oldAttendeeInstances = array_keys($attendee['oldInstances']);
+                $newAttendeeInstances = array_keys($attendee['newInstances']);
+
                 $message->significantChange =
                     'REQUEST' === $attendee['forceSend'] ||
-                    array_keys($attendee['oldInstances']) != array_keys($attendee['newInstances']) ||
+                    count($oldAttendeeInstances) != count($newAttendeeInstances) ||
+                    count(array_diff($oldAttendeeInstances, $newAttendeeInstances)) > 0 ||
                     $oldEventInfo['significantChangeHash'] !== $eventInfo['significantChangeHash'];
 
                 foreach ($attendee['newInstances'] as $instanceId => $instanceInfo) {
@@ -607,6 +598,7 @@ class Broker
                         }
                     }
 
+                    $currentEvent->DTSTAMP = gmdate('Ymd\\THis\\Z');
                     $icalMsg->add($currentEvent);
                 }
             }
@@ -623,10 +615,7 @@ class Broker
      *
      * This function figures out if we need to send a reply to an organizer.
      *
-     * @param VCalendar $calendar
-     * @param array     $eventInfo
-     * @param array     $oldEventInfo
-     * @param string    $attendee
+     * @param string $attendee
      *
      * @return Message[]
      */
@@ -708,6 +697,10 @@ class Broker
 
         $icalMsg = new VCalendar();
         $icalMsg->METHOD = 'REPLY';
+
+        foreach ($calendar->select('VTIMEZONE') as $timezone) {
+            $icalMsg->add(clone $timezone);
+        }
 
         $hasReply = false;
 
@@ -827,7 +820,10 @@ class Broker
         $instances = [];
         $exdate = [];
 
+        $significantChangeEventProperties = [];
+
         foreach ($calendar->VEVENT as $vevent) {
+            $eventSignificantChangeHash = '';
             $rrule = [];
 
             if (is_null($uid)) {
@@ -941,19 +937,26 @@ class Broker
                 if (isset($vevent->$prop)) {
                     $propertyValues = $vevent->select($prop);
 
-                    $significantChangeHash .= $prop.':';
+                    $eventSignificantChangeHash .= $prop.':';
 
                     if ('EXDATE' === $prop) {
-                        $significantChangeHash .= implode(',', $exdate).';';
+                        $eventSignificantChangeHash .= implode(',', $exdate).';';
                     } elseif ('RRULE' === $prop) {
-                        $significantChangeHash .= implode(',', $rrule).';';
+                        $eventSignificantChangeHash .= implode(',', $rrule).';';
                     } else {
                         foreach ($propertyValues as $val) {
-                            $significantChangeHash .= $val->getValue().';';
+                            $eventSignificantChangeHash .= $val->getValue().';';
                         }
                     }
                 }
             }
+            $significantChangeEventProperties[] = $eventSignificantChangeHash;
+        }
+
+        asort($significantChangeEventProperties);
+
+        foreach ($significantChangeEventProperties as $eventSignificantChangeHash) {
+            $significantChangeHash .= $eventSignificantChangeHash;
         }
         $significantChangeHash = md5($significantChangeHash);
 

@@ -93,7 +93,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					AND s.status=1';
 			if(empty($this->user->rights->societe->client->voir))
 				$sql.= ' AND s.rowid = sc.fk_soc AND sc.fk_user = '.((int) $this->user->id);
-			if (!$this->user->rights->fournisseur->lire)
+			if (!isset($this->user->rights->fournisseur->lire))
 				$sql .= ' AND (s.fournisseur <> 1 OR s.client <> 0)'; // client=0, fournisseur=0 must be visible
 			if (CDAV_THIRD_SYNC==1) // without contact
 				$sql .= ' AND (SELECT count(sp.rowid) FROM llx_socpeople sp WHERE sp.fk_soc=s.rowid)=0';
@@ -219,7 +219,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				AND s.status=1';
 		if(empty($this->user->rights->societe->client->voir))
 			$sql.= ' AND s.rowid = sc.fk_soc AND sc.fk_user = '.((int) $this->user->id);
-		if (!$this->user->rights->fournisseur->lire)
+		if (!isset($this->user->rights->fournisseur->lire))
 			$sql .= ' AND (s.fournisseur <> 1 OR s.client <> 0)'; // client=0, fournisseur=0 must be visible
 		if (CDAV_THIRD_SYNC==1) // without contact
 			$sql .= ' AND (SELECT count(sp.rowid) FROM llx_socpeople sp WHERE sp.fk_soc=s.rowid)=0';
