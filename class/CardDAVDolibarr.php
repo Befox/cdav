@@ -900,7 +900,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(intval($addressbookId)<CDAV_ADDRESSBOOK_ID_SHIFT && $this->user->rights->societe->contact->lire)
 		{
 			if(strpos($cardUri, '-ct-')>0)
-				$sqlWhere = ' AND p.rowid='.($cardUri*1);                            // cardUri starts with contact id
+				$sqlWhere = ' AND p.rowid='.intval($cardUri);                            // cardUri starts with contact id
 			else
 				return false;
 
@@ -926,7 +926,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
 		{
 			if(strpos($cardUri, '-th-')>0)
-				$sqlWhere = ' AND s.rowid='.($cardUri*1);                            // cardUri starts with contact id
+				$sqlWhere = ' AND s.rowid='.intval($cardUri);                            // cardUri starts with contact id
 			else
 				return false;
 
@@ -979,7 +979,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			foreach($uris as $cardUri)
 			{
 				if(strpos($cardUri, $typecth)>0)
-					$ids[] = ($cardUri*1);   // cardUri starts with contact id
+					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
 			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
@@ -993,7 +993,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			foreach($uris as $cardUri)
 			{
 				if(strpos($cardUri, $typecth)>0)
-					$ids[] = ($cardUri*1);   // cardUri starts with contact id
+					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
 			$sqlWhere = ' AND s.rowid IN ('.implode(',', $ids).')';
@@ -1198,7 +1198,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$rdata = $this->_parseDataContact($cardData, 'U');
 
 			if(strpos($cardUri, '-ct-')>0)
-				$contactid = ($cardUri*1); // cardUri starts with contact id
+				$contactid = intval($cardUri); // cardUri starts with contact id
 			else
 				return false;
 
@@ -1240,7 +1240,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$rdata = $this->_parseDataThirdparty($cardData, 'U');
 
 			if(strpos($cardUri, '-th-')>0)
-				$socid = ($cardUri*1); // cardUri starts with contact id
+				$socid = intval($cardUri); // cardUri starts with contact id
 			else
 				return false;
 
@@ -1274,7 +1274,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		{
 
 			if(strpos($cardUri, '-ct-')>0)
-				$contactid = ($cardUri*1); // cardUri starts with contact id
+				$contactid = intval($cardUri); // cardUri starts with contact id
 			else 
 				return false;
 
@@ -1290,7 +1290,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		{
 
 			if(strpos($cardUri, '-th-')>0)
-				$socid = ($cardUri*1); // cardUri starts with contact id
+				$socid = intval($cardUri); // cardUri starts with contact id
 			else 
 				return false;
 

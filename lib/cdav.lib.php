@@ -395,9 +395,10 @@ class CdavLib
 	
 	public function getFullCalendarObjects($calendarId, $bCalendarData) 
 	{
-		debug_log("getCalendarObjects( $calendarId , $bCalendarData )");
+		if(function_exists("debug_log"))
+			debug_log("getCalendarObjects( $calendarId , $bCalendarData )");
 		
-		$calid = ($calendarId*1);
+		$calid = intval($calendarId);
 		$calevents = [] ;
 		$rSql = [] ;
 

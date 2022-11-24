@@ -329,20 +329,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		debug_log("getCalendarObject( $calendarId , $objectUri )");
 
-		$calid = ($calendarId*1);
+		$calid = intval($calendarId);
 		$elem_source = 'ev';
 		//objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
 		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 		else if (strpos($objectUri, '-pt-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
 			$elem_source = 'pt';
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 		}
 		else if (strpos($objectUri, '-pe-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
 			$elem_source = 'pe';
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 		}
 		else
 			$oid = 0;
@@ -458,7 +458,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		// objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
 		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid;
 			$result = $this->db->query($sql);
 			if ($result===false ||  $this->db->fetch_object($result)===false)
@@ -466,7 +466,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		}
 		elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 			$elem_source = 'p?';
 			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid;
 			$result = $this->db->query($sql);
@@ -839,17 +839,17 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				$uid = (string)$component->UID;
 				if(strpos($uid, '-ev-')>0)
 				{
-					$id = $uid*1;
+					$id = intval($uid);
 				}
 				elseif(strpos($uid, '-pe-')>0)
 				{
 					$elem_source='pe';
-					$id = $uid*1;
+					$id = intval($uid);
 				}
 				elseif(strpos($uid, '-pt-')>0)
 				{
 					$elem_source='pt';
-					$id = $uid*1;
+					$id = intval($uid);
 				}
 				else
 				{
@@ -857,7 +857,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							WHERE `sourceuid`= '".$this->db->escape($uid)."'"; // uid comes from external apps
 					$result = $this->db->query($sql);
 					if($result!==false && ($row = $this->db->fetch_array($result))!==false)
-						$id = $row['fk_object']*1;
+						$id = intval($row['fk_object']);
 				}
 				if (in_array($componentType, array('VEVENT', 'VTODO')))
 				{
@@ -1028,7 +1028,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		//objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
 		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid;
 			$result = $this->db->query($sql);
 			if ($result===false ||  $this->db->fetch_object($result)===false)
@@ -1055,7 +1055,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		}
 		elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
-			$oid = ($objectUri*1);
+			$oid = intval($objectUri);
 			$elem_source = 'p?';
 			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid;
 			$result = $this->db->query($sql);
@@ -1183,13 +1183,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			// "UID:".$obj->id.'-ev-'.CDAV_URI_KEY
 		
-			$oid =  $uid*1;
+			$oid =  intval($uid);
 			$calid = $this->user->id;
 			
 			/*
 			$calpos = strpos($uid, '-ev-');
 			if($calpos>0)
-				$calid = substr($uid,$calpos+1)*1;
+				$calid = substr($uid,intval($calpos)+1)*1;
 			*/
 			
 			return $calid.'-cal-'.$this->user->login . '/' . $oid.'-ev-'.CDAV_URI_KEY;

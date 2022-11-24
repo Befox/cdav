@@ -48,6 +48,76 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 // Load traductions files requiredby by page
 $langs->load("cdav");
 
+
+//Get all event
+require_once './lib/cdav.lib.php';
+
+
+// define CDAV_CONTACT_TAG if not
+if(!defined('CDAV_CONTACT_TAG'))
+{
+	if(isset($conf->global->CDAV_CONTACT_TAG))
+		define('CDAV_CONTACT_TAG', $conf->global->CDAV_CONTACT_TAG);
+	else
+		define('CDAV_CONTACT_TAG', '');
+}
+
+// define CDAV_URI_KEY if not
+if(!defined('CDAV_URI_KEY'))
+{
+	if(isset($conf->global->CDAV_URI_KEY))
+		define('CDAV_URI_KEY', $conf->global->CDAV_URI_KEY);
+	else
+		define('CDAV_URI_KEY', substr(md5($_SERVER['HTTP_HOST']),0,8));
+}
+
+// define CDAV_TASK_USER_ROLE if not
+if(!defined('CDAV_TASK_USER_ROLE'))
+{
+	if(isset($conf->global->CDAV_TASK_USER_ROLE))
+		define('CDAV_TASK_USER_ROLE', $conf->global->CDAV_TASK_USER_ROLE);
+	else
+		die('Module CDav is not properly configured : Project user role not set !');
+}
+
+// define CDAV_SYNC_PAST if not
+if(!defined('CDAV_SYNC_PAST'))
+{
+	if(isset($conf->global->CDAV_SYNC_PAST))
+		define('CDAV_SYNC_PAST', $conf->global->CDAV_SYNC_PAST);
+	else
+		die('Module CDav is not properly configured : Period to sync not set !');
+}
+
+// define CDAV_SYNC_FUTURE if not
+if(!defined('CDAV_SYNC_FUTURE'))
+{
+	if(isset($conf->global->CDAV_SYNC_FUTURE))
+		define('CDAV_SYNC_FUTURE', $conf->global->CDAV_SYNC_FUTURE);
+	else
+		die('Module CDav is not properly configured : Period to sync not set !');
+}
+
+// define CDAV_TASK_SYNC if not
+if(!defined('CDAV_TASK_SYNC'))
+{
+	if(isset($conf->global->CDAV_TASK_SYNC))
+		define('CDAV_TASK_SYNC', $conf->global->CDAV_TASK_SYNC);
+	else
+		define('CDAV_TASK_SYNC', '0');
+}
+
+// define CDAV_THIRD_SYNC if not
+if(!defined('CDAV_THIRD_SYNC'))
+{
+	if(isset($conf->global->CDAV_THIRD_SYNC))
+		define('CDAV_THIRD_SYNC', $conf->global->CDAV_THIRD_SYNC);
+	else
+		define('CDAV_THIRD_SYNC', '0');
+}
+
+define('CDAV_ADDRESSBOOK_ID_SHIFT', 100000);
+
 //parse Token
 $arrTmp = explode('+ø+', openssl_decrypt(base64url_decode(GETPOST('token')), 'bf-ecb', CDAV_URI_KEY, true));
 
@@ -78,8 +148,6 @@ $user->rights->agenda->myactions->read = true;
 $user->rights->agenda->allactions->read = true;
 $user->rights->societe->client->voir = false;
 
-//Get all event
-require_once './lib/cdav.lib.php';
 $cdavLib = new CdavLib($user, $db, $langs);
 
 //Format them

@@ -45,6 +45,16 @@ function base64url_encode($data) {
 // Load traductions files requiredby by page
 $langs->load("cdav");
 
+
+// define CDAV_URI_KEY if not
+if(!defined('CDAV_URI_KEY'))
+{
+	if(isset($conf->global->CDAV_URI_KEY))
+		define('CDAV_URI_KEY', $conf->global->CDAV_URI_KEY);
+	else
+		define('CDAV_URI_KEY', substr(md5($_SERVER['HTTP_HOST']),0,8));
+}
+
 // Get parameters
 $id			= GETPOST('id','int');
 $action		= GETPOST('action','alpha');
