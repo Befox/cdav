@@ -153,12 +153,12 @@ $cdavLib = new CdavLib($user, $db, $langs);
 //Format them
 $arrEvents = $cdavLib->getFullCalendarObjects($id, true);
 
+echo "BEGIN:VCALENDAR\n";
+echo "VERSION:2.0\n";
+echo "METHOD:PUBLISH\n";
+echo "PRODID:-//Dolibarr CDav//FR\n";
 foreach($arrEvents as $event)
 {
-	echo "BEGIN:VCALENDAR\n";
-	echo "VERSION:2.0\n";
-	echo "METHOD:PUBLISH\n";
-	echo "PRODID:-//Dolibarr CDav//FR\n";
 	if ($type == 'nolabel')
 	{
 		//Remove SUMMARY / DESCRIPTION / LOCATION
@@ -169,6 +169,5 @@ foreach($arrEvents as $event)
 	}
 	else
 		echo $event['calendardata'];
-	
-	echo "END:VCALENDAR\n";
 }
+echo "END:VCALENDAR\n";
