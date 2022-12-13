@@ -304,7 +304,8 @@ class CdavLib
 			$caldata.="\n";
 			 
 			$caldata.="END:".$type."\n";
-			$caldata.="END:VCALENDAR\n";
+			if($bHeader)
+				$caldata.="END:VCALENDAR\n";
 		}
 	   elseif(substr($obj->elem_source,0,1)=='p')		// Project Task  pe/pt
 	   {
