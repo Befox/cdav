@@ -366,7 +366,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			if ($obj = $this->db->fetch_object($result))
 			{
-				$calendardata = $this->cdavLib->toVCalendar($calid, $obj);
+				$calendardata = $this->cdavLib->toVCalendar($calid, $obj, true);
 				
 				$calevent = [
 					'id' => $obj->id,

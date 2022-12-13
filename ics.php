@@ -155,6 +155,10 @@ $arrEvents = $cdavLib->getFullCalendarObjects($id, true);
 
 foreach($arrEvents as $event)
 {
+	echo "BEGIN:VCALENDAR\n";
+	echo "VERSION:2.0\n";
+	echo "METHOD:PUBLISH\n";
+	echo "PRODID:-//Dolibarr CDav//FR\n";
 	if ($type == 'nolabel')
 	{
 		//Remove SUMMARY / DESCRIPTION / LOCATION
@@ -165,4 +169,6 @@ foreach($arrEvents as $event)
 	}
 	else
 		echo $event['calendardata'];
+	
+	echo "END:VCALENDAR\n";
 }

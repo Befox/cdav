@@ -169,7 +169,7 @@ class CdavLib
 	 * @param row object
 	 * @return string
 	 */
-	public function toVCalendar($calid, $obj)
+	public function toVCalendar($calid, $obj, $bHeader)
 	{
 	   if($obj->elem_source=='ev')		// Calendar Event
 	   {
@@ -215,10 +215,14 @@ class CdavLib
 				
 			$timezone = date_default_timezone_get();
 
-			$caldata ="BEGIN:VCALENDAR\n";
-			$caldata.="VERSION:2.0\n";
-			$caldata.="METHOD:PUBLISH\n";
-			$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			$caldata ="";
+			if($bHeader)
+			{
+				$caldata ="BEGIN:VCALENDAR\n";
+				$caldata.="VERSION:2.0\n";
+				$caldata.="METHOD:PUBLISH\n";
+				$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			}
 			$caldata.="BEGIN:".$type."\n";
 			$caldata.="CREATED:".gmdate('Ymd\THis', strtotime($obj->datec))."Z\n";
 			$caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
@@ -387,7 +391,8 @@ class CdavLib
 			$caldata.="\n";
 			 
 			$caldata.="END:".$type."\n";
-			$caldata.="END:VCALENDAR\n";
+			if($bHeader)
+				$caldata.="END:VCALENDAR\n";
 		}
 
 		return $caldata;
@@ -422,7 +427,7 @@ class CdavLib
 			{
 				while ($obj = $this->db->fetch_object($result))
 				{
-					$calendardata = $this->toVCalendar($calid, $obj);
+					$calendardata = $this->toVCalendar($calid, $obj, false);
 
 					if($bCalendarData)
 					{
