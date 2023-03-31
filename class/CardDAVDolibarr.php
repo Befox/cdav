@@ -271,6 +271,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
         $address[]='';
         $address[]='';
         
+		// remove carriage return in data
+		$objvars = get_object_vars($obj);
+		foreach ($objvars as $key => $value)
+		{
+			if(is_string($value))
+				$obj->$key = strtr(trim($value), array("\n"=>"\\n", "\r"=>""));
+		}
+
 		$carddata ="BEGIN:VCARD\n";
 		$carddata.="VERSION:3.0\n";
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
@@ -398,7 +406,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		}
 		$address[]='';
 		$address[]='';
-		
+
+		// remove carriage return in data
+		$objvars = get_object_vars($obj);
+		foreach ($objvars as $key => $value)
+		{
+			if(is_string($value))
+				$obj->$key = strtr(trim($value), array("\n"=>"\\n", "\r"=>""));
+		}
+
 		$carddata ="BEGIN:VCARD\n";
 		$carddata.="VERSION:3.0\n";
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
