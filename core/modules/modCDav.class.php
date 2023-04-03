@@ -58,7 +58,7 @@ class modCDav extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '2.23';
+		$this->version = '2.24';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -310,22 +310,28 @@ class modCDav extends DolibarrModules
 		// Create 2 extrafields
 		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 		$extrafields_cmd = new ExtraFields($this->db);
-		//function addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique=0, $required=0, $default_value='', $param='', $alwayseditable=0, $perms='', $list='-1', $help='', $computed='', $entity='', $langfile='', $enabled='1')
-		$result_cmd=$extrafields_cmd->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'commandedet', 0, 0, '', '', 1, '', '1');
-		if( ! $result_cmd )
-		{
-			$this->error=$extrafields_cmd->error;
-			return -1;
-		}
-		$extrafields_prop = new ExtraFields($this->db);
-		$result_prop=$extrafields_prop->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'propaldet', 0, 0, '', '', 1, '', '1');
-		if( ! $result_prop )
-		{
-			$this->error=$extrafields_prop->error;
-			return -1;
-		}
 		
-		$result=$this->_load_tables('/cdav/sql/');
+		try
+		{
+			//function addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique=0, $required=0, $default_value='', $param='', $alwayseditable=0, $perms='', $list='-1', $help='', $computed='', $entity='', $langfile='', $enabled='1')
+			$result_cmd=$extrafields_cmd->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'commandedet', 0, 0, '', '', 1, '', '1');
+			if( ! $result_cmd )
+			{
+				$this->error=$extrafields_cmd->error;
+			}
+			$extrafields_prop = new ExtraFields($this->db);
+			$result_prop=$extrafields_prop->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'propaldet', 0, 0, '', '', 1, '', '1');
+			if( ! $result_prop )
+			{
+				$this->error=$extrafields_prop->error;
+			}
+			
+			$result=$this->_load_tables('/cdav/sql/');
+		}
+		catch(Exception $ex)
+		{
+			$this->error = $ex->getMessage();
+		}
 
 		return $this->_init($sql, $options);
 	}
