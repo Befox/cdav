@@ -155,7 +155,6 @@ $arrEvents = $cdavLib->getFullCalendarObjects($id, true);
 
 echo "BEGIN:VCALENDAR\n";
 echo "VERSION:2.0\n";
-echo "METHOD:PUBLISH\n";
 echo "PRODID:-//Dolibarr CDav//FR\n";
 foreach($arrEvents as $event)
 {

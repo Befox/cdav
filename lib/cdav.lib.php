@@ -220,7 +220,6 @@ class CdavLib
 			{
 				$caldata ="BEGIN:VCALENDAR\n";
 				$caldata.="VERSION:2.0\n";
-				$caldata.="METHOD:PUBLISH\n";
 				$caldata.="PRODID:-//Dolibarr CDav//FR\n";
 			}
 			$caldata.="BEGIN:".$type."\n";
@@ -329,7 +328,6 @@ class CdavLib
 
 			$caldata ="BEGIN:VCALENDAR\n";
 			$caldata.="VERSION:2.0\n";
-			$caldata.="METHOD:PUBLISH\n";
 			$caldata.="PRODID:-//Dolibarr CDav//FR\n";
 			$caldata.="BEGIN:".$type."\n";
 			$caldata.="CREATED:".gmdate('Ymd\THis', strtotime($obj->datec))."Z\n";
