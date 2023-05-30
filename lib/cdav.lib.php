@@ -231,9 +231,9 @@ class CdavLib
 				$caldata.="UID:".$obj->id.'-ev-'./*$calid.'-cal-'.*/ CDAV_URI_KEY."\n";
 			else
 				$caldata.="UID:".$obj->sourceuid."\n";
-			$caldata.="SUMMARY:".$obj->label."\n";
+			$caldata.="SUMMARY:".strtr(trim($obj->label), array("\n"=>"\\n", "\r"=>""))."\n";
 			$caldata.="URL:".dol_buildpath("/comm/action/card.php?id=".$obj->id, 2)."\n";
-			$caldata.="LOCATION:".$location."\n";
+			$caldata.="LOCATION:".strtr(trim($location), array("\n"=>"\\n", "\r"=>""))."\n";
 			$caldata.="PRIORITY:".$obj->priority."\n";
 			if($obj->fulldayevent)
 			{
@@ -285,9 +285,9 @@ class CdavLib
 			if(!empty($obj->proj_desc))
 				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
 			if(!empty($obj->soc_town))
-				$caldata.="💼🏁 ".$obj->soc_town."\\n";
+				$caldata.="💼🏁 ".strtr(trim($obj->soc_town), array("\n"=>"\\n", "\r"=>""))."\\n";
 			if(!empty($obj->soc_nom))
-				$caldata.="💼🏢 ".$obj->soc_nom."\\n";
+				$caldata.="💼🏢 ".strtr(trim($obj->soc_nom), array("\n"=>"\\n", "\r"=>""))."\\n";
 			if(!empty($obj->soc_phone))
 				$caldata.="💼☎️ ".$obj->soc_phone."\\n";
 			if(!empty($obj->firstname) || !empty($obj->lastname))
@@ -336,9 +336,9 @@ class CdavLib
 			$caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
 			$caldata.="DTSTAMP:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
 			$caldata.="UID:".$obj->id.'-'.$obj->elem_source.'-'./*$calid.'-cal-'.*/ CDAV_URI_KEY."\n";
-			$caldata.="SUMMARY:[".$obj->proj_title."]".$obj->label."\n";
+			$caldata.="SUMMARY:[".strtr(trim($obj->proj_title), array("\n"=>"\\n", "\r"=>""))."]".strtr(trim($obj->label), array("\n"=>"\\n", "\r"=>""))."\n";
 			$caldata.="URL:".dol_buildpath("/projet/tasks/task.php?id=".$obj->id."&withproject=".$obj->fk_projet,2)."\n";
-			$caldata.="LOCATION:".$location."\n";
+			$caldata.="LOCATION:".strtr(trim($location), array("\n"=>"\\n", "\r"=>""))."\n";
 			$caldata.="PRIORITY:".$obj->priority."\n";
 
 			$caldata.="DTSTART;TZID=".$timezone.":".strtr($obj->dateo,array(" "=>"T", ":"=>"", "-"=>""))."\n";
