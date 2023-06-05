@@ -178,7 +178,7 @@ use Sabre\DAV;
 use Sabre\DAVACL;
 
 // The autoloader
-require './lib/SabreDAV/vendor/autoload.php';
+require DOL_DOCUMENT_ROOT.'/includes/sabre/autoload.php';
 require './class/PrincipalsDolibarr.php';
 require './class/CardDAVDolibarr.php';
 require './class/CalDAVDolibarr.php';
