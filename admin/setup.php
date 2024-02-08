@@ -9,7 +9,7 @@
  *
  * cdav uses Sabre/dav library http://sabre.io/dav/
  * Sabre/dav is distributed under use the three-clause BSD-license
- * 
+ *
  * Author : Befox SARL http://www.befox.fr/
  *
  ******************************************************************/
@@ -75,10 +75,10 @@ $form = new Form($db);
 /*
  * Actions
  */
- 
+
 if ($action == 'setvalue') {
 	// save the setting
- 
+
 	$valCDAV_URI_KEY = substr(GETPOST('CDAV_URI_KEY', 'text'),0,8);
 	if($valCDAV_URI_KEY=='')
 		$valCDAV_URI_KEY = substr(md5(time()),0,8);
@@ -159,6 +159,10 @@ if ($action == 'setvalue') {
 									$db, "CDAV_TASK_HOUR_END",
 									GETPOST('CDAV_TASK_HOUR_END', 'text'), 'chaine', 0, '', $conf->entity
 	);
+	dolibarr_set_const(
+									$db, "CDAV_QRCODE_DAVX5_ENABLED",
+									GETPOST('CDAV_QRCODE_DAVX5_ENABLED', 'text'), 'chaine', 0, '', $conf->entity
+);
 
 
 	$mesg = "<font class='ok'>".$langs->trans("SetupSaved")."</font>";
@@ -193,6 +197,7 @@ $CDAV_GENTASK_SERVICE_TAG=$conf->global->CDAV_GENTASK_SERVICE_TAG;
 $CDAV_EXTRAFIELD_DURATION=$conf->global->CDAV_EXTRAFIELD_DURATION;
 $CDAV_TASK_HOUR_INI=$conf->global->CDAV_TASK_HOUR_INI;
 $CDAV_TASK_HOUR_END=$conf->global->CDAV_TASK_HOUR_END;
+$CDAV_QRCODE_DAVX5_ENABLED=$conf->global->CDAV_QRCODE_DAVX5_ENABLED;
 
 
 dol_fiche_head('', 'setup', $langs->trans("CDav"), 0, "cdav@cdav");
@@ -300,6 +305,12 @@ print '<tr >';
 print '<td  align=left><strong>'.$langs->trans("Service duration from documents").'</strong><br/>'.$langs->trans("Generate project tasks for each service lines from attached documents with cdav duration, even if TAG is missing").'</td>';
 print '<td  align=left>';
 print $form->selectyesno('CDAV_EXTRAFIELD_DURATION', $CDAV_EXTRAFIELD_DURATION, 1);
+print '</td></tr>'."\n";
+
+print '<tr >';
+print '<td  align=left><strong>'.$langs->trans("ActivateDavX5autoURL").'</strong><br/>'.$langs->trans("ActivateDavX5autoURLTooltip").'</td>';
+print '<td  align=left>';
+print $form->selectyesno('CDAV_QRCODE_DAVX5_ENABLED', $CDAV_QRCODE_DAVX5_ENABLED, 1);
 print '</td></tr>'."\n";
 
 // Boutons d'action

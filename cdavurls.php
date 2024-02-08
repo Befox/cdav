@@ -9,7 +9,7 @@
  *
  * cdav uses Sabre/dav library http://sabre.io/dav/
  * Sabre/dav is distributed under use the three-clause BSD-license
- * 
+ *
  * Author : Befox SARL http://www.befox.fr/
  *
  ******************************************************************/
@@ -18,7 +18,7 @@
  *   	\file       cdav/cdavurls.php
  *		\ingroup    cdav
  *		\brief      This page displays urls for carddav and caldav sync
- *	
+ *
  */
 
 // Load Dolibarr environment
@@ -37,6 +37,7 @@ if (!$res && @file_exists("../../../main.inc.php")) $res = @include "../../../ma
 if (!$res) die("Include of main fails");
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/barcode.lib.php'; // This is to include def like $genbarcode_loc and $font_loc
 
 function base64url_encode($data) {
   return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -77,6 +78,21 @@ llxHeader('',$langs->trans($type.'url'),'');
 
 echo '<H2>'.$langs->trans($type.'url').'</H2>';
 
+if(!empty($conf->global->CDAV_EXTRAFIELD_DURATION)) {
+	echo '<h3>'.$langs->trans('URLForDavX5').'</h3>';
+	echo '<p>'.$langs->trans('URLForDavX5Tooltip').'</p>';
+
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/barcode/doc/tcpdfbarcode.modules.php';
+	$qrmodule = new modTcpdfbarcode();
+	$tcpdfEncoding = $qrmodule->getTcpdfEncodingType('QRCODE');
+	require_once TCPDF_PATH.'tcpdf_barcodes_2d.php';
+	$davx = "davx5://" . $user->login . ":@";
+	$uri = str_replace(["http://", "https://"],[$davx, $davx],dol_buildpath('cdav', 2));
+	$barcodeobj = new TCPDF2DBarcode($uri, $tcpdfEncoding);
+	$qrdata = $barcodeobj->getBarcodePngData();
+	print "<img src='data:image/png;base64," . base64_encode($qrdata) . "' /> <br />";
+}
+
 if($type=='CardDAV')
 {
 	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
@@ -85,7 +101,7 @@ if($type=='CardDAV')
 	echo dol_buildpath('cdav/server.php', 2)."\n";
 	echo dol_buildpath('cdav', 2)."/server.php/principals/".$user->login."/";
 	echo '</PRE>';
-	
+
 	echo '<h3>'.$langs->trans('URLforCardDAV', 2).'</h3>';
 	echo '<PRE>'.dol_buildpath('cdav/server.php', 2).'/addressbooks/'.$user->login.'/default/</PRE>';
 }
@@ -97,9 +113,9 @@ elseif($type=='CalDAV')
 	echo dol_buildpath('cdav/server.php', 2)."\n";
 	echo dol_buildpath('cdav', 2)."/server.php/principals/".$user->login."/";
 	echo '</PRE>';
-	
+
 	echo '<h3>'.$langs->trans('URLforCalDAV').'</h3>';
-	
+
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
 		if (versioncompare(versiondolibarrarray(), array(3,7,9))>0)
@@ -131,7 +147,7 @@ elseif($type=='ICS')
 {
 
 	echo '<h3>'.$langs->trans('URLforICS').'</h3>';
-	
+
 	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
 	{
 		if (versioncompare(versiondolibarrarray(), array(3,7,9))>0)
@@ -146,10 +162,10 @@ elseif($type=='ICS')
 		while($row = $db->fetch_array($result))
 		{
 			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
-			
+
 			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+full', 'bf-ecb', CDAV_URI_KEY, true))."\n\n";
 			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+nolabel', 'bf-ecb', CDAV_URI_KEY, true)).'</PRE><br/>';
-			
+
 		}
 	}
 	else
