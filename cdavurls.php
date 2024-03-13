@@ -78,7 +78,7 @@ llxHeader('',$langs->trans($type.'url'),'');
 
 echo '<H2>'.$langs->trans($type.'url').'</H2>';
 
-if(!empty($conf->global->CDAV_EXTRAFIELD_DURATION)) {
+if(!empty($conf->global->CDAV_QRCODE_DAVX5_ENABLED)) {
 	echo '<h3>'.$langs->trans('URLForDavX5').'</h3>';
 	echo '<p>'.$langs->trans('URLForDavX5Tooltip').'</p>';
 
