@@ -12,7 +12,7 @@ if [ -z "$self" ]; then
     self="$selfArg"
 fi
 
-dir=$(cd "${self%[/\\]*}" > /dev/null; cd ../sabre/dav/bin && pwd)
+dir=$(cd "${self%[/\\]*}" > /dev/null; cd '../sabre/dav/bin' && pwd)
 
 if [ -d /proc/cygdrive ]; then
     case $(which php) in

@@ -4,10 +4,6 @@
 
 $issues = array();
 
-if (!(PHP_VERSION_ID >= 80000)) {
-    $issues[] = 'Your Composer dependencies require a PHP version ">= 8.0.0". You are running ' . PHP_VERSION . '.';
-}
-
 if ($issues) {
     if (!headers_sent()) {
         header('HTTP/1.1 500 Internal Server Error');
