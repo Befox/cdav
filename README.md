@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 14.0/15.0 adds CardDAV / CalDAV and ICS synchronisation. It uses included [Sabre/DAV](http://sabre.io/dav/) server library.
+This module for Dolibarr 16.0/18.0 adds CardDAV / CalDAV and ICS synchronisation. It uses Dolibarr [Sabre/DAV](http://sabre.io/dav/) server library.
 
 You can :
 
@@ -19,7 +19,7 @@ Dolibarr contact informations fill personnal informations in client software car
 
 Society (thirdparty) informations (to which contact is attached) fill professional informations in client software cards.
 
-Two adress books are proposed to sync : Contacts and Thirdparties. If you ant to modify a thirdparty infomation, do it in thirdparties address book.
+Two adress books are proposed to sync : Contacts and Thirdparties. If you want to modify a thirdparty infomation, do it in thirdparties address book.
 
 It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).
 
@@ -99,9 +99,11 @@ Use these URLs in your CardDAV or CalDAV client software.
 
 [DAVx⁵](https://www.davx5.com/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
 
-    https://server.example.com/dolibarr/htdocs/cdav/
+    https://server.example.com/dolibarr/htdocs/cdav/server.php
 
 You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVx⁵ is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
+
+In CDav configuration, you can activate a QRCode display to autoconfigure DAVx⁵.
 
 Be carefull, if you use https, DAVx⁵ needs a valid SSL certificate, excluding auto-signed certificates.
 
