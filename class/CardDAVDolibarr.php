@@ -1318,7 +1318,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$result = $this->db->query($sql);
 			if ($result && $obj = $this->db->fetch_object($result))
 			{
-				$carddata = $this->_thirdpartyToVCard($obj);
+				$carddata = $this->_memberToVCard($obj);
 				
 				$card = [
 					'carddata' => $carddata,
