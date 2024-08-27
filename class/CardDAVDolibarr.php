@@ -1408,6 +1408,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				{
 					if($typecth=='-th-')
 						$carddata = $this->_thirdpartyToVCard($obj);
+					elseif($typecth=='-mb-')
+						$carddata = $this->_memberToVCard($obj);
 					else
 						$carddata = $this->_contactToVCard($obj);
 					
