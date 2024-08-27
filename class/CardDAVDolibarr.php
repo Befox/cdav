@@ -62,7 +62,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	 * @return array
 	 */
 	function getAddressBooksForUser($principalUri) {
-
+		global $conf;
+		
 		debug_log("getAddressBooksForUser( $principalUri )");
 
 		$sql = 'SELECT MAX(GREATEST(COALESCE(s.tms, p.tms), p.tms)) lastupd FROM '.MAIN_DB_PREFIX.'socpeople as p
