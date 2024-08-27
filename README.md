@@ -19,7 +19,7 @@ Dolibarr contact informations fill personnal informations in client software car
 
 Society (thirdparty) informations (to which contact is attached) fill professional informations in client software cards.
 
-Two adress books are proposed to sync : Contacts and Thirdparties. If you want to modify a thirdparty infomation, do it in thirdparties address book.
+Three adress books are proposed to sync : Contacts, Thirdparties and Members. If you want to modify a thirdparty infomation, do it in thirdparties address book.
 
 It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).
 
