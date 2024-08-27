@@ -504,7 +504,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				$carddata.="URL:".trim($obj->soc_url)."\n";
 		}
 		if(!empty($obj->birth))
-			$carddata.="BDAY:".str_replace(';','\;',$obj->birth)."\n";
+			$carddata.="BDAY;VALUE=DATE:".str_replace(';','\;',date('Ymd',strtotime($obj->birth)))."\n";
 		if(!empty($obj->note_public))
 			$carddata.="NOTE;CHARSET=UTF-8:".str_replace(';','\;',strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>"")))."\n";
 		if(!empty($obj->photo))
