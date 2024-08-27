@@ -354,9 +354,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(!empty($obj->fax))
 			$carddata.="TEL;TYPE=HOME,FAX:".str_replace(';','\;',$obj->fax)."\n";
 		if(!empty($obj->email))
-			$carddata.="EMAIL;PREF=1,INTERNET:".str_replace(';','\;',$obj->email)."\n";
+			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
 		if(!empty($obj->soc_email))
-			$carddata.="EMAIL;INTERNET:".str_replace(';','\;',$obj->soc_email)."\n";
+			$carddata.="EMAIL:".str_replace(';','\;',$obj->soc_email)."\n";
 		if(!empty($obj->soc_url))
 		{
 			if(strpos($obj->soc_url,'://')===false)
@@ -479,13 +479,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="ORG;CHARSET=UTF-8:".str_replace(';','\;',$obj->soc_nom).";\n";
 		/*if(!empty($obj->poste))
 			$carddata.="TITLE;CHARSET=UTF-8:".str_replace(';','\;',$obj->poste)."\n";*/
-//		if(count($categ)>0)
-//			$carddata.="CATEGORIES;CHARSET=UTF-8:".str_replace(';','\;',implode(',',$categ))."\n";
+		if(count($categ)>0)
+			$carddata.="CATEGORIES;CHARSET=UTF-8:".str_replace(';','\;',implode(',',$categ))."\n";
 		$carddata.="CLASS:PUBLIC\n";
 		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".str_replace(';','\;',$address[1]).";".str_replace(';','\;',$address[0]).";";
 		$carddata.=     str_replace(';','\;',$obj->town).";;".str_replace(';','\;',$obj->zip).";".str_replace(';','\;',$obj->country_label)."\n";
-//		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$soc_address[1]).";".str_replace(';','\;',$soc_address[0]).";";
-//		$carddata.=     str_replace(';','\;',$obj->soc_town).";;".str_replace(';','\;',$obj->soc_zip).";".str_replace(';','\;',$obj->soc_country_label)."\n";
+		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$soc_address[1]).";".str_replace(';','\;',$soc_address[0]).";";
+		$carddata.=     str_replace(';','\;',$obj->soc_town).";;".str_replace(';','\;',$obj->soc_zip).";".str_replace(';','\;',$obj->soc_country_label)."\n";
 		$carddata.="TEL;TYPE=WORK,VOICE:".str_replace(';','\;',(trim($obj->phone)==''?$obj->soc_phone:$obj->phone))."\n";
 		if(!empty($obj->phone_perso))
 			$carddata.="TEL;TYPE=HOME,VOICE:".str_replace(';','\;',$obj->phone_perso)."\n";
@@ -494,9 +494,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(!empty($obj->soc_fax))
 			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->soc_fax)."\n";
 		if(!empty($obj->email))
-			$carddata.="EMAIL;PREF=1,INTERNET:".str_replace(';','\;',$obj->email)."\n";
+			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
 		if(!empty($obj->soc_email))
-			$carddata.="EMAIL;INTERNET:".str_replace(';','\;',$obj->soc_email)."\n";
+			$carddata.="EMAIL:".str_replace(';','\;',$obj->soc_email)."\n";
 		if(!empty($obj->soc_url))
 		{
 			if(strpos($obj->soc_url,'://')===false)
@@ -550,10 +550,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				}
 			}
 		}
-   		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
 		debug_log($carddata);
-        return $carddata;
+		return $carddata;
 	}
 	
 	
@@ -620,7 +620,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(!empty($obj->fax))
 			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->fax)."\n";
 		if(!empty($obj->email))
-			$carddata.="EMAIL;PREF=1,INTERNET:".str_replace(';','\;',$obj->email)."\n";
+			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
 		if(!empty($obj->url))
 		{
 			if(strpos($obj->url,'://')===false)
