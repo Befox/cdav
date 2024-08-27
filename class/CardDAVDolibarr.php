@@ -112,6 +112,26 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			];
 		}
 		
+		if(CDAV_MEMBER_SYNC>0 && $this->user->rights->adherent->lire)
+		{
+			$sql = 'SELECT MAX(GREATEST(COALESCE(s.tms, p.tms), p.tms)) lastupd FROM '.MAIN_DB_PREFIX.'adherent as p
+					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON s.rowid = p.fk_soc
+					WHERE p.entity IN ('.getEntity('societe', 1).')';
+			$result = $this->db->query($sql);
+			$row = $this->db->fetch_array($result);
+			$lastupd = strtotime($row['lastupd']);
+
+			$addressBooks[] = [
+				'id'														  => $this->user->id + 2*CDAV_ADDRESSBOOK_ID_SHIFT,
+				'uri'														  => 'members',
+				'principaluri'												  => $principalUri,
+				'{DAV:}displayname'											  => 'Dolibarr - members',
+				'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Members Dolibarr '.$this->user->login,
+				'{http://calendarserver.org/ns/}getctag'					  => $lastupd,
+				'{http://sabredav.org/ns}sync-token'						  => $lastupd,
+			];
+		}
+		
 		return $addressBooks;
 
 	}
@@ -195,6 +215,31 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(intval(CDAV_CONTACT_TAG)>0)
 			$sql.= " HAVING CONCAT(',',category_ids,',') LIKE '%,".$this->db->escape(CDAV_CONTACT_TAG).",%'";
 
+		return $sql;
+	}
+	
+	/**
+	 * Base sql request for adherents
+	 * 
+	 * @return string
+	 */
+	protected function _getSqlMembers($sqlWhere='')
+	{
+		$sql = 'SELECT p.*, co.label country_label, GREATEST(COALESCE(s.tms, p.tms), p.tms) lastupd, s.code_client soc_code_client, s.code_fournisseur soc_code_fournisseur,
+					COALESCE(s.nom, p.societe) soc_nom, s.name_alias soc_name_alias, s.address soc_address, s.zip soc_zip, s.town soc_town, cos.label soc_country_label, s.phone soc_phone, s.fax soc_fax,
+					s.email soc_email, s.url soc_url, s.client soc_client, s.fournisseur soc_fournisseur, s.note_private soc_note_private, s.note_public soc_note_public,
+					GROUP_CONCAT(DISTINCT cat.label ORDER BY cat.label ASC SEPARATOR \',\') category_label,
+					GROUP_CONCAT(DISTINCT cc.fk_categorie ORDER BY cc.fk_categorie ASC SEPARATOR \',\') category_ids
+				FROM '.MAIN_DB_PREFIX.'adherent as p
+				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as co ON co.rowid = p.country
+				LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON s.rowid = p.fk_soc
+				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as cos ON cos.rowid = s.fk_pays
+				LEFT JOIN '.MAIN_DB_PREFIX.'categorie_contact as cc ON cc.fk_socpeople = p.rowid 
+				LEFT JOIN '.MAIN_DB_PREFIX.'categorie as cat ON cat.rowid = cc.fk_categorie
+				WHERE p.entity IN ('.getEntity('societe', 1).')
+				AND p.statut=1
+				'.$sqlWhere.'
+				GROUP BY p.rowid';
 		return $sql;
 	}
 	
@@ -329,6 +374,141 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		if(!empty($obj->photo))
 		{
 			$photofile = $conf->societe->dir_output."/contact/".$obj->rowid."/photos/".$obj->photo;
+			if(file_exists($photofile))
+			{
+				if(function_exists('exif_imagetype'))
+				{
+					$image_type = image_type_to_mime_type(exif_imagetype($photofile));
+					$image_type = strtoupper(substr($image_type, strpos($image_type, '/')+1));
+				}
+				else
+				{
+					$image_type='';
+					switch(strtolower(substr($obj->photo,-4)))
+					{
+						case '.jpg':
+						case 'jpeg':
+							$image_type='JPEG';
+							break;
+						case '.gif':
+							$image_type='GIF';
+							break;
+						case '.png':
+							$image_type='PNG';
+							break;
+						case '.bmp':
+							$image_type='BMP';
+							break;
+						case '.tif':
+						case 'tiff':
+							$image_type='TIFF';
+							break;
+					}
+				}
+				if(!empty($image_type))
+				{
+					$photodata = wordwrap("PHOTO;ENCODING=b;TYPE=JPEG:".base64_encode(file_get_contents($photofile)),72,"\n",true);
+					$photodata = trim(str_replace("\n", "\n ", $photodata));
+					$carddata .= $photodata."\n"; 
+				}
+			}
+		}
+   		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
+		$carddata.="END:VCARD\n";
+        return $carddata;
+	}
+
+	/**
+	 * Convert member row to VCard string
+	 * 
+     * @param row object
+	 * @return string
+	 */
+	protected function _memberToVCard($obj)
+	{
+        global $conf;
+        $nick = [];
+        $categ = [];
+        if($obj->soc_client)
+        {
+            $nick[] = $obj->soc_code_client;
+            $categ[] = $this->langs->transnoentitiesnoconv('Customer');
+        }
+        if($obj->soc_fournisseur)
+        {
+            $nick[] = $obj->soc_code_fournisseur;
+            $categ[] = $this->langs->transnoentitiesnoconv('Supplier');
+        }
+        if (! empty($conf->categorie->enabled)  && ! empty($this->user->rights->categorie->lire))
+            if(trim($obj->category_label)!='')
+                $categ[] = trim($obj->category_label);
+
+        $soc_address=explode("\n",$obj->soc_address,2);
+        foreach($soc_address as $kAddr => $vAddr)
+            $soc_address[$kAddr] = trim(str_replace(array("\r","\t"),' ', str_replace("\n",' | ', trim($vAddr))));
+        $soc_address[]='';
+        $soc_address[]='';
+        
+        $address=explode("\n",$obj->address,2);
+        foreach($address as $kAddr => $vAddr)
+        {
+            $address[$kAddr] = trim(str_replace(array("\r","\t"),' ', str_replace("\n",' | ', trim($vAddr))));
+        }
+        $address[]='';
+        $address[]='';
+        
+		// remove carriage return in data
+		$objvars = get_object_vars($obj);
+		foreach ($objvars as $key => $value)
+		{
+			if(is_string($value))
+				$obj->$key = strtr(trim($value), array("\n"=>"\\n", "\r"=>""));
+		}
+
+		$carddata ="BEGIN:VCARD\n";
+		$carddata.="VERSION:3.0\n";
+		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
+		$carddata.="UID:".$obj->rowid.'-mb-'.CDAV_URI_KEY."\n";
+		$carddata.="N;CHARSET=UTF-8:".str_replace(';','\;',$obj->lastname).";".str_replace(';','\;',$obj->firstname).";;".str_replace(';','\;',$obj->civility)."\n";
+		$carddata.="FN;CHARSET=UTF-8:".str_replace(';','\;',$obj->lastname." ".$obj->firstname)."\n";
+		if(!empty($obj->soc_nom) && !empty($obj->soc_name_alias))
+			$carddata.="ORG;CHARSET=UTF-8:".str_replace(';','\;',$obj->soc_nom." (".$obj->soc_name_alias.")").";\n";
+		elseif(!empty($obj->soc_nom))
+			$carddata.="ORG;CHARSET=UTF-8:".str_replace(';','\;',$obj->soc_nom).";\n";
+		/*if(!empty($obj->poste))
+			$carddata.="TITLE;CHARSET=UTF-8:".str_replace(';','\;',$obj->poste)."\n";*/
+		if(count($categ)>0)
+			$carddata.="CATEGORIES;CHARSET=UTF-8:".str_replace(';','\;',implode(',',$categ))."\n";
+		$carddata.="CLASS:PUBLIC\n";
+		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".str_replace(';','\;',$address[1]).";".str_replace(';','\;',$address[0]).";";
+        $carddata.=     str_replace(';','\;',$obj->town).";;".str_replace(';','\;',$obj->zip).";".str_replace(';','\;',$obj->country_label)."\n";
+		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$soc_address[1]).";".str_replace(';','\;',$soc_address[0]).";";
+        $carddata.=     str_replace(';','\;',$obj->soc_town).";;".str_replace(';','\;',$obj->soc_zip).";".str_replace(';','\;',$obj->soc_country_label)."\n";
+		$carddata.="TEL;TYPE=WORK,VOICE:".str_replace(';','\;',(trim($obj->phone)==''?$obj->soc_phone:$obj->phone))."\n";
+		if(!empty($obj->phone_perso))
+			$carddata.="TEL;TYPE=HOME,VOICE:".str_replace(';','\;',$obj->phone_perso)."\n";
+		if(!empty($obj->phone_mobile))
+			$carddata.="TEL;TYPE=CELL,VOICE:".str_replace(';','\;',$obj->phone_mobile)."\n";
+		if(!empty($obj->soc_fax))
+			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->soc_fax)."\n";
+		if(!empty($obj->email))
+			$carddata.="EMAIL;PREF=1,INTERNET:".str_replace(';','\;',$obj->email)."\n";
+		if(!empty($obj->soc_email))
+			$carddata.="EMAIL;INTERNET:".str_replace(';','\;',$obj->soc_email)."\n";
+		if(!empty($obj->soc_url))
+		{
+			if(strpos($obj->soc_url,'://')===false)
+				$carddata.="URL:https://".trim($obj->soc_url)."\n";
+			else
+				$carddata.="URL:".trim($obj->soc_url)."\n";
+		}
+		if(!empty($obj->birth))
+			$carddata.="BDAY:".str_replace(';','\;',$obj->birth)."\n";
+		if(!empty($obj->note_public))
+			$carddata.="NOTE;CHARSET=UTF-8:".str_replace(';','\;',strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>"")))."\n";
+		if(!empty($obj->photo))
+		{
+			$photofile = $conf->adherent->dir_output."/member/".$obj->rowid."/photos/".$obj->photo;
 			if(file_exists($photofile))
 			{
 				if(function_exists('exif_imagetype'))
@@ -625,6 +805,146 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		return $rdata;
 	}
 
+	/*
+	 * parse vcard data to dolibarr table fields
+	 * @param cardData : string vcard
+	 * @param mode : C=create / U=update
+	 */
+	protected function _parseDataMember($cardData, $mode) {
+
+		debug_log("_parseDataMember( $cardData )");
+		
+		$rdata = [] ;
+
+		$vCard = VObject\Reader::read($cardData);
+		$vCard->validate(VObject\Node::REPAIR | VObject\Node::PROFILE_CARDDAV);
+		$vCard->convert(VObject\Document::VCARD30);
+
+		// debug_log("_parseData__converted( ".$vCard->PHOTO." )");
+
+		$rdata['_uid'] = (string)$vCard->UID;
+		if(isset($vCard->PHOTO) && strpos(substr($vCard->PHOTO,0,10),'://')===false) // exist and not uri
+		{
+			$rdata['_photo_bin'] = (string)$vCard->PHOTO;
+		}
+		else
+			$rdata['_photo_bin'] = false;
+		
+		$names = $vCard->N->getParts();
+		if(isset($names[0]) && trim((string)$names[0])!='')
+			$rdata['lastname'] = (string)$names[0];
+		if($rdata['lastname']=='' && isset($vCard->FN) && trim((string)$vCard->FN)!='')
+			$rdata['lastname'] = (string)$vCard->FN;
+		if($rdata['lastname']=='' && isset($names[1]) && trim((string)$names[1])!='')
+			$rdata['lastname'] = (string)$names[1];
+		if($rdata['lastname']=='')
+			$rdata['lastname'] = "Member ".date('Y-m-d H:i:s');
+			
+		if(isset($names[1]))
+			$rdata['firstname'] = (string)$names[1];
+		
+		if(isset($names[3]))
+			$rdata['civility'] = (string)$names[3];
+		
+		/*if(isset($vCard->TITLE))
+			$rdata['poste'] = (string)$vCard->TITLE;*/
+
+		if(isset($vCard->TEL))
+		{
+			foreach($vCard->TEL as $tel)
+			{
+				$teltype = [];
+				$types = $tel['TYPE'];
+				foreach($types as $type)
+				{
+					$teltype[strtoupper($type)]=true;
+				}
+				
+				if(isset($teltype['WORK']) && (isset($teltype['VOICE']) || count($teltype)==1))
+					$rdata['phone'] = (string)$tel;
+					
+				if(isset($teltype['HOME']) && (isset($teltype['VOICE']) || count($teltype)==1))
+					$rdata['phone_perso'] = (string)$tel;
+					
+				if(isset($teltype['CELL']))
+					$rdata['phone_mobile'] = (string)$tel;
+			}
+		}
+		
+		if(isset($vCard->EMAIL))
+		{
+			foreach($vCard->EMAIL as $email)
+			{
+				if(!isset($rdata['email']))
+					$rdata['email'] = (string)$email;
+				if(isset($email->PREF))
+					$rdata['email'] = (string)$email;
+			}
+		}
+		
+		if(isset($vCard->ADR))
+		{
+			foreach($vCard->ADR as $adr)
+			{
+				$types = $adr['TYPE'];
+				$adrtype = [];
+				foreach($types as $type)
+				{
+					$adrtype[strtoupper($type)]=true;
+				}
+				$adrparts = $adr->getParts();
+				// debug_log("adrparts:\n".print_r($adrtype, true).print_r($adrparts, true));
+				if(isset($adrtype['HOME']) || !isset($rdata['address']))
+				{
+					$rdata['address'] = '';
+					$rdata['town'] = '';
+					$rdata['zip'] = '';
+					$rdata['_country_label'] = '';
+					if(isset($adrparts[2]) && !empty($adrparts[2]))
+						$rdata['address'].= str_replace(' | ',"\n",trim($adrparts[2]))."\n";
+					if(isset($adrparts[0]) && !empty($adrparts[0]))
+						$rdata['address'].= $adrparts[0]."\n";
+					if(isset($adrparts[1]) && !empty($adrparts[1]))
+						$rdata['address'].= str_replace(' | ',"\n",trim($adrparts[1]))."\n";
+					$rdata['address'] = trim($rdata['address']);
+					if(isset($adrparts[3]))
+						$rdata['town'] = $adrparts[3];
+					if(isset($adrparts[5]))
+						$rdata['zip'] = $adrparts[5];
+					if(isset($adrparts[6]))
+						$rdata['_country_label'] = $adrparts[6];
+					if($mode=='C' && isset($vCard->ORG))	// keep ORG info in address
+						$rdata['address'] = trim((string)$vCard->ORG," ;\n\r\t") . "\n" . $rdata['address'];					
+				}
+			}
+		}
+
+		$bday = '';
+		if( isset($vCard->BDAY))
+			$bday = trim((string)$vCard->BDAY);
+		if( isset($vCard->BDAY) && 
+			!empty($bday) &&
+			date("Y-m-d", strtotime(trim($bday))) == trim($bday) )
+			$rdata['birth'] = trim($bday);
+
+		if(isset($vCard->NOTE))
+			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");   
+			
+		if(isset($rdata['_country_label']) && $rdata['_country_label']!='')
+		{
+			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'c_country
+					WHERE label LIKE "'.$this->db->escape($rdata['_country_label']).'"
+					AND active = 1';
+			$result = $this->db->query($sql);
+			if($result!==false && ($row = $this->db->fetch_array($result))!==false)
+				$rdata['country'] = $row['rowid'];
+		}
+		
+		debug_log("parsed:\n".print_r($rdata, true));
+		
+		return $rdata;
+	}
+
 
 	/*
 	 * parse vcard data to dolibarr table fields
@@ -874,7 +1194,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}
 		}
 		
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->lire)
 		{
 			$sql = $this->_getSqlThirdparties();
 			$result = $this->db->query($sql);
@@ -887,6 +1207,27 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$cards[] = [
 						// 'carddata' => $carddata,  not necessary because etag+size are present
 						'uri' => $obj->rowid.'-th-'.CDAV_URI_KEY,
+						'lastmodified' => strtotime($obj->lastupd),
+						'etag' => '"'.md5($carddata).'"',
+						'size' => strlen($carddata)
+					];
+				}
+			}
+		}
+		
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		{
+			$sql = $this->_getSqlMembers();
+			$result = $this->db->query($sql);
+			if ($result)
+			{
+				while ($obj = $this->db->fetch_object($result))
+				{
+					$carddata = $this->_memberToVCard($obj);
+					
+					$cards[] = [
+						// 'carddata' => $carddata,  not necessary because etag+size are present
+						'uri' => $obj->rowid.'-mb-'.CDAV_URI_KEY,
 						'lastmodified' => strtotime($obj->lastupd),
 						'etag' => '"'.md5($carddata).'"',
 						'size' => strlen($carddata)
@@ -939,7 +1280,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}
 		}
 		
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->lire)
 		{
 			if(strpos($cardUri, '-th-')>0)
 				$sqlWhere = ' AND s.rowid='.intval($cardUri);                            // cardUri starts with contact id
@@ -956,6 +1297,32 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				$card = [
 					'carddata' => $carddata,
 					'uri' => $obj->rowid.'-th-'.CDAV_URI_KEY,
+					'lastmodified' => strtotime($obj->lastupd),
+					'etag' => '"'.md5($carddata).'"',
+					'size' => strlen($carddata)
+				];
+				
+				return $card;
+			}
+		}
+		
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		{
+			if(strpos($cardUri, '-mb-')>0)
+				$sqlWhere = ' AND p.rowid='.intval($cardUri);                            // cardUri starts with member id
+			else
+				return false;
+
+			$sql = $this->_getSqlMembers($sqlWhere);
+			debug_log($sql);
+			$result = $this->db->query($sql);
+			if ($result && $obj = $this->db->fetch_object($result))
+			{
+				$carddata = $this->_thirdpartyToVCard($obj);
+				
+				$card = [
+					'carddata' => $carddata,
+					'uri' => $obj->rowid.'-mb-'.CDAV_URI_KEY,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($carddata).'"',
 					'size' => strlen($carddata)
@@ -1003,7 +1370,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$sql = $this->_getSqlContacts($sqlWhere);
 		}
 		
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->lire)
 		{
 			$typecth = '-th-';
 			foreach($uris as $cardUri)
@@ -1015,6 +1382,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$sqlWhere = ' AND s.rowid IN ('.implode(',', $ids).')';
 
 			$sql = $this->_getSqlThirdparties($sqlWhere);
+		}
+		
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		{
+			$typecth = '-mb-';
+			foreach($uris as $cardUri)
+			{
+				if(strpos($cardUri, $typecth)>0)
+					$ids[] = intval($cardUri);   // cardUri starts with member id
+			}
+
+			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
+
+			$sql = $this->_getSqlMembers($sqlWhere);
 		}
 		
 		if($typecth!='')
@@ -1135,7 +1516,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return null;
 		}
 		
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->creer)
 		{
 			$rdata = $this->_parseDataThirdparty($cardData, 'C');
 			
@@ -1172,6 +1553,34 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					VALUES (".$id.",".$this->user->id.")";
 			$this->db->query($sql);
 
+			return null;
+		}
+		
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->creer)
+		{
+			$rdata = $this->_parseDataMember($cardData, 'C');
+			
+
+			$sql = "INSERT INTO ".MAIN_DB_PREFIX."adherent (";
+			foreach($rdata as $fld => $val)
+			{
+				if(substr($fld,0,1)!='_')
+					$sql.="`".$fld."`,";
+			}		
+			$sql.= "entity,datec,tms,fk_user_author,fk_user_mod) VALUES(";
+			foreach($rdata as $fld => $val)
+			{
+				if(substr($fld,0,1)!='_')
+					$sql.="'".$this->db->escape($val)."',";
+			}		
+			$sql.= "1,NOW(),NOW(),".$this->user->id.",".$this->user->id.")";
+
+			$res = $this->db->query($sql);
+			if ( ! $res)
+			{
+				return null;
+			}
+			
 			return null;
 		}
 		
@@ -1251,7 +1660,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}
 		}
 
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->creer)
 		{
 			$rdata = $this->_parseDataThirdparty($cardData, 'U');
 
@@ -1268,6 +1677,27 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}		
 			$sql.= " tms = NOW(), fk_user_modif = ".$this->user->id;
 			$sql.= " WHERE rowid = ".$socid;
+			$res = $this->db->query($sql);
+			$this->db->query($sql);
+		}
+
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->creer)
+		{
+			$rdata = $this->_parseDataMember($cardData, 'U');
+
+			if(strpos($cardUri, '-mb-')>0)
+				$adhid = intval($cardUri); // cardUri starts with member id
+			else
+				return false;
+
+			$sql = "UPDATE ".MAIN_DB_PREFIX."adherent SET ";
+			foreach($rdata as $fld => $val)
+			{
+				if(substr($fld,0,1)!='_')
+					$sql.="`".$fld."` = '".$this->db->escape($val)."', ";
+			}		
+			$sql.= " tms = NOW(), fk_user_mod = ".$this->user->id;
+			$sql.= " WHERE rowid = ".$adhid;
 			$res = $this->db->query($sql);
 			$this->db->query($sql);
 		}
@@ -1302,7 +1732,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return true;
 		}
 
-		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && $this->user->rights->societe->supprimer)
+		if(CDAV_THIRD_SYNC>0 && intval($addressbookId)>=CDAV_ADDRESSBOOK_ID_SHIFT && intval($addressbookId)<(2*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->societe->supprimer)
 		{
 
 			if(strpos($cardUri, '-th-')>0)
@@ -1313,6 +1743,22 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."societe SET ";
 			$sql.= " status = 0, tms = NOW(), fk_user_modif = ".$this->user->id;
 			$sql.= " WHERE rowid = ".$socid;
+			$res = $this->db->query($sql);
+			
+			return true;
+		}
+		
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->supprimer)
+		{
+
+			if(strpos($cardUri, '-mb-')>0)
+				$adhid = intval($cardUri); // cardUri starts with member id
+			else 
+				return false;
+
+			$sql = "UPDATE ".MAIN_DB_PREFIX."adherent SET ";
+			$sql.= " statut = 0, tms = NOW(), fk_user_mod = ".$this->user->id;
+			$sql.= " WHERE rowid = ".$adhid;
 			$res = $this->db->query($sql);
 			
 			return true;

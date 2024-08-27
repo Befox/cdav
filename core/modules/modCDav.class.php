@@ -132,6 +132,8 @@ class modCDav extends DolibarrModules
 			16 => array('CDAV_EXTRAFIELD_DURATION', 'chaine', '', 'Duration services',0,'current',0),
 			17 => array('CDAV_TASK_HOUR_INI', 'chaine', '', 'Begining of a working day',0,'current',0),
 			18 => array('CDAV_TASK_HOUR_END', 'chaine', '', 'Ending of a working day',0,'current',0),
+			19 => array('CDAV_QRCODE_DAVX5_ENABLED', 'chaine', '0', 'Activate DavX5 auto URL',0,'current',0),
+			20 => array('CDAV_MEMBER_SYNC', 'chaine', '0', 'Sync members',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs

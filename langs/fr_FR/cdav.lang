@@ -14,3 +14,6 @@ ActivateDavX5autoURL=Activer la génération de qrcode d'auto configuration pour
 ActivateDavX5autoURLTooltip=Si vous activez cette option un qrcode d'auto-configuration vous sera proposé pour ne pas avoir à saisir toutes les données à la main sur votre smartphone
 URLForDavX5=Configuration automatique pour DavX5
 URLForDavX5Tooltip=Utilisez le logiciel libre <a href="https://github.com/markusfisch/BinaryEye">BinaryEye</a> (dispo sur F-Droid) pour flasher le qrcode et autoconfigurer DavX5 !
+
+EnableMembersSync=Enable members sync
+GenerateAddressbookForMembership=Generate an address book for membership

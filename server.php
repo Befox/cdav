@@ -170,7 +170,19 @@ if(!defined('CDAV_THIRD_SYNC'))
 		define('CDAV_THIRD_SYNC', '0');
 }
 
-define('CDAV_ADDRESSBOOK_ID_SHIFT', 100000);
+// define CDAV_MEMBER_SYNC if not
+if(!defined('CDAV_MEMBER_SYNC'))
+{
+	if(isset($conf->global->CDAV_MEMBER_SYNC))
+		define('CDAV_MEMBER_SYNC', $conf->global->CDAV_MEMBER_SYNC);
+	else
+		define('CDAV_MEMBER_SYNC', '0');
+}
+
+// 0 < CDAV_ADDRESSBOOK_ID_SHIFT = Contacts
+// CDAV_ADDRESSBOOK_ID_SHIFT   < 2*CDAV_ADDRESSBOOK_ID_SHIFT = Thirdparties
+// 2*CDAV_ADDRESSBOOK_ID_SHIFT < 3*CDAV_ADDRESSBOOK_ID_SHIFT = Members
+define('CDAV_ADDRESSBOOK_ID_SHIFT', 100000); 
 
 // Sabre/dav configuration
 
