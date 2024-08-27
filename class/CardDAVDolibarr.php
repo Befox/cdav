@@ -428,7 +428,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	protected function _memberToVCard($obj)
 	{
         global $conf;
-        debug_log('_memberToVCard('.print_r($obj).')');
+        debug_log('_memberToVCard('.print_r($obj,true).')');
         $nick = [];
         $categ = [];
         if($obj->soc_client)
