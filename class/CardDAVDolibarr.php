@@ -355,7 +355,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="TEL;TYPE=HOME,FAX:".str_replace(';','\;',$obj->fax)."\n";
 		if(!empty($obj->email))
 			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
-		if(!empty($obj->soc_email))
+		if(!empty($obj->soc_email) && $obj->soc_email!=$obj->email)
 			$carddata.="EMAIL:".str_replace(';','\;',$obj->soc_email)."\n";
 		if(!empty($obj->soc_url))
 		{
@@ -495,7 +495,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->soc_fax)."\n";
 		if(!empty($obj->email))
 			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
-		if(!empty($obj->soc_email))
+		if(!empty($obj->soc_email) && $obj->soc_email!=$obj->email)
 			$carddata.="EMAIL:".str_replace(';','\;',$obj->soc_email)."\n";
 		if(!empty($obj->soc_url))
 		{
