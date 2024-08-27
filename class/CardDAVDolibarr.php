@@ -79,8 +79,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			'id'														  => $this->user->id,
 			'uri'														  => 'default',
 			'principaluri'												  => $principalUri,
-			'{DAV:}displayname'											  => 'Dolibarr - contacts',
-			'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Contacts Dolibarr '.$this->user->login,
+			'{DAV:}displayname'											  => $conf->global->MAIN_INFO_SOCIETE_NOM.' - contacts',
+			'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Contacts '.$conf->global->MAIN_INFO_SOCIETE_NOM.' '.$this->user->login,
 			'{http://calendarserver.org/ns/}getctag'					  => $lastupd,
 			'{http://sabredav.org/ns}sync-token'						  => $lastupd,
 		];
@@ -105,8 +105,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				'id'														  => $this->user->id + CDAV_ADDRESSBOOK_ID_SHIFT,
 				'uri'														  => 'thirdparties',
 				'principaluri'												  => $principalUri,
-				'{DAV:}displayname'											  => 'Dolibarr - thirdparties',
-				'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Thirdparties-Societies Dolibarr '.$this->user->login,
+				'{DAV:}displayname'											  => $conf->global->MAIN_INFO_SOCIETE_NOM.' - thirdparties',
+				'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Thirdparties '.$conf->global->MAIN_INFO_SOCIETE_NOM.' '.$this->user->login,
 				'{http://calendarserver.org/ns/}getctag'					  => $lastupd,
 				'{http://sabredav.org/ns}sync-token'						  => $lastupd,
 			];
@@ -125,8 +125,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				'id'														  => $this->user->id + 2*CDAV_ADDRESSBOOK_ID_SHIFT,
 				'uri'														  => 'members',
 				'principaluri'												  => $principalUri,
-				'{DAV:}displayname'											  => 'Dolibarr - members',
-				'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Members Dolibarr '.$this->user->login,
+				'{DAV:}displayname'											  => $conf->global->MAIN_INFO_SOCIETE_NOM.' - members',
+				'{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => 'Members '.$conf->global->MAIN_INFO_SOCIETE_NOM.' '.$this->user->login,
 				'{http://calendarserver.org/ns/}getctag'					  => $lastupd,
 				'{http://sabredav.org/ns}sync-token'						  => $lastupd,
 			];
