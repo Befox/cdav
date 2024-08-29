@@ -37,7 +37,7 @@ $langs->load("other");
 $langs->load("cdav@cdav");
 
 // Security check
-if (! $user->admin || $user->design) accessforbidden();
+if (! $user->admin || !empty($user->design)) accessforbidden();
 
 $action = GETPOST('action', 'alpha');
 
@@ -335,10 +335,11 @@ print '</form>';
 // Show errors
 print "<br>";
 
-dol_htmloutput_errors($object->error, $object->errors);
-
-// Show messages
-dol_htmloutput_mesg($object->mesg, '', 'ok');
+if(!empty($object)) { // Fix Warning: Attempt to read property "error" on null : Is $object really used on this page?
+	dol_htmloutput_errors($object->error, $object->errors);
+	// Show messages
+	dol_htmloutput_mesg($object->mesg, '', 'ok');
+}
 
 // Footer
 llxFooter();
