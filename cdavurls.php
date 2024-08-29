@@ -125,7 +125,7 @@ elseif($type=='CalDAV')
 
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
-			AND u.employee = 1 AND u.statut = 1
+			AND u.fk_soc IS NULL AND u.statut = 1
 			ORDER BY login';
 		$result = $db->query($sql);
 		while($row = $db->fetch_array($result))
@@ -158,7 +158,7 @@ elseif($type=='ICS')
 
 		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
 			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
-			AND u.employee = 1 AND u.statut = 1
+			AND u.fk_soc IS NULL  AND u.statut = 1
 			ORDER BY login';
 		$result = $db->query($sql);
 		while($row = $db->fetch_array($result))
