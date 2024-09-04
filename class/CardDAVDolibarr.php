@@ -330,7 +330,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="VERSION:3.0\n";
 		$carddata.="PRODID:-//Dolibarr CDav//FR\n";
 		$carddata.="UID:".$obj->rowid.'-ct-'.CDAV_URI_KEY."\n";
-
 		if(!empty($obj->soc_nom) && getDolGlobalInt('CDAV_CONCAT_SOCNAME_FOR_PHONE'))
 		{
 			$carddata.="N;CHARSET=UTF-8:".str_replace(';','\;',$obj->lastname).";".str_replace(';','\;',$obj->firstname).";;".str_replace(';','\;',"(".$obj->soc_nom.")")."\n";

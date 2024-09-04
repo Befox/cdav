@@ -8,35 +8,35 @@
 
 class CdavLib
 {
-	
+
 	private $db;
-	
+
 	private $user;
-	
+
 	private $langs;
-	
+
 	function __construct($user, $db, $langs)
 	{
 		$this->user 	= $user;
 		$this->db 		= $db;
 		$this->langs 	= $langs;
 	}
-	
+
 	/**
 	 * Base sql request for calendar events
-	 * 
+	 *
 	 * @param int calendar user id
 	 * @param int actioncomm object id
 	 * @return string
 	 */
 	public function getSqlCalEvents($calid, $oid=false, $ouri=false)
 	{
-		// TODO : replace GROUP_CONCAT by 
-		$sql = 'SELECT 
+		// TODO : replace GROUP_CONCAT by
+		$sql = 'SELECT
 					"ev" elem_source,
-					a.tms AS lastupd, 
-					a.*, 
-					sp.firstname, 
+					a.tms AS lastupd,
+					a.*,
+					sp.firstname,
 					sp.lastname,
 					sp.address,
 					sp.zip,
@@ -56,7 +56,7 @@ class CdavLib
 					p.description proj_desc,
 					ac.sourceuid,
 					(SELECT GROUP_CONCAT(u.login) FROM '.MAIN_DB_PREFIX.'actioncomm_resources ar
-						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=fk_element) 
+						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=fk_element)
 						WHERE ar.element_type=\'user\' AND fk_actioncomm=a.id) AS other_users
 				FROM '.MAIN_DB_PREFIX.'actioncomm AS a';
 		if (! $this->user->rights->societe->client->voir )//FIXME si 'voir' on voit plus de chose ?
@@ -80,7 +80,7 @@ class CdavLib
 						AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>\'systemauto\')
 						AND a.entity IN ('.getEntity('societe', 1).')';
 		if($oid!==false) {
-			if($ouri===false) 
+			if($ouri===false)
 			{
 				$sql.=' AND a.id = '.intval($oid);
 			}
@@ -91,16 +91,16 @@ class CdavLib
 		}
 		else
 		{
-			$sql.='	AND COALESCE(a.datep2,a.datep)>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'" 
+			$sql.='	AND COALESCE(a.datep2,a.datep)>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'"
 					AND a.datep<="'.date('Y-m-d 23:59:59',time()+86400*CDAV_SYNC_FUTURE).'"';
 		}
-		
+
 		return $sql;
-		
+
 	}
 	/**
 	 * Base sql request for project tasks
-	 * 
+	 *
 	 * @param int calendar user id
 	 * @param int task object id
 	 * @param string elem_source 'pt'=Project TODO  'pe'=Project EVENT
@@ -109,22 +109,22 @@ class CdavLib
 	public function getSqlProjectTasks($calid, $oid=false, $elem_source)
 	{
 		global $conf;
-		
-		if(!$conf->projet->enabled || (isset($conf->global->PROJECT_HIDE_TASKS) && $conf->global->PROJECT_HIDE_TASKS))
+
+		if(!$conf->project->enabled || (isset($conf->global->PROJECT_HIDE_TASKS) && $conf->global->PROJECT_HIDE_TASKS))
 			return false;
-		
+
 		if(intval(CDAV_TASK_SYNC)==0 || (intval(CDAV_TASK_SYNC)==1 && $elem_source=='pt'))
 			return false;
-		
+
 		if(intval(CDAV_TASK_SYNC)==0 || (intval(CDAV_TASK_SYNC)==2 && $elem_source=='pe'))
 			return false;
-		
-		// TODO : replace GROUP_CONCAT by 
-		$sql = 'SELECT 
+
+		// TODO : replace GROUP_CONCAT by
+		$sql = 'SELECT
 					"'.$elem_source.'" elem_source,
-					pt.rowid AS id, 
-					pt.tms AS lastupd, 
-					pt.*, 
+					pt.rowid AS id,
+					pt.tms AS lastupd,
+					pt.*,
 					p.ref proj_ref,
 					p.title proj_title,
 					p.description proj_desc,
@@ -136,11 +136,11 @@ class CdavLib
 					s.phone soc_phone,
 					(SELECT GROUP_CONCAT(u.login) FROM '.MAIN_DB_PREFIX.'element_contact gec
 						LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as gtc ON (gtc.rowid=gec.fk_c_type_contact AND gtc.element="project_task" AND gtc.source="internal")
-						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=gec.fk_socpeople) 
+						LEFT OUTER JOIN '.MAIN_DB_PREFIX.'user AS u ON (u.rowid=gec.fk_socpeople)
 						WHERE gec.element_id=pt.rowid AND gtc.element="project_task" AND u.login IS NOT NULL) AS other_users,
 					(SELECT GROUP_CONCAT(sp.firstname, " ", sp.lastname) FROM '.MAIN_DB_PREFIX.'element_contact gec
 						LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as gtc ON (gtc.rowid=gec.fk_c_type_contact AND gtc.element="project_task" AND gtc.source="external")
-						LEFT JOIN '.MAIN_DB_PREFIX.'socpeople AS sp ON (sp.rowid=gec.fk_socpeople) 
+						LEFT JOIN '.MAIN_DB_PREFIX.'socpeople AS sp ON (sp.rowid=gec.fk_socpeople)
 						WHERE gec.element_id=pt.rowid AND gtc.element="project_task" AND sp.lastname IS NOT NULL) AS other_contacts
 				FROM '.MAIN_DB_PREFIX.'projet_task AS pt
 				LEFT JOIN '.MAIN_DB_PREFIX.'projet AS p ON (p.rowid = pt.fk_projet)
@@ -156,16 +156,16 @@ class CdavLib
 		}
 		else
 		{
-			$sql.='	AND COALESCE(pt.datee,pt.dateo)>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'" 
+			$sql.='	AND COALESCE(pt.datee,pt.dateo)>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'"
 					AND pt.dateo<="'.date('Y-m-d 23:59:59',time()+86400*CDAV_SYNC_FUTURE).'"';
 		}
 		return $sql;
-		
+
 	}
-	
+
 	/**
 	 * Convert calendar row to VCalendar string
-	 * 
+	 *
 	 * @param row object
 	 * @return string
 	 */
@@ -181,7 +181,7 @@ class CdavLib
 			}*/
 
 			$location=trim(str_replace(array("\r","\t","\n"),' ',$obj->location));
-			
+
 			// contact address
 			if(empty($location) && !empty($obj->address))
 			{
@@ -190,7 +190,7 @@ class CdavLib
 				$location = trim($location.' '.$obj->town);
 				$location = trim($location.', '.$obj->country_label);
 			}
-			
+
 			// contact address
 			if(empty($location) && !empty($obj->soc_address))
 			{
@@ -199,7 +199,7 @@ class CdavLib
 				$location = trim($location.' '.$obj->soc_town);
 				$location = trim($location.', '.$obj->soc_country_label);
 			}
-			
+
 			$address=explode("\n",$obj->address,2);
 			foreach($address as $kAddr => $vAddr)
 			{
@@ -212,7 +212,7 @@ class CdavLib
 				$type='VEVENT';
 			else
 				$type='VTODO';
-				
+
 			$timezone = date_default_timezone_get();
 
 			$caldata ="";
@@ -277,7 +277,7 @@ class CdavLib
 				$caldata.="STATUS:IN-PROCESS\n";
 				$caldata.="PERCENT-COMPLETE:".$obj->percent."\n";
 			}
-		
+
 			$caldata.="DESCRIPTION:";
 			if(!empty($obj->proj_ref))
 				$caldata.="💼📋 [".$obj->proj_ref."] ".$obj->proj_title."\\n";
@@ -301,7 +301,7 @@ class CdavLib
 			else
 				$caldata.=strtr("\n".trim($obj->note), array("\n- ["=>"\\n[", "\n- "=>"\\n[ ] ", "[x] [ ]"=>"[x]", "[ ] [x]"=>"[x]", "[x] [x]"=>"[x]", "[ ] [ ]"=>"[ ]", "\n"=>"\\n", "\r"=>""));
 			$caldata.="\n";
-			 
+
 			$caldata.="END:".$type."\n";
 			if($bHeader)
 				$caldata.="END:VCALENDAR\n";
@@ -312,9 +312,9 @@ class CdavLib
 				$type='VEVENT';
 			else 	// 'pt'
 				$type='VTODO';
-			
+
 			$location='';
-			
+
 			// soc address
 			if(!empty($obj->soc_address))
 			{
@@ -323,7 +323,7 @@ class CdavLib
 				$location = trim($location.' '.$obj->soc_town);
 				$location = trim($location.', '.$obj->soc_country_label);
 			}
-			
+
 			$timezone = date_default_timezone_get();
 
 			$caldata ="BEGIN:VCALENDAR\n";
@@ -349,10 +349,10 @@ class CdavLib
 			}
 			elseif(trim($obj->datee)!='')
 				$caldata.="DUE;TZID=".$timezone.":".strtr($obj->datee,array(" "=>"T", ":"=>"", "-"=>""))."\n";
-				
+
 			$caldata.="CLASS:PUBLIC\n";
 			$caldata.="TRANSP:OPAQUE\n";
-			
+
 			if($type=='VEVENT')
 				$caldata.="STATUS:CONFIRMED\n";
 			elseif($obj->progress==0)
@@ -364,7 +364,7 @@ class CdavLib
 				$caldata.="STATUS:IN-PROCESS\n";
 				$caldata.="PERCENT-COMPLETE:".$obj->progress."\n";
 			}
-		
+
 			$caldata.="DESCRIPTION:";
 			if(!empty($obj->proj_desc))
 				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
@@ -388,7 +388,7 @@ class CdavLib
 	//		if(strpos($obj->other_users,',')) // several
 	//			$caldata.="💼USR: ".$obj->other_users."\\n";
 			$caldata.="\n";
-			 
+
 			$caldata.="END:".$type."\n";
 			if($bHeader)
 				$caldata.="END:VCALENDAR\n";
@@ -396,32 +396,32 @@ class CdavLib
 
 		return $caldata;
 	}
-	
-	public function getFullCalendarObjects($calendarId, $bCalendarData) 
+
+	public function getFullCalendarObjects($calendarId, $bCalendarData)
 	{
 		if(function_exists("debug_log"))
 			debug_log("getCalendarObjects( $calendarId , $bCalendarData )");
-		
+
 		$calid = intval($calendarId);
 		$calevents = [] ;
 		$rSql = [] ;
 
 		if(! $this->user->rights->agenda->myactions->read)
 			return $calevents;
-		
+
 		if($calid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
 			return $calevents;
 
 		$rSql['ev'] = $this->getSqlCalEvents($calid);
 		$rSql['pe'] = $this->getSqlProjectTasks($calid, false, 'pe');
 		$rSql['pt'] = $this->getSqlProjectTasks($calid, false, 'pt');
-	  
+
 		foreach($rSql as $elem_source => $sql)
 		{
 			if($sql=='')
 				continue;
 			$result = $this->db->query($sql);
-			
+
 			if ($result)
 			{
 				while ($obj = $this->db->fetch_object($result))
@@ -457,5 +457,5 @@ class CdavLib
 		}
 		return $calevents;
 	}
-	
+
 }
