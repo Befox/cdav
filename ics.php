@@ -131,7 +131,13 @@ if(!defined('CDAV_MEMBER_SYNC'))
 define('CDAV_ADDRESSBOOK_ID_SHIFT', 100000);
 
 //parse Token
-$arrTmp = explode('+ø+', openssl_decrypt(base64url_decode(GETPOST('token')), 'bf-ecb', CDAV_URI_KEY, true));
+$arrTmp = explode('+ø+', openssl_decrypt(base64url_decode(GETPOST('token')), 'aes-256-cbc', CDAV_URI_KEY, true));
+
+if(!is_array($arrTmp) || count($arrTmp)<2)
+{
+	// use old encryption algo bf-ecb
+	$arrTmp = explode('+ø+', openssl_decrypt(base64url_decode(GETPOST('token')), 'bf-ecb', CDAV_URI_KEY, true));
+}
 
 if (! isset($arrTmp[1]) || ! in_array(trim($arrTmp[1]), array('nolabel', 'full')))
 {
