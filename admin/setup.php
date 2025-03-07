@@ -26,7 +26,7 @@ if (! $res && file_exists("../../main.inc.php"))
 if (! $res && file_exists("../../../main.inc.php"))
         $res=@include("../../../main.inc.php"); // For "custom" directory
 
-dol_include_once("/cdav/core/lib/cdav.lib.php");
+dol_include_once("/cdav/lib/cdav.lib.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php");
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formadmin.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.form.class.php");
@@ -79,7 +79,7 @@ $form = new Form($db);
 if ($action == 'setvalue') {
 	// save the setting
 
-	$valCDAV_URI_KEY = substr(GETPOST('CDAV_URI_KEY', 'text'),0,8);
+	$valCDAV_URI_KEY = substr(GETPOST('CDAV_URI_KEY', 'alphanohtml'),0,8);
 	if($valCDAV_URI_KEY=='')
 		$valCDAV_URI_KEY = substr(md5(time()),0,8);
 
@@ -89,83 +89,83 @@ if ($action == 'setvalue') {
 	);
 	dolibarr_set_const(
 									$db, "CDAV_CONTACT_TAG",
-									GETPOST('CDAV_CONTACT_TAG', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_CONTACT_TAG', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_THIRD_SYNC",
-									GETPOST('CDAV_THIRD_SYNC', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_THIRD_SYNC', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_MEMBER_SYNC",
-									GETPOST('CDAV_MEMBER_SYNC', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_MEMBER_SYNC', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_SYNC_PAST",
-									GETPOST('CDAV_SYNC_PAST', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_SYNC_PAST', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_SYNC_FUTURE",
-									GETPOST('CDAV_SYNC_FUTURE', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_SYNC_FUTURE', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_TASK_SYNC",
-									GETPOST('CDAV_TASK_SYNC', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_TASK_SYNC', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_TASK_USER_ROLE",
-									GETPOST('CDAV_TASK_USER_ROLE', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_TASK_USER_ROLE', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK",
-									GETPOST('CDAV_GENTASK', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_INI1",
-									GETPOST('CDAV_GENTASK_INI1', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_INI1', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_INI2",
-									GETPOST('CDAV_GENTASK_INI2', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_INI2', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_INI3",
-									GETPOST('CDAV_GENTASK_INI3', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_INI3', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_END1",
-									GETPOST('CDAV_GENTASK_END1', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_END1', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_END2",
-									GETPOST('CDAV_GENTASK_END2', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_END2', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_END3",
-									GETPOST('CDAV_GENTASK_END3', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_END3', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_PROJ_USER_ROLE",
-									GETPOST('CDAV_PROJ_USER_ROLE', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_PROJ_USER_ROLE', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_GENTASK_SERVICE_TAG",
-									GETPOST('CDAV_GENTASK_SERVICE_TAG', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_GENTASK_SERVICE_TAG', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_EXTRAFIELD_DURATION",
-									GETPOST('CDAV_EXTRAFIELD_DURATION', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_EXTRAFIELD_DURATION', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_TASK_HOUR_INI",
-									GETPOST('CDAV_TASK_HOUR_INI', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_TASK_HOUR_INI', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_TASK_HOUR_END",
-									GETPOST('CDAV_TASK_HOUR_END', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_TASK_HOUR_END', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_QRCODE_DAVX5_ENABLED",
-									GETPOST('CDAV_QRCODE_DAVX5_ENABLED', 'text'), 'chaine', 0, '', $conf->entity
+									GETPOST('CDAV_QRCODE_DAVX5_ENABLED', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 );
 
 

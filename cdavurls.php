@@ -60,7 +60,7 @@ if(!defined('CDAV_URI_KEY'))
 $id			= GETPOST('id','int');
 $action		= GETPOST('action','alpha');
 $backtopage = GETPOST('backtopage');
-$type		= GETPOST('type','CalDAV');
+$type		= GETPOST('type','alpha');
 
 // Protection if external user
 if (!empty($user->societe_id) || !empty($user->socid)) // external user
@@ -165,15 +165,15 @@ elseif($type=='ICS')
 		{
 			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
 
-			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+full', 'bf-ecb', CDAV_URI_KEY, true))."\n\n";
-			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+nolabel', 'bf-ecb', CDAV_URI_KEY, true)).'</PRE><br/>';
+			echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+full', 'aes-256-cbc', CDAV_URI_KEY, true))."\n\n";
+			echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+nolabel', 'aes-256-cbc', CDAV_URI_KEY, true)).'</PRE><br/>';
 
 		}
 	}
 	else
 	{
-		echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($user->id.'+ø+full', 'bf-ecb', CDAV_URI_KEY, true))."\n\n";
-		echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($user->id.'+ø+nolabel', 'bf-ecb', CDAV_URI_KEY, true)).'</PRE><br/>';
+		echo "<PRE>".$langs->trans('Full')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($user->id.'+ø+full', 'aes-256-cbc', CDAV_URI_KEY, true))."\n\n";
+		echo $langs->trans('NoLabel')." :\n".dol_buildpath('cdav/ics.php', 2).'?token='.base64url_encode(openssl_encrypt($user->id.'+ø+nolabel', 'aes-256-cbc', CDAV_URI_KEY, true)).'</PRE><br/>';
 	}
 
 }
