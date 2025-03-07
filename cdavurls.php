@@ -60,7 +60,7 @@ if(!defined('CDAV_URI_KEY'))
 $id			= GETPOST('id','int');
 $action		= GETPOST('action','alpha');
 $backtopage = GETPOST('backtopage');
-$type		= GETPOST('type','CalDAV');
+$type		= GETPOST('type','alpha');
 
 // Protection if external user
 if ($user->societe_id > 0)
