@@ -382,7 +382,7 @@ class ActionsCDav
 		// echo "formObjectOptions action: ";
 		// print_r($action);
 
-		if ($parameters['currentcontext'] == 'projecttaskscard' && $parameters['id'] > 0) {
+		if ($parameters['currentcontext'] == 'projecttaskscard' && ! empty($parameters['id'])) {
 			$sql = 'SELECT pt.rowid, us.color, us.login, us.firstname, us.lastname
 				FROM ' . MAIN_DB_PREFIX . 'projet_task AS pt
 				LEFT JOIN ' . MAIN_DB_PREFIX . 'element_contact as ec ON (ec.element_id=pt.rowid)
