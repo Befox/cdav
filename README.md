@@ -25,7 +25,7 @@ It is possible to select which contacts to sync with CDAV_CONTACT_TAG configurat
 
 Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
 
-Recurring events are not handled (Dolibarr does not handle them).
+Recurring events are partially handled (Dolibarr does not handle them fully), when a recurring event is created, it is duplicated automatically until the date specified (exculded) or the max synchronisation time range.
 
 Automatic tasks generation in projects with services from linked Propositions and/or Orders 
 Module setup offer you to :
