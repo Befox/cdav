@@ -29,7 +29,7 @@ function exception_error_handler($errno, $errstr, $errfile, $errline) {
 }
 
 // debug
-// $debug_file = fopen('/tmp/cdav_'.date('Ymd').'.log','a');
+//$debug_file = fopen( sys_get_temp_dir() . '/cdav_'.date('Ymd').'.log','a');
 $debug_file = false;
 
 function debug_log($txt)
@@ -101,8 +101,8 @@ require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 if(!$conf->cdav->enabled)
 	die('module CDav not enabled !');
 
-set_error_handler("exception_error_handler", E_ERROR | E_USER_ERROR |
-				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR );
+//set_error_handler("exception_error_handler", E_ERROR | E_USER_ERROR |
+//				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR );
 
 
 require_once './lib/cdav.lib.php';

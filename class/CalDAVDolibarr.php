@@ -452,129 +452,133 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			return;
 		}
 
-		$oid = false;
-		$elem_source = 'ev';
-		// check if it is existing event (if caldav client move it from a calendar to an other)
-		// objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
-		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		// Loop on occurences
+		foreach($calendarData['occurences'] as $iOccur => $occurence)
 		{
-			$oid = intval($objectUri);
-			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid;
-			$result = $this->db->query($sql);
-			if ($result===false ||  $this->db->fetch_object($result)===false)
-				$oid = false;
-		}
-		elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
-		{
-			$oid = intval($objectUri);
-			$elem_source = 'p?';
-			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid;
-			$result = $this->db->query($sql);
-			if ($result===false ||  $this->db->fetch_object($result)===false)
+			$oid = false;
+			$elem_source = 'ev';
+			// check if it is existing event (if caldav client move it from a calendar to an other)
+			// objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
+			if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 			{
-				$oid = false;
-				$elem_source = 'ev';
+				$oid = intval($objectUri);
+				$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid;
+				$result = $this->db->query($sql);
+				if ($result===false ||  $this->db->fetch_object($result)===false)
+					$oid = false;
 			}
-		}
-		else
-		{
-			$sql = "SELECT fk_object FROM ".MAIN_DB_PREFIX."actioncomm_cdav WHERE uuidext = '".$this->db->escape($objectUri)."'";
-			$result = $this->db->query($sql);
-			if ($result!==false && ($row=$this->db->fetch_object($result))!==false)
-				$oid = intval($row->fk_object);
-		}
-
-		if(!$oid)	// new event
-		{
-			if((float) DOL_VERSION >= 14.0)
+			elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
 			{
-				$reffield='ref,';
-				$refvalue='NOW(),';
+				$oid = intval($objectUri);
+				$elem_source = 'p?';
+				$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid;
+				$result = $this->db->query($sql);
+				if ($result===false ||  $this->db->fetch_object($result)===false)
+				{
+					$oid = false;
+					$elem_source = 'ev';
+				}
 			}
 			else
 			{
-				$reffield='';
-				$refvalue='';
+				$sql = "SELECT fk_object FROM ".MAIN_DB_PREFIX."actioncomm_cdav WHERE uuidext = '".$this->db->escape($objectUri)."'";
+				$result = $this->db->query($sql);
+				if ($result!==false && ($row=$this->db->fetch_object($result))!==false)
+					$oid = intval($row->fk_object??0);
 			}
 
-			debug_log("    creating event");
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (".$reffield."entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
-						VALUES (".$refvalue."
-							1,
-							'".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
-							'".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
-							5,
-							'AC_RDV',
-							'".$this->db->escape($calendarData['label'])."',
-							NOW(),
-							NOW(),
-							".(int)$this->user->id.",
-							0,
-							".(int)$calendarId.",
-							".(int)$calendarData['priority'].",
-							".(int)$calendarData['transparency'].",
-							".(int)$calendarData['fullday'].",
-							".(int)$calendarData['percent'].",
-							'".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
-							".($calendarData['end'] - $calendarData['fullday'] - $calendarData['start']).",
-							'".$this->db->escape($calendarData['note'])."'
+			if(!$oid || $iOccur>0)	// new event 
+			{
+				if((float) DOL_VERSION >= 14.0)
+				{
+					$reffield='ref,';
+					$refvalue='NOW(),';
+				}
+				else
+				{
+					$reffield='';
+					$refvalue='';
+				}
+
+				debug_log("    creating event");
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (".$reffield."entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
+							VALUES (".$refvalue."
+								1,
+								'".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $occurence->start) : date('Y-m-d H:i:s', $occurence->start))."',
+								'".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $occurence->end-1) : date('Y-m-d H:i:s', $occurence->end))."',
+								5,
+								'AC_RDV',
+								'".$this->db->escape($calendarData['label'])."',
+								NOW(),
+								NOW(),
+								".(int)$this->user->id.",
+								0,
+								".(int)$calendarId.",
+								".(int)$calendarData['priority'].",
+								".(int)$calendarData['transparency'].",
+								".(int)$calendarData['fullday'].",
+								".(int)$calendarData['percent'].",
+								'".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
+								".($occurence->end - $calendarData['fullday'] - $occurence->start).",
+								'".$this->db->escape($calendarData['note'])."'
+							)";
+				$res = $this->db->query($sql);
+				if ( ! $res)
+				{
+					debug_log("    Error inserting : ".$sql);
+					return;
+				}
+
+				//Récupérer l'ID de l'event créer et faire une insertion dans actioncomm_resources
+				$oid = $this->db->last_insert_id(MAIN_DB_PREFIX.'actioncomm');
+				if ( ! $oid)
+				{
+					debug_log("    Error getting last_insert_id");
+					return;
+				}
+				debug_log("    event $oid created");
+				if((float) DOL_VERSION >= 14.0)
+				{
+					$sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET ref=id WHERE id=".$oid;
+					$this->db->query($sql);
+				}
+				//Insérer l'UUID externe
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
+						VALUES (
+							".$oid.",
+							'".$this->db->escape($objectUri)."',
+							'".$this->db->escape($calendarData['uid'])."'
 						)";
-			$res = $this->db->query($sql);
-			if ( ! $res)
-			{
-				debug_log("    Error inserting : ".$sql);
-				return;
-			}
-
-			//Récupérer l'ID de l'event créer et faire une insertion dans actioncomm_resources
-			$oid = $this->db->last_insert_id(MAIN_DB_PREFIX.'actioncomm');
-			if ( ! $oid)
-			{
-				debug_log("    Error getting last_insert_id");
-				return;
-			}
-			debug_log("    event $oid created");
-			if((float) DOL_VERSION >= 14.0)
-			{
-				$sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET ref=id WHERE id=".$oid;
 				$this->db->query($sql);
 			}
-			//Insérer l'UUID externe
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
-					VALUES (
-						".$oid.",
-						'".$this->db->escape($objectUri)."',
-						'".$this->db->escape($calendarData['uid'])."'
-					)";
-			$this->db->query($sql);
-		}
 
-		if($elem_source == 'ev')
-		{
-			debug_log("    add user $calendarId to event $oid");
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_resources (`fk_actioncomm`, `element_type`, `fk_element`, `transparency` )
-					VALUES (
-						".$oid.",
-						'user',
-						".(int)$calendarId.",
-						'".$this->db->escape($calendarData['transparency'])."'
-					)";
-			$this->db->query($sql);
-		}
-		else
-		{
-			debug_log("    add user $calendarId to project task $oid");
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
-					VALUES (
-						NOW(),
-						4,
-						".(int)$oid.",
-						".(int)CDAV_TASK_USER_ROLE.",
-						".(int)$calendarId."
-					)";
-			debug_log($sql);
-			$this->db->query($sql);
-		}
+			if($elem_source == 'ev')
+			{
+				debug_log("    add user $calendarId to event $oid");
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_resources (`fk_actioncomm`, `element_type`, `fk_element`, `transparency` )
+						VALUES (
+							".$oid.",
+							'user',
+							".(int)$calendarId.",
+							'".$this->db->escape($calendarData['transparency'])."'
+						)";
+				$this->db->query($sql);
+			}
+			else
+			{
+				debug_log("    add user $calendarId to project task $oid");
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
+						VALUES (
+							NOW(),
+							4,
+							".(int)$oid.",
+							".(int)CDAV_TASK_USER_ROLE.",
+							".(int)$calendarId."
+						)";
+				debug_log($sql);
+				$this->db->query($sql);
+			}
+		} // loop occurences
 
 		return;
 	}
@@ -610,6 +614,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			return;
 		}
 
+		$origCalendarData = $calendarData;
 		$calendarData = $this->_parseData($calendarData);
 
 		if (! $calendarData || empty($calendarData))
@@ -666,6 +671,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		}
 
 		$this->db->query($sql);
+
+		// if reccurse, create other occurences
+		if(count($calendarData['occurences'])>1)
+			return $this->createCalendarObject($calendarId, $objectUri, $origCalendarData);
 
 		return;
 	}
@@ -857,7 +866,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							WHERE `sourceuid`= '".$this->db->escape($uid)."'"; // uid comes from external apps
 					$result = $this->db->query($sql);
 					if($result!==false && ($row = $this->db->fetch_array($result))!==false)
-						$id = intval($row['fk_object']);
+						$id = intval($row['fk_object']??0);
 				}
 				if (in_array($componentType, array('VEVENT', 'VTODO')))
 				{
@@ -942,7 +951,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		if (!$componentType) {
 			throw new \Sabre\DAV\Exception\BadRequest('Calendar objects must have a VJOURNAL, VEVENT or VTODO component');
 		}
-		/* Pas de gestion de la récurrence
+		/* Gestion de la récurrence */
+		$occurences=array();
 		if ($componentType === 'VEVENT') {
 			$firstOccurence = $component->DTSTART->getDateTime()->getTimeStamp();
 			// Finding the last occurence is a bit harder
@@ -960,30 +970,37 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				} else {
 					$lastOccurence = $firstOccurence;
 				}
+				$occur = new \stdClass();
+				$occur->start = $firstOccurence;
+				$occur->end = $lastOccurence;
+				$occurences[] = $occur;
 			} else {
 				$it = new VObject\Recur\EventIterator($vObject, (string)$component->UID);
-				$maxDate = new \DateTime(self::MAX_DATE);
-				if ($it->isInfinite()) {
-					$lastOccurence = $maxDate->getTimeStamp();
-				} else {
-					$end = $it->getDtEnd();
-					while ($it->valid() && $end < $maxDate) {
-						$end = $it->getDtEnd();
-						$it->next();
-
-					}
-					$lastOccurence = $end->getTimeStamp();
+				$maxts = time()+86400*CDAV_SYNC_FUTURE;
+				$lastOccurence = $firstOccurence;
+				while ($it->valid() && $lastOccurence < $maxts) {
+					$itDtStart = $it->getDtStart();
+					$itDtEnd = $it->getDtEnd();
+					$occur = new \stdClass();
+					$occur->start = $itDtStart->getTimeStamp();
+					$occur->end = $itDtEnd->getTimeStamp();
+					$occurences[] = $occur;
+					$lastOccurence = $itDtEnd->getTimeStamp();
+					debug_log("   recur date : ".$itDtStart->format('Y-m-d H:i')." / ".$itDtEnd->format('Y-m-d H:i'));
+					$it->next();
 				}
-
 			}
 		}
-		*/
+		
+		
+		
 		$ret = array(
 			'etag'           	=> md5($calendarData),
 			'size'           	=> strlen($calendarData),
 			'componentType'  	=> $componentType,
 			'firstOccurence' 	=> $firstOccurence,
 			'lastOccurence'  	=> $lastOccurence,
+			'occurences'		=> $occurences,
 			'uid'            	=> $uid,
 			'id'            	=> $id,
 			'label' 			=> $label,
