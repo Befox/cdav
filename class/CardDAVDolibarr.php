@@ -631,6 +631,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$address[1]).";".str_replace(';','\;',$address[0]).";";
 		$carddata.=	 str_replace(';','\;',$obj->town).";;".str_replace(';','\;',$obj->zip).";".str_replace(';','\;',$obj->country_label)."\n";
 		$carddata.="TEL;TYPE=WORK,VOICE:".str_replace(';','\;',$obj->phone)."\n";
+		if(!empty($obj->phone_mobile))
+			$carddata.="TEL;TYPE=CELL,VOICE:".str_replace(';','\;',$obj->phone_mobile)."\n";
 		if(!empty($obj->fax))
 			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->fax)."\n";
 		if(!empty($obj->email))
@@ -1017,11 +1019,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$teltype[strtoupper($type)]=true;
 				}
 
-				if(isset($teltype['VOICE']) && empty($rdata['phone']))
-					$rdata['phone'] = (string)$tel;
-
-				if(isset($teltype['WORK']) && isset($teltype['VOICE']))
-					$rdata['phone'] = (string)$tel;
+				if((float) DOL_VERSION >= 20.0) // field societe.phone_mobile exists
+				{
+					if(isset($teltype['WORK']) && isset($teltype['VOICE']))
+						$rdata['phone'] = (string)$tel;
+					if(isset($teltype['CELL']) && isset($teltype['VOICE']))
+						$rdata['phone_mobile'] = (string)$tel;
+				}
+				else // < v 20
+				{
+					if(isset($teltype['VOICE']) && empty($rdata['phone']))
+						$rdata['phone'] = (string)$tel;
+					if(isset($teltype['WORK']) && isset($teltype['VOICE']))
+						$rdata['phone'] = (string)$tel;
+				}
 
 				if(isset($teltype['FAX']))
 					$rdata['fax'] = (string)$tel;
