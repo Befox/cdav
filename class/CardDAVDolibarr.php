@@ -1023,7 +1023,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				{
 					if(isset($teltype['WORK']) && isset($teltype['VOICE']))
 						$rdata['phone'] = (string)$tel;
-					if(isset($teltype['CELL']) && isset($teltype['VOICE']))
+					if(isset($teltype['CELL']))
 						$rdata['phone_mobile'] = (string)$tel;
 				}
 				else // < v 20
