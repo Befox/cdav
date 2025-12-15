@@ -1021,7 +1021,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 
 				if((float) DOL_VERSION >= 20.0) // field societe.phone_mobile exists
 				{
-					if(isset($teltype['WORK']) && isset($teltype['VOICE']))
+					if(isset($teltype['WORK']) && (isset($teltype['VOICE']) || count($teltype)==1))
 						$rdata['phone'] = (string)$tel;
 					if(isset($teltype['CELL']))
 						$rdata['phone_mobile'] = (string)$tel;
@@ -1030,7 +1030,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				{
 					if(isset($teltype['VOICE']) && empty($rdata['phone']))
 						$rdata['phone'] = (string)$tel;
-					if(isset($teltype['WORK']) && isset($teltype['VOICE']))
+					if(isset($teltype['WORK']) && (isset($teltype['VOICE']) || count($teltype)==1))
 						$rdata['phone'] = (string)$tel;
 				}
 
