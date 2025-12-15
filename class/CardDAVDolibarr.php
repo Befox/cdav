@@ -113,7 +113,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			];
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && $this->user->rights->adherent->lire)
+		if(CDAV_MEMBER_SYNC>0 && $this->user->hasRight('adherent', 'lire'))
 		{
 			$sql = 'SELECT MAX(GREATEST(COALESCE(s.tms, p.tms), p.tms)) lastupd FROM '.MAIN_DB_PREFIX.'adherent as p
 					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON s.rowid = p.fk_soc
@@ -1243,7 +1243,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRight('adherent', 'lire'))
 		{
 			$sql = $this->_getSqlMembers();
 			$result = $this->db->query($sql);
@@ -1334,7 +1334,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			}
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRight('adherent', 'lire'))
 		{
 			if(strpos($cardUri, '-mb-')>0)
 				$sqlWhere = ' AND p.rowid='.intval($cardUri);							// cardUri starts with member id
@@ -1412,7 +1412,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$sql = $this->_getSqlThirdparties($sqlWhere);
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->lire)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRight('adherent', 'lire'))
 		{
 			$typecth = '-mb-';
 			foreach($uris as $cardUri)
@@ -1586,7 +1586,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return null;
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->creer)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRight('adherent','creer'))
 		{
 			$rdata = $this->_parseDataMember($cardData, 'C');
 
@@ -1711,7 +1711,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$this->db->query($sql);
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->creer)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRigh('adherent','creer'))
 		{
 			$rdata = $this->_parseDataMember($cardData, 'U');
 
@@ -1778,7 +1778,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			return true;
 		}
 
-		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->rights->adherent->supprimer)
+		if(CDAV_MEMBER_SYNC>0 && intval($addressbookId)>=(2*CDAV_ADDRESSBOOK_ID_SHIFT) && intval($addressbookId)<(3*CDAV_ADDRESSBOOK_ID_SHIFT) && $this->user->hasRight('adherent','supprimer'))
 		{
 
 			if(strpos($cardUri, '-mb-')>0)

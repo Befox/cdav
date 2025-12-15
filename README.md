@@ -2,7 +2,7 @@
 
 ## What is it ?
 
-This module for Dolibarr 16.0/18.0 adds CardDAV / CalDAV and ICS synchronisation. It uses Dolibarr [Sabre/DAV](http://sabre.io/dav/) server library.
+This module for Dolibarr 16.0/22.0 adds CardDAV / CalDAV and ICS synchronisation. It uses Dolibarr [Sabre/DAV](http://sabre.io/dav/) server library.
 
 You can :
 
