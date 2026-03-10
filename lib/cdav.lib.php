@@ -110,7 +110,7 @@ class CdavLib
 	{
 		global $conf;
 
-		if(!$conf->project->enabled || (isset($conf->global->PROJECT_HIDE_TASKS) && $conf->global->PROJECT_HIDE_TASKS))
+		if(empty($conf->project->enabled) || (isset($conf->global->PROJECT_HIDE_TASKS) && $conf->global->PROJECT_HIDE_TASKS))
 			return false;
 
 		if(intval(CDAV_TASK_SYNC)==0 || (intval(CDAV_TASK_SYNC)==1 && $elem_source=='pt'))
