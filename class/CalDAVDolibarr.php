@@ -1157,6 +1157,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				return;
 			}
 			debug_log("    remove user ".intval($calendarId)." from resources of task ".$oid);
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."projet_task
+							SET
+								fk_user_modif	= '".(int)$this->user->id."',
+								note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+								tms				= NOW()
+							WHERE rowid = ".$oid);
 			$this->db->query("DELETE ec
 							FROM ".MAIN_DB_PREFIX."element_contact as ec
 							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='project_task' AND tc.source='internal')
@@ -1176,6 +1182,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			}
 			$fi_oid = intval($row->fk_fichinter);
 			debug_log("    remove user ".intval($calendarId)." from resources of fichinter ".$fi_oid." (via fichinterdet ".$oid.")");
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."fichinter f
+							SET
+								f.fk_user_modif	= '".(int)$this->user->id."',
+								f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+								f.tms			= NOW()
+							WHERE f.rowid = ".$fi_oid);
 			$this->db->query("DELETE ec
 							FROM ".MAIN_DB_PREFIX."element_contact as ec
 							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='fichinter' AND tc.source='internal')
