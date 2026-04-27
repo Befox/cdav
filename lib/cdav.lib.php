@@ -493,7 +493,8 @@ class CdavLib
 			$caldata.="UID:".$obj->id.'-fi-'.CDAV_URI_KEY."\n";
 			$summary = trim($obj->fi_description);
 			if($summary=='')
-				$summary = '['.trim($obj->fi_ref).'] '.trim($obj->soc_nom);
+				$summary = trim($obj->soc_nom);
+			$summary = '['.trim($obj->fi_ref).'] '.$summary;
 			$caldata.="SUMMARY:".strtr($summary, array("\n"=>" ", "\r"=>""))."\n";
 			$caldata.="URL:".dol_buildpath("/fichinter/card.php?id=".$obj->fi_id, 2)."\n";
 			$caldata.="LOCATION:".strtr(trim($location), array("\n"=>"\\n", "\r"=>""))."\n";
