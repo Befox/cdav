@@ -512,8 +512,12 @@ class CdavLib
 			$caldata.="STATUS:CONFIRMED\n";
 
 			$caldata.="DESCRIPTION:";
-			if(!empty($obj->fi_ref))
-				$caldata.="💼📁 [".$obj->fi_ref."] ".trim($obj->soc_nom)."\\n";
+			if(!empty($obj->proj_ref))
+				$caldata.="💼📋 [".$obj->proj_ref."] ".$obj->proj_title."\\n";
+			if(!empty($obj->proj_desc))
+				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
+			if(!empty($obj->soc_nom))
+				$caldata.="💼🏢 ".$obj->soc_nom."\\n";
 			if(!empty($obj->proj_ref))
 				$caldata.="💼📋 [".$obj->proj_ref."] ".$obj->proj_title."\\n";
 			if(!empty($obj->soc_town))
