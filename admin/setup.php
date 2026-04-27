@@ -83,12 +83,25 @@ if ($result!==false)
 	while(($row=$db->fetch_object($result))!==null)
 		$projcontact_types[$row->rowid] = $row->libelle;
 }
+$intervcontact_types=array();
+$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE element="fichinter" AND source="internal" AND active=1';
+$result = $db->query($sql);
+if ($result!==false)
+{
+	while(($row=$db->fetch_object($result))!==null)
+		$intervcontact_types[$row->rowid] = $row->libelle;
+}
 
 $tasksync_method=array(
 	'0' => $langs->trans("Not synchonized"),
 	'1' => $langs->trans("Sync as calendar events only"),
 	'2' => $langs->trans("Sync as todo tasks only"),
 	'3' => $langs->trans("Sync as calendar events and todo tasks"),
+);
+
+$intervsync_method=array(
+	'0' => $langs->trans("Not synchonized"),
+	'1' => $langs->trans("Sync as calendar events"),
 );
 
 $thirdsync_method=array(
@@ -136,6 +149,14 @@ if ($action == 'setvalue') {
 	dolibarr_set_const(
 									$db, "CDAV_TASK_SYNC",
 									GETPOST('CDAV_TASK_SYNC', 'alphanohtml'), 'chaine', 0, '', $conf->entity
+	);
+	dolibarr_set_const(
+									$db, "CDAV_INTERV_SYNC",
+									GETPOST('CDAV_INTERV_SYNC', 'alphanohtml'), 'chaine', 0, '', $conf->entity
+	);
+	dolibarr_set_const(
+									$db, "CDAV_INTERV_USER_ROLE",
+									GETPOST('CDAV_INTERV_USER_ROLE', 'alphanohtml'), 'chaine', 0, '', $conf->entity
 	);
 	dolibarr_set_const(
 									$db, "CDAV_TASK_USER_ROLE",
@@ -215,6 +236,8 @@ $CDAV_MEMBER_SYNC=$conf->global->CDAV_MEMBER_SYNC;
 $CDAV_SYNC_PAST=$conf->global->CDAV_SYNC_PAST;
 $CDAV_SYNC_FUTURE=$conf->global->CDAV_SYNC_FUTURE;
 $CDAV_TASK_SYNC=$conf->global->CDAV_TASK_SYNC;
+$CDAV_INTERV_SYNC=$conf->global->CDAV_INTERV_SYNC;
+$CDAV_INTERV_USER_ROLE=$conf->global->CDAV_INTERV_USER_ROLE;
 $CDAV_TASK_USER_ROLE=$conf->global->CDAV_TASK_USER_ROLE;
 $CDAV_GENTASK=$conf->global->CDAV_GENTASK;
 $CDAV_GENTASK_INI1=$conf->global->CDAV_GENTASK_INI1;
@@ -266,6 +289,19 @@ print '<tr >';
 print '<td  align=left><strong>'.$langs->trans("EnableMembersSync").'</strong><br/>'.$langs->trans("GenerateAddressbookForMembership").'</td>';
 print '<td  align=left>';
 print $form->selectyesno('CDAV_MEMBER_SYNC', $CDAV_MEMBER_SYNC, 1);
+print '</td></tr>'."\n";
+
+
+print '<tr >';
+print '<td  align=left><strong>'.$langs->trans("Enable intervention cards sync").'</strong><br/>'.$langs->trans("How to synchronize intervention cards").'</td>';
+print '<td  align=left>';
+print $form->selectarray('CDAV_INTERV_SYNC', $intervsync_method, $CDAV_INTERV_SYNC);
+print '</td></tr>'."\n";
+
+print '<tr >';
+print '<td  align=left><strong>'.$langs->trans("Intervention user role").'</strong><br/>'.$langs->trans("User role when attaching a user to an intervention from a caldav client").'</td>';
+print '<td  align=left>';
+print $form->selectarray('CDAV_INTERV_USER_ROLE', $intervcontact_types, $CDAV_INTERV_USER_ROLE);
 print '</td></tr>'."\n";
 
 print '<tr >';
