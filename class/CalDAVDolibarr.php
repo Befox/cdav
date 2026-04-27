@@ -173,11 +173,24 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						LEFT JOIN '.MAIN_DB_PREFIX.'element_contact as ec ON (ec.element_id=pt.rowid)
 						LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element="project_task" AND tc.source="internal")
 						WHERE tc.element="project_task" AND tc.source="internal" AND ec.fk_socpeople=u.rowid
-						AND pt.entity IN ('.getEntity('societe', 1).') ) as lastupd_p';
+						AND pt.entity IN ('.getEntity('societe', 1).') ) as lastupd_p, ';
 		}
 		else
 		{
-			$sql.='"1970-01-01 00:00:00" as lastupd_p';
+			$sql.='"1970-01-01 00:00:00" as lastupd_p, ';
+		}
+		if(!empty($conf->ficheinter->enabled) && intval(CDAV_INTERV_SYNC)>0)
+		{
+			$sql.='(SELECT MAX(fi.tms)
+						FROM '.MAIN_DB_PREFIX.'fichinter AS fi
+						LEFT JOIN '.MAIN_DB_PREFIX.'element_contact as ec ON (ec.element_id=fi.rowid)
+						LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element="fichinter" AND tc.source="internal")
+						WHERE tc.element="fichinter" AND tc.source="internal" AND ec.fk_socpeople=u.rowid
+						AND fi.entity IN ('.getEntity('societe', 1).') ) as lastupd_fi';
+		}
+		else
+		{
+			$sql.='"1970-01-01 00:00:00" as lastupd_fi';
 		}
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'user u WHERE u.statut>0';
 		if($onlyme)
@@ -186,7 +199,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		$result = $this->db->query($sql);
 		while($row = $this->db->fetch_array($result))
 		{
-			$lastupd = strtotime(max($row['lastupd_ev'],$row['lastupd_p']));
+			$lastupd = strtotime(max($row['lastupd_ev'],$row['lastupd_p'],$row['lastupd_fi']));
 
 			$calendars[] = [
 				'id'                                                                 => $row['rowid'],
@@ -344,6 +357,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			$elem_source = 'pe';
 			$oid = intval($objectUri);
 		}
+		else if (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		{
+			$elem_source = 'fi';
+			$oid = intval($objectUri);
+		}
 		else
 			$oid = 0;
 
@@ -357,8 +375,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		if($elem_source=='ev') // Calendar Events
 			$sql = $this->cdavLib->getSqlCalEvents($calid, $oid, $objectUri);
+		elseif($elem_source=='fi') // Intervention card
+			$sql = $this->cdavLib->getSqlIntervEvents($calid, $oid);
 		else // Project Tasks
 			$sql = $this->cdavLib->getSqlProjectTasks($calid, $oid, $elem_source);
+
+		if($sql===false || $sql=='')
+			return $calevent;
 
 		$result = $this->db->query($sql);
 
@@ -479,6 +502,19 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 					$elem_source = 'ev';
 				}
 			}
+			elseif (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+			{
+				$oid = intval($objectUri);
+				$elem_source = 'fi';
+				$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid;
+				$result = $this->db->query($sql);
+				if ($result===false || ($row = $this->db->fetch_object($result))===false)
+				{
+					// fichinterdet no longer exists, skip (don't create a new actioncomm)
+					return;
+				}
+				$fi_oid = intval($row->fk_fichinter);
+			}
 			else
 			{
 				$sql = "SELECT fk_object FROM ".MAIN_DB_PREFIX."actioncomm_cdav WHERE uuidext = '".$this->db->escape($objectUri)."'";
@@ -562,6 +598,20 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							".(int)$calendarId.",
 							'".$this->db->escape($calendarData['transparency'])."'
 						)";
+				$this->db->query($sql);
+			}
+			elseif($elem_source == 'fi')
+			{
+				debug_log("    add user $calendarId to fichinter $fi_oid (via fichinterdet $oid)");
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
+						VALUES (
+							NOW(),
+							4,
+							".(int)$fi_oid.",
+							".(int)CDAV_INTERV_USER_ROLE.",
+							".(int)$calendarId."
+						)";
+				debug_log($sql);
 				$this->db->query($sql);
 			}
 			else
@@ -668,6 +718,26 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
 							tms				= NOW()
 						WHERE rowid = ".(int)$calendarData['id'];
+		}
+		elseif($calendarData['elem_source']=='fi') // fichinter line (fichinterdet)
+		{
+			// fichinterdet.date is DATETIME, fichinterdet.duree is in seconds
+			$duree = max(0, intval($calendarData['end']) - intval($calendarData['start']));
+			$sql = "UPDATE ".MAIN_DB_PREFIX."fichinterdet
+						SET
+							date			= '".date('Y-m-d H:i:s', $calendarData['start'])."',
+							duree			= ".$duree.",
+							description		= '".$this->db->escape($calendarData['note'])."'
+						WHERE rowid = ".(int)$calendarData['id'];
+			// bump parent fichinter mtime + audit trace
+			$bumpSql = "UPDATE ".MAIN_DB_PREFIX."fichinter f
+						INNER JOIN ".MAIN_DB_PREFIX."fichinterdet fd ON fd.fk_fichinter = f.rowid
+						SET
+							f.fk_user_modif	= '".(int)$this->user->id."',
+							f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+							f.tms			= NOW()
+						WHERE fd.rowid = ".(int)$calendarData['id'];
+			$this->db->query($bumpSql);
 		}
 
 		$this->db->query($sql);
@@ -858,6 +928,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				elseif(strpos($uid, '-pt-')>0)
 				{
 					$elem_source='pt';
+					$id = intval($uid);
+				}
+				elseif(strpos($uid, '-fi-')>0)
+				{
+					$elem_source='fi';
 					$id = intval($uid);
 				}
 				else
@@ -1082,11 +1157,42 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				return;
 			}
 			debug_log("    remove user ".intval($calendarId)." from resources of task ".$oid);
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."projet_task
+							SET
+								fk_user_modif	= '".(int)$this->user->id."',
+								note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+								tms				= NOW()
+							WHERE rowid = ".$oid);
 			$this->db->query("DELETE ec
 							FROM ".MAIN_DB_PREFIX."element_contact as ec
 							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='project_task' AND tc.source='internal')
 							WHERE ec.element_id = ".$oid."
 							AND tc.element='project_task' AND tc.source='internal'
+							AND ec.fk_socpeople = ".intval($calendarId));
+		}
+		elseif (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		{
+			$oid = intval($objectUri);
+			$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid;
+			$result = $this->db->query($sql);
+			if ($result===false || ($row = $this->db->fetch_object($result))===false)
+			{
+				debug_log("    not found fichinterdet $oid for".$objectUri);
+				return;
+			}
+			$fi_oid = intval($row->fk_fichinter);
+			debug_log("    remove user ".intval($calendarId)." from resources of fichinter ".$fi_oid." (via fichinterdet ".$oid.")");
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."fichinter f
+							SET
+								f.fk_user_modif	= '".(int)$this->user->id."',
+								f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+								f.tms			= NOW()
+							WHERE f.rowid = ".$fi_oid);
+			$this->db->query("DELETE ec
+							FROM ".MAIN_DB_PREFIX."element_contact as ec
+							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='fichinter' AND tc.source='internal')
+							WHERE ec.element_id = ".$fi_oid."
+							AND tc.element='fichinter' AND tc.source='internal'
 							AND ec.fk_socpeople = ".intval($calendarId));
 		}
 		else

@@ -178,6 +178,24 @@ if(!defined('CDAV_TASK_SYNC'))
 		define('CDAV_TASK_SYNC', '0');
 }
 
+// define CDAV_INTERV_SYNC if not
+if(!defined('CDAV_INTERV_SYNC'))
+{
+	if(isset($conf->global->CDAV_INTERV_SYNC))
+		define('CDAV_INTERV_SYNC', $conf->global->CDAV_INTERV_SYNC);
+	else
+		define('CDAV_INTERV_SYNC', '0');
+}
+
+// define CDAV_INTERV_USER_ROLE if not
+if(!defined('CDAV_INTERV_USER_ROLE'))
+{
+	if(isset($conf->global->CDAV_INTERV_USER_ROLE))
+		define('CDAV_INTERV_USER_ROLE', $conf->global->CDAV_INTERV_USER_ROLE);
+	else
+		define('CDAV_INTERV_USER_ROLE', '0');
+}
+
 // define CDAV_THIRD_SYNC if not
 if(!defined('CDAV_THIRD_SYNC'))
 {

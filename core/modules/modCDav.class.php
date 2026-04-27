@@ -58,7 +58,7 @@ class modCDav extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '3.1.3';
+		$this->version = '3.1.4';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -134,6 +134,8 @@ class modCDav extends DolibarrModules
 			18 => array('CDAV_TASK_HOUR_END', 'chaine', '', 'Ending of a working day',0,'current',0),
 			19 => array('CDAV_QRCODE_DAVX5_ENABLED', 'chaine', '0', 'Activate DavX5 auto URL',0,'current',0),
 			20 => array('CDAV_MEMBER_SYNC', 'chaine', '0', 'Sync members',0,'current',0),
+			21 => array('CDAV_INTERV_SYNC', 'chaine', '0', 'How to sync interventions',0,'current',0),
+			22 => array('CDAV_INTERV_USER_ROLE', 'chaine', '', 'Intervention user role when attaching a user to an intervention',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs
