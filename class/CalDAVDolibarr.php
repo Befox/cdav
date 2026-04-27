@@ -1001,7 +1001,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 					foreach($arrTmp as $line)
 					{
 						if (mb_strpos($line, '💼', 0, 'UTF-8')!==0
-							&& mb_strpos($line, '• ', 0, 'UTF-8')!==0				// •  are used as bullet for fichinter details (not the fichinter.description)
 							&& mb_strpos($line, '??', 0, 'UTF-8')!==0				// 💼 could be converted in ?? if utf8 char is truncated on 2 VCal lines
 							&& mb_strpos($line, '*DOLIBARR-', 0, 'UTF-8')===false)
 						{
