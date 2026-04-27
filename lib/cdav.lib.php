@@ -182,9 +182,16 @@ class CdavLib
 
 		$sql = 'SELECT
 					"fi" elem_source,
-					fi.rowid AS id,
+					fid.rowid AS id,
+					fi.rowid AS fi_id,
+					fi.ref AS fi_ref,
+					fi.description AS fi_description,
+					fi.note_public AS fi_note_public,
+					fi.datec AS datec,
 					fi.tms AS lastupd,
-					fi.*,
+					fid.date AS det_date,
+					fid.duree AS det_duree,
+					fid.description AS det_description,
 					p.ref proj_ref,
 					p.title proj_title,
 					p.description proj_desc,
@@ -201,29 +208,25 @@ class CdavLib
 					(SELECT GROUP_CONCAT(sp.firstname, " ", sp.lastname) FROM '.MAIN_DB_PREFIX.'element_contact gec
 						LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as gtc ON (gtc.rowid=gec.fk_c_type_contact AND gtc.element="fichinter" AND gtc.source="external")
 						LEFT JOIN '.MAIN_DB_PREFIX.'socpeople AS sp ON (sp.rowid=gec.fk_socpeople)
-						WHERE gec.element_id=fi.rowid AND gtc.element="fichinter" AND sp.lastname IS NOT NULL) AS other_contacts,
-					(SELECT GROUP_CONCAT(
-							REPLACE(REPLACE(COALESCE(fid.description,""), CHAR(13), " "), CHAR(10), " ")
-							ORDER BY fid.rang, fid.rowid
-							SEPARATOR CHAR(10)
-						) FROM '.MAIN_DB_PREFIX.'fichinterdet AS fid
-						WHERE fid.fk_fichinter=fi.rowid) AS det_descriptions
+						WHERE gec.element_id=fi.rowid AND gtc.element="fichinter" AND sp.lastname IS NOT NULL) AS other_contacts
 				FROM '.MAIN_DB_PREFIX.'fichinter AS fi
+				INNER JOIN '.MAIN_DB_PREFIX.'fichinterdet AS fid ON fid.fk_fichinter = fi.rowid
 				LEFT JOIN '.MAIN_DB_PREFIX.'projet AS p ON (p.rowid = fi.fk_projet)
 				LEFT JOIN '.MAIN_DB_PREFIX.'societe AS s ON (s.rowid = fi.fk_soc)
 				LEFT JOIN '.MAIN_DB_PREFIX.'c_country as cos ON cos.rowid = s.fk_pays
 				LEFT JOIN '.MAIN_DB_PREFIX.'element_contact as ec ON (ec.element_id=fi.rowid)
 				LEFT JOIN '.MAIN_DB_PREFIX.'c_type_contact as gtc ON (gtc.rowid=ec.fk_c_type_contact AND gtc.element="fichinter" AND gtc.source="internal")
 				WHERE gtc.element="fichinter" AND gtc.source="internal" AND ec.fk_socpeople='.intval($calid).'
+				AND fid.date IS NOT NULL
 				AND fi.entity IN ('.getEntity('societe', 1).')';
 		if($oid!==false)
 		{
-			$sql.=' AND fi.rowid = '.intval($oid);
+			$sql.=' AND fid.rowid = '.intval($oid);
 		}
 		else
 		{
-			$sql.='	AND COALESCE(fi.datee,fi.dateo)>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'"
-					AND fi.dateo<="'.date('Y-m-d 23:59:59',time()+86400*CDAV_SYNC_FUTURE).'"';
+			$sql.='	AND fid.date>="'.date('Y-m-d 00:00:00',time()-86400*CDAV_SYNC_PAST).'"
+					AND fid.date<="'.date('Y-m-d 23:59:59',time()+86400*CDAV_SYNC_FUTURE).'"';
 		}
 		return $sql;
 
@@ -459,7 +462,7 @@ class CdavLib
 			if($bHeader)
 				$caldata.="END:VCALENDAR\n";
 		}
-	   elseif($obj->elem_source=='fi')		// Intervention card (fichinter)
+	   elseif($obj->elem_source=='fi')		// Intervention card line (fichinterdet)
 	   {
 			$type='VEVENT';
 
@@ -474,6 +477,8 @@ class CdavLib
 				$location = trim($location.', '.$obj->soc_country_label);
 			}
 
+			$timezone = date_default_timezone_get();
+
 			$caldata ="";
 			if($bHeader)
 			{
@@ -486,48 +491,40 @@ class CdavLib
 			$caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
 			$caldata.="DTSTAMP:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
 			$caldata.="UID:".$obj->id.'-fi-'.CDAV_URI_KEY."\n";
-			$summary = '['.trim($obj->ref).'] '.trim($obj->soc_nom);
-			$caldata.="SUMMARY:".strtr(trim($summary), array("\n"=>"\\n", "\r"=>""))."\n";
-			$caldata.="URL:".dol_buildpath("/fichinter/card.php?id=".$obj->id, 2)."\n";
+			$summary = trim($obj->fi_description);
+			if($summary=='')
+				$summary = '['.trim($obj->fi_ref).'] '.trim($obj->soc_nom);
+			$caldata.="SUMMARY:".strtr($summary, array("\n"=>" ", "\r"=>""))."\n";
+			$caldata.="URL:".dol_buildpath("/fichinter/card.php?id=".$obj->fi_id, 2)."\n";
 			$caldata.="LOCATION:".strtr(trim($location), array("\n"=>"\\n", "\r"=>""))."\n";
 
-			// fichinter dateo/datee are DATE (not DATETIME) => fullday VEVENT
-			$caldata.="DTSTART;VALUE=DATE:".date('Ymd', strtotime($obj->dateo))."\n";
-			if(trim($obj->datee)>trim($obj->dateo))
-				$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->datee)+86400)."\n";
-			else
-				$caldata.="DTEND;VALUE=DATE:".date('Ymd', strtotime($obj->dateo)+86400)."\n";
+			// fichinterdet.date is DATETIME, fichinterdet.duree is in seconds
+			$startTs = strtotime($obj->det_date);
+			$endTs = $startTs + intval($obj->det_duree);
+			if($endTs <= $startTs)
+				$endTs = $startTs + 3600;
+			$caldata.="DTSTART;TZID=".$timezone.":".date('Ymd\THis', $startTs)."\n";
+			$caldata.="DTEND;TZID=".$timezone.":".date('Ymd\THis', $endTs)."\n";
 
 			$caldata.="CLASS:PUBLIC\n";
 			$caldata.="TRANSP:OPAQUE\n";
 			$caldata.="STATUS:CONFIRMED\n";
 
 			$caldata.="DESCRIPTION:";
+			if(!empty($obj->fi_ref))
+				$caldata.="💼📁 [".$obj->fi_ref."] ".trim($obj->soc_nom)."\\n";
 			if(!empty($obj->proj_ref))
 				$caldata.="💼📋 [".$obj->proj_ref."] ".$obj->proj_title."\\n";
-			if(!empty($obj->proj_desc))
-				$caldata.="💼⚠️ ".strtr(trim(strip_tags($obj->proj_desc)), array("\n"=>"\\n💼⚠️ ", "\r"=>""))."\\n";
 			if(!empty($obj->soc_town))
 				$caldata.="💼🏁 ".$obj->soc_town."\\n";
-			if(!empty($obj->soc_nom))
-				$caldata.="💼🏢 ".$obj->soc_nom."\\n";
 			if(!empty($obj->soc_phone))
 				$caldata.="💼☎️ ".$obj->soc_phone."\\n";
 			if(!empty($obj->other_contacts))
 				$caldata.="💼👨 ".$obj->other_contacts."\\n";
-			if(!empty($obj->note_public))
-				$caldata.="💼📝 ".strtr(trim(strip_tags($obj->note_public)), array("\n"=>"\\n💼📝 ", "\r"=>""))."\\n";
-			if(!empty($obj->description))
-				$caldata.=strtr(trim(strip_tags($obj->description)), array("\n"=>"\\n", "\r"=>""))."\\n";
-			if(!empty($obj->det_descriptions))
-			{
-				foreach(explode("\n", $obj->det_descriptions) as $detline)
-				{
-					$detline = trim(strip_tags($detline));
-					if($detline!='')
-						$caldata.="• ".strtr($detline, array("\n"=>" ", "\r"=>""))."\\n";
-				}
-			}
+			if(!empty($obj->fi_note_public))
+				$caldata.="💼📝 ".strtr(trim(strip_tags($obj->fi_note_public)), array("\n"=>"\\n💼📝 ", "\r"=>""))."\\n";
+			if(!empty($obj->det_description))
+				$caldata.=strtr(trim(strip_tags($obj->det_description)), array("\n"=>"\\n", "\r"=>""));
 			$caldata.="\n";
 
 			$caldata.="END:".$type."\n";

@@ -506,13 +506,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			{
 				$oid = intval($objectUri);
 				$elem_source = 'fi';
-				$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."fichinter WHERE rowid = ".$oid;
+				$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid;
 				$result = $this->db->query($sql);
-				if ($result===false || $this->db->fetch_object($result)===false)
+				if ($result===false || ($row = $this->db->fetch_object($result))===false)
 				{
-					// fichinter no longer exists, skip (don't create a new actioncomm)
+					// fichinterdet no longer exists, skip (don't create a new actioncomm)
 					return;
 				}
+				$fi_oid = intval($row->fk_fichinter);
 			}
 			else
 			{
@@ -601,12 +602,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			}
 			elseif($elem_source == 'fi')
 			{
-				debug_log("    add user $calendarId to fichinter $oid");
+				debug_log("    add user $calendarId to fichinter $fi_oid (via fichinterdet $oid)");
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
 						VALUES (
 							NOW(),
 							4,
-							".(int)$oid.",
+							".(int)$fi_oid.",
 							".(int)CDAV_INTERV_USER_ROLE.",
 							".(int)$calendarId."
 						)";
@@ -718,18 +719,25 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 							tms				= NOW()
 						WHERE rowid = ".(int)$calendarData['id'];
 		}
-		elseif($calendarData['elem_source']=='fi') // fichinter
+		elseif($calendarData['elem_source']=='fi') // fichinter line (fichinterdet)
 		{
-			// fichinter.dateo/datee are DATE (not DATETIME)
-			$sql = "UPDATE ".MAIN_DB_PREFIX."fichinter
+			// fichinterdet.date is DATETIME, fichinterdet.duree is in seconds
+			$duree = max(0, intval($calendarData['end']) - intval($calendarData['start']));
+			$sql = "UPDATE ".MAIN_DB_PREFIX."fichinterdet
 						SET
-							dateo			= '".date('Y-m-d', $calendarData['start'])."',
-							datee			= '".date('Y-m-d', $calendarData['fullday'] == 1 ? $calendarData['end']-1 : $calendarData['end'])."',
-							description 	= '".$this->db->escape($calendarData['note'])."',
-							fk_user_modif	= '".(int)$this->user->id."',
-							note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-							tms				= NOW()
+							date			= '".date('Y-m-d H:i:s', $calendarData['start'])."',
+							duree			= ".$duree.",
+							description		= '".$this->db->escape($calendarData['note'])."'
 						WHERE rowid = ".(int)$calendarData['id'];
+			// bump parent fichinter mtime + audit trace
+			$bumpSql = "UPDATE ".MAIN_DB_PREFIX."fichinter f
+						INNER JOIN ".MAIN_DB_PREFIX."fichinterdet fd ON fd.fk_fichinter = f.rowid
+						SET
+							f.fk_user_modif	= '".(int)$this->user->id."',
+							f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
+							f.tms			= NOW()
+						WHERE fd.rowid = ".(int)$calendarData['id'];
+			$this->db->query($bumpSql);
 		}
 
 		$this->db->query($sql);
@@ -1160,18 +1168,19 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		elseif (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
 		{
 			$oid = intval($objectUri);
-			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."fichinter WHERE rowid = ".$oid;
+			$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid;
 			$result = $this->db->query($sql);
-			if ($result===false || $this->db->fetch_object($result)===false)
+			if ($result===false || ($row = $this->db->fetch_object($result))===false)
 			{
-				debug_log("    not found fichinter $oid for".$objectUri);
+				debug_log("    not found fichinterdet $oid for".$objectUri);
 				return;
 			}
-			debug_log("    remove user ".intval($calendarId)." from resources of fichinter ".$oid);
+			$fi_oid = intval($row->fk_fichinter);
+			debug_log("    remove user ".intval($calendarId)." from resources of fichinter ".$fi_oid." (via fichinterdet ".$oid.")");
 			$this->db->query("DELETE ec
 							FROM ".MAIN_DB_PREFIX."element_contact as ec
 							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='fichinter' AND tc.source='internal')
-							WHERE ec.element_id = ".$oid."
+							WHERE ec.element_id = ".$fi_oid."
 							AND tc.element='fichinter' AND tc.source='internal'
 							AND ec.fk_socpeople = ".intval($calendarId));
 		}
