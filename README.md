@@ -8,6 +8,7 @@ You can :
 
  * Read and edit calendars through CalDAV
  * Read and edit project tasks through CalDAV
+ * Read and edit intervention cards through CalDAV
  * Read and edit address books through CardDAV
  * Read calendars through ICS Full version or only Free/Busy (hide details)
  * Access Dolibarr documents through WebDAV (if admin)
