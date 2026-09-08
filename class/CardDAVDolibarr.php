@@ -1698,6 +1698,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
+			if(count($ids)==0)
+				return $cards;
+
 			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
 
 			$sql = $this->_getSqlContacts($sqlWhere);
@@ -1712,6 +1715,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
+			if(count($ids)==0)
+				return $cards;
+
 			$sqlWhere = ' AND s.rowid IN ('.implode(',', $ids).')';
 
 			$sql = $this->_getSqlThirdparties($sqlWhere);
@@ -1725,6 +1731,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				if(strpos($cardUri, $typecth)>0)
 					$ids[] = intval($cardUri);   // cardUri starts with member id
 			}
+
+			if(count($ids)==0)
+				return $cards;
 
 			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
 
