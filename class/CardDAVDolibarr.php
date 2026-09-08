@@ -1162,7 +1162,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$rdata['birthday'] = trim($bday);
 
 		if(isset($vCard->NOTE))
-			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");
+			$rdata['note_public'] = str_replace("\\n", "\n", trim((string)$vCard->NOTE));
 
 		if(isset($rdata['_country_label']) && $rdata['_country_label']!='')
 		{
@@ -1304,7 +1304,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$rdata['_socialnetworks'] = $this->_socialNetworksFromVCard($vCard);
 
 		if(isset($vCard->NOTE))
-			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");
+			$rdata['note_public'] = str_replace("\\n", "\n", trim((string)$vCard->NOTE));
 
 		if(isset($rdata['_country_label']) && $rdata['_country_label']!='')
 		{
