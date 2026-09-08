@@ -395,9 +395,13 @@ class CdavLib
 
 			$timezone = date_default_timezone_get();
 
-			$caldata ="BEGIN:VCALENDAR\n";
-			$caldata.="VERSION:2.0\n";
-			$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			$caldata ="";
+			if($bHeader)
+			{
+				$caldata ="BEGIN:VCALENDAR\n";
+				$caldata.="VERSION:2.0\n";
+				$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			}
 			$caldata.="BEGIN:".$type."\n";
 			$caldata.="CREATED:".gmdate('Ymd\THis', strtotime($obj->datec))."Z\n";
 			$caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
