@@ -330,8 +330,8 @@ class ActionsCDav
 								" . (int) $CDAV_TASK_USER_ROLE . ",
 								" . (int) $task_user . "
 							)";
+						$db->query($sql);
 					}
-					$db->query($sql);
 
 					/*$ref = "TK".date("ym")."-".$tasknum;
 					$sql = "INSERT INTO ".MAIN_DB_PREFIX."projet_task (`ref`, `entity`, `fk_projet`, `datec`, `label`, `description`, ``, ``, ``, ``, ``)

@@ -1011,13 +1011,13 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		{
 			if(strpos($obj->url,'://')===false)
 				$carddata.="URL:https://".trim($obj->url)."\n";
+			else
+				$carddata.="URL:".trim($obj->url)."\n";
 		}
 		$carddata.=$this->_socialNetworksToVCard($obj);
 		$carddata.="NOTE;CHARSET=UTF-8:";
 		foreach($doliinfo as $info)
 			$carddata.=strtr(trim($info),array("\n"=>"\\n", "\r"=>""))."\\n";
-		if(!empty($obj->note_public))
-			$carddata.=strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>""))."\\n";
 		if(!empty($obj->note_public))
 			$carddata.=strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>""))."\\n";
 		$carddata.="\n";
@@ -1162,7 +1162,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$rdata['birthday'] = trim($bday);
 
 		if(isset($vCard->NOTE))
-			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");
+			$rdata['note_public'] = str_replace("\\n", "\n", trim((string)$vCard->NOTE));
 
 		if(isset($rdata['_country_label']) && $rdata['_country_label']!='')
 		{
@@ -1304,7 +1304,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$rdata['_socialnetworks'] = $this->_socialNetworksFromVCard($vCard);
 
 		if(isset($vCard->NOTE))
-			$rdata['note_public'] = strtr(trim((string)$vCard->NOTE),"\\n", "\n");
+			$rdata['note_public'] = str_replace("\\n", "\n", trim((string)$vCard->NOTE));
 
 		if(isset($rdata['_country_label']) && $rdata['_country_label']!='')
 		{
@@ -1698,6 +1698,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
+			if(count($ids)==0)
+				return $cards;
+
 			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
 
 			$sql = $this->_getSqlContacts($sqlWhere);
@@ -1712,6 +1715,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 					$ids[] = intval($cardUri);   // cardUri starts with contact id
 			}
 
+			if(count($ids)==0)
+				return $cards;
+
 			$sqlWhere = ' AND s.rowid IN ('.implode(',', $ids).')';
 
 			$sql = $this->_getSqlThirdparties($sqlWhere);
@@ -1725,6 +1731,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 				if(strpos($cardUri, $typecth)>0)
 					$ids[] = intval($cardUri);   // cardUri starts with member id
 			}
+
+			if(count($ids)==0)
+				return $cards;
 
 			$sqlWhere = ' AND p.rowid IN ('.implode(',', $ids).')';
 

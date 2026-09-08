@@ -106,7 +106,7 @@ class CdavLib
 	 * @param string elem_source 'pt'=Project TODO  'pe'=Project EVENT
 	 * @return string
 	 */
-	public function getSqlProjectTasks($calid, $oid=false, $elem_source)
+	public function getSqlProjectTasks($calid, $oid=false, $elem_source='pe')
 	{
 		global $conf;
 
@@ -395,9 +395,13 @@ class CdavLib
 
 			$timezone = date_default_timezone_get();
 
-			$caldata ="BEGIN:VCALENDAR\n";
-			$caldata.="VERSION:2.0\n";
-			$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			$caldata ="";
+			if($bHeader)
+			{
+				$caldata ="BEGIN:VCALENDAR\n";
+				$caldata.="VERSION:2.0\n";
+				$caldata.="PRODID:-//Dolibarr CDav//FR\n";
+			}
 			$caldata.="BEGIN:".$type."\n";
 			$caldata.="CREATED:".gmdate('Ymd\THis', strtotime($obj->datec))."Z\n";
 			$caldata.="LAST-MODIFIED:".gmdate('Ymd\THis', strtotime($obj->lastupd))."Z\n";
