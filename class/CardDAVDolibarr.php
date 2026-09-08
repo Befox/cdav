@@ -1011,6 +1011,8 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		{
 			if(strpos($obj->url,'://')===false)
 				$carddata.="URL:https://".trim($obj->url)."\n";
+			else
+				$carddata.="URL:".trim($obj->url)."\n";
 		}
 		$carddata.=$this->_socialNetworksToVCard($obj);
 		$carddata.="NOTE;CHARSET=UTF-8:";
