@@ -1018,8 +1018,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$carddata.=strtr(trim($info),array("\n"=>"\\n", "\r"=>""))."\\n";
 		if(!empty($obj->note_public))
 			$carddata.=strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>""))."\\n";
-		if(!empty($obj->note_public))
-			$carddata.=strtr(trim($obj->note_public),array("\n"=>"\\n", "\r"=>""))."\\n";
 		$carddata.="\n";
 		$carddata.="REV;TZID=".date_default_timezone_get().":".strtr($obj->lastupd,array(" "=>"T", ":"=>"", "-"=>""))."\n";
 		$carddata.="END:VCARD\n";
