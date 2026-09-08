@@ -106,7 +106,7 @@ class CdavLib
 	 * @param string elem_source 'pt'=Project TODO  'pe'=Project EVENT
 	 * @return string
 	 */
-	public function getSqlProjectTasks($calid, $oid=false, $elem_source)
+	public function getSqlProjectTasks($calid, $oid=false, $elem_source='pe')
 	{
 		global $conf;
 
