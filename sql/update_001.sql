@@ -17,4 +17,4 @@
 -- add column sourceuid for cdav module
 -- ============================================================================
 
-ALTER TABLE `llx_actioncomm_cdav` ADD `sourceuid` VARCHAR(255) NOT NULL AFTER `uuidext`;
+-- The sourceuid migration is checked by modCDav::init() before DDLAddField().

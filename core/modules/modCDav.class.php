@@ -25,7 +25,7 @@
  *  \ingroup    cdav
  *  \brief      Description and activation file for module CDav
  */
-include_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
+require_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
 
 
 /**
@@ -33,6 +33,12 @@ include_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
  */
 class modCDav extends DolibarrModules
 {
+	/** @var string */
+	public $license;
+	/** @var string Fork maintainer. */
+	public $maintainer_name;
+	/** @var string Fork source URL. */
+	public $maintainer_url;
 	/**
 	 *   Constructor. Define names, constants, directories, boxes, permissions
 	 *
@@ -56,11 +62,15 @@ class modCDav extends DolibarrModules
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
-		$this->description = "Allows caldav and carddav clients to sync with Dolibarr.";
+		$this->description = 'Module562387Desc';
 		$this->editor_name = 'BEFOX SARL';
 		$this->editor_url = 'https://befox.fr/';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '3.2.1';
+		$this->version = '3.3.1';
+		$this->module_position = '90';
+		$this->license = 'GPL-3.0-or-later';
+		$this->maintainer_name = 'Pierre Ardoin';
+		$this->maintainer_url = 'https://github.com/mapiolca/cdav';
 		// Key used in llx_const table to save module status enabled/disabled (where CDAV is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -90,7 +100,8 @@ class modCDav extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'hooks' => array('projectcard', 'projecttaskscard'),
+			'hooks' => array('projecttaskscard'),
+			'triggers' => 1,
 		);
 
 		// Data directories to create when module is enabled.
@@ -107,7 +118,7 @@ class modCDav extends DolibarrModules
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
 		$this->phpmin = array(8,0);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(16,0);	// Minimum version of Dolibarr required by module
-		$this->langfiles = array();
+		$this->langfiles = array('cdav@cdav');
 
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
@@ -115,7 +126,7 @@ class modCDav extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array(
-			0 => array('CDAV_URI_KEY', 'chaine', substr(md5(time()),0,8),'Change it to force client to resync',0,'current',0),
+			0 => array('CDAV_URI_KEY', 'chaine', bin2hex(random_bytes(4)),'Change it to force client to resync',0,'current',0),
 			1 => array('CDAV_CONTACT_TAG', 'chaine', '', 'Contact tag to restrict contacts to sync, leave blank for all',0,'current',0),
 			2 => array('CDAV_THIRD_SYNC', 'chaine', '0', 'How to sync thirdparties',0,'current',0),
 			3 => array('CDAV_SYNC_PAST', 'chaine', '31', 'Number of days to sync before today',0,'current',0),
@@ -138,6 +149,7 @@ class modCDav extends DolibarrModules
 			20 => array('CDAV_MEMBER_SYNC', 'chaine', '0', 'Sync members',0,'current',0),
 			21 => array('CDAV_INTERV_SYNC', 'chaine', '0', 'How to sync interventions',0,'current',0),
 			22 => array('CDAV_INTERV_USER_ROLE', 'chaine', '', 'Intervention user role when attaching a user to an intervention',0,'current',0),
+			23 => array('CDAV_CONTACT_SYNC_CIVILITY', 'chaine', '0', 'Synchronize contact civility',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs
@@ -221,8 +233,8 @@ class modCDav extends DolibarrModules
 									'url'=>'/cdav/cdavurls.php?type=CardDAV&amp;leftmenu=contacts',
 									'langs'=>'cdav@cdav',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 									'position'=>190,
-									'enabled'=>'$conf->cdav->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-									'perms'=>'$user->rights->societe->contact->lire', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+									'enabled'=>'isModEnabled("cdav")',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+									'perms'=>'$user->hasRight("societe", "contact", "lire")', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 									'target'=>'',
 									'user'=>0);
 
@@ -233,8 +245,8 @@ class modCDav extends DolibarrModules
 									'url'=>'/cdav/cdavurls.php?type=CalDAV&amp;mainmenu=agenda',
 									'langs'=>'cdav@cdav',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 									'position'=>190,
-									'enabled'=>'$conf->cdav->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-									'perms'=>'$user->rights->agenda->myactions->read', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+									'enabled'=>'isModEnabled("cdav")',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+									'perms'=>'$user->hasRight("agenda", "myactions", "read")', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 									'target'=>'',
 									'user'=>0);
 		
@@ -245,8 +257,8 @@ class modCDav extends DolibarrModules
 									'url'=>'/cdav/cdavurls.php?type=ICS&amp;mainmenu=agenda',
 									'langs'=>'cdav@cdav',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 									'position'=>190,
-									'enabled'=>'$conf->cdav->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-									'perms'=>'$user->rights->agenda->myactions->read', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+									'enabled'=>'isModEnabled("cdav")',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
+									'perms'=>'$user->hasRight("agenda", "myactions", "read")', // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 									'target'=>'',
 									'user'=>0);
 		// Add here entries to declare new menus
@@ -310,36 +322,32 @@ class modCDav extends DolibarrModules
 	 */
 	function init($options='')
 	{
-		global $langs;
-		$sql = array();
-		
-		// Create 2 extrafields
-		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		$extrafields_cmd = new ExtraFields($this->db);
-		
-		try
-		{
-			//function addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique=0, $required=0, $default_value='', $param='', $alwayseditable=0, $perms='', $list='-1', $help='', $computed='', $entity='', $langfile='', $enabled='1')
-			$result_cmd=$extrafields_cmd->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'commandedet', 0, 0, '', '', 1, '', '1');
-			if( ! $result_cmd )
-			{
-				$this->error=$extrafields_cmd->error;
-			}
-			$extrafields_prop = new ExtraFields($this->db);
-			$result_prop=$extrafields_prop->addExtraField('cdav_duration', $langs->trans("DurationEx"), 'varchar', 1, '10', 'propaldet', 0, 0, '', '', 1, '', '1');
-			if( ! $result_prop )
-			{
-				$this->error=$extrafields_prop->error;
-			}
-			
-			$result=$this->_load_tables('/cdav/sql/');
+		global $langs, $conf;
+		$langs->load('cdav@cdav');
+		if ($this->_load_tables('/cdav/sql/') <= 0) {
+			$this->error = 'CDav table installation failed';
+			return -1;
 		}
-		catch(Exception $ex)
-		{
-			$this->error = $ex->getMessage();
+		// The old unconditional ALTER is now an idempotent native schema migration.
+		$table = MAIN_DB_PREFIX.'actioncomm_cdav';
+		$description = $this->db->DDLDescTable($table, 'sourceuid');
+		if (!$description) { $this->error = $this->db->lasterror(); return -1; }
+		if ($this->db->num_rows($description) === 0 && $this->db->DDLAddField($table, 'sourceuid', array('type' => 'varchar', 'value' => '255', 'null' => 'NOT NULL', 'default' => '')) <= 0) {
+			$this->error = $this->db->lasterror();
+			return -1;
 		}
-
-		return $this->_init($sql, $options);
+		require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+		foreach (array('commandedet', 'propaldet') as $element) {
+			$extrafields = new ExtraFields($this->db);
+			$labels = $extrafields->fetch_name_optionals_label($element);
+			if ($extrafields->error) { $this->error = $extrafields->error; return -1; }
+			// Keep existing labels, types and entity configuration, including empty values.
+			if (!array_key_exists('cdav_duration', $labels)) {
+				$result = $extrafields->addExtraField('cdav_duration', 'DurationEx', 'varchar', 1, '10', $element, 0, 0, '', '', 1, '', '1', '', '', (int) $conf->entity, 'cdav@cdav');
+				if ($result < 0) { $this->error = $extrafields->error; return -1; }
+			}
+		}
+		return $this->_init(array(), $options);
 	}
 
 	/**

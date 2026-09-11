@@ -62,17 +62,11 @@ function base64url_encode($data) {
 }
 
 // Load traductions files requiredby by page
-$langs->load("cdav");
+$langs->loadLangs(array('cdav@cdav', 'agenda', 'companies'));
+require_once __DIR__.'/class/cdavcompatibility.class.php';
 
 
-// define CDAV_URI_KEY if not
-if(!defined('CDAV_URI_KEY'))
-{
-	if(isset($conf->global->CDAV_URI_KEY))
-		define('CDAV_URI_KEY', $conf->global->CDAV_URI_KEY);
-	else
-		define('CDAV_URI_KEY', substr(md5($_SERVER['HTTP_HOST']),0,8));
-}
+require __DIR__.'/lib/cdav_constants.php';
 
 // Get parameters
 $id			= GETPOST('id','int');
@@ -86,131 +80,59 @@ if (!empty($user->societe_id) || !empty($user->socid)) // external user
 	accessforbidden();
 }
 
-/***************************************************
-* VIEW
-*
-* Put here all code to build page
-****************************************************/
+if (!isModEnabled('cdav') || !in_array($type, array('CardDAV', 'CalDAV', 'ICS'), true)) accessforbidden();
+if (($type === 'CardDAV' && (!CDavCompatibility::isFeatureAvailable('carddav') || !$user->hasRight('societe', 'contact', 'lire')))
+	|| ($type !== 'CardDAV' && (!CDavCompatibility::isFeatureAvailable(strtolower($type)) || !$user->hasRight('agenda', 'myactions', 'read')))) accessforbidden();
+header('Cache-Control: private, no-store');
+header('Referrer-Policy: no-referrer');
 
-// Multicompany : the entity is part of the url (see server.php)
-$cdaventity    = cdavEntityUriSegment();
-$cdavserverurl = dol_buildpath('cdav/server.php', 2).$cdaventity;
-$cdavbaseurl   = ($cdaventity=='' ? dol_buildpath('cdav', 2) : $cdavserverurl);
-$cdavicsurl    = dol_buildpath('cdav/ics.php', 2).'?'.($cdaventity=='' ? '' : 'entity='.((int) $conf->entity).'&');
 
-llxHeader('',$langs->trans($type.'url'),'');
-
-echo '<H2>'.$langs->trans($type.'url').'</H2>';
-
-if(!empty($conf->global->CDAV_QRCODE_DAVX5_ENABLED)) {
-	echo '<h3>'.$langs->trans('URLForDavX5').'</h3>';
-	echo '<p>'.$langs->trans('URLForDavX5Tooltip').'</p>';
-
+$cdaventity = cdavEntityUriSegment();
+$cdavserverurl = dol_buildpath('/cdav/server.php', 2).$cdaventity;
+$cdavicsurl = dol_buildpath('/cdav/ics.php', 2).'?entity='.(int) $conf->entity.'&token=';
+llxHeader('', $langs->trans($type.'url'));
+print load_fiche_titre($langs->trans($type.'url'), '', 'technic');
+print '<p>'.$langs->trans('CDavEntitySettings', (int) $conf->entity).'</p>';
+$urls = array();
+if ($type !== 'ICS') {
+	$urls[] = array($langs->trans('URLGeneric'), $cdavserverurl.'/');
+	$urls[] = array($langs->trans('URLUserAccount'), $cdavserverurl.'/principals/'.rawurlencode($user->login).'/');
+}
+if ($type === 'CardDAV') {
+	$urls[] = array($langs->trans('URLforCardDAV'), $cdavserverurl.'/addressbooks/'.rawurlencode($user->login).'/default/');
+} else {
+	$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname FROM '.MAIN_DB_PREFIX.'user u WHERE '.cdavCalendarUserScope();
+	if (!$user->hasRight('agenda', 'allactions', 'read')) $sql .= ' AND u.rowid='.(int) $user->id;
+	$resql = $db->query($sql.' ORDER BY u.login');
+	if ($resql) {
+		while (is_object($calendarUser = $db->fetch_object($resql))) {
+			$label = trim($calendarUser->firstname.' '.$calendarUser->lastname).' ('.$calendarUser->login.')';
+			if ($type === 'CalDAV') {
+				$urls[] = array($label, $cdavserverurl.'/calendars/'.rawurlencode($user->login).'/'.(int) $calendarUser->rowid.'-cal-'.rawurlencode($calendarUser->login).'/');
+			} else {
+				foreach (array('full' => 'Full', 'nolabel' => 'NoLabel') as $mode => $translation) {
+					$encrypted = openssl_encrypt($calendarUser->rowid.'+ø+'.$mode, 'aes-256-cbc', CDAV_URI_KEY, OPENSSL_RAW_DATA, str_repeat(chr(0), 16));
+					if ($encrypted !== false) $urls[] = array($label.' — '.$langs->trans($translation), $cdavicsurl.base64url_encode($encrypted));
+				}
+			}
+		}
+	}
+}
+print '<div class="div-table-responsive-no-min"><table class="noborder centpercent">';
+print '<tr class="liste_titre"><th>'.$langs->trans('Description').'</th><th class="soixantepercent">URL</th></tr>';
+foreach ($urls as $entry) {
+	print '<tr class="oddeven"><td>'.dol_escape_htmltag($entry[0]).'</td><td class="wordbreak">'.showValueWithClipboardCPButton($entry[1], 0).'</td></tr>';
+}
+if (!$urls) print '<tr class="oddeven"><td colspan="2"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td></tr>';
+print '</table></div>';
+if ($type !== 'ICS' && getDolGlobalInt('CDAV_QRCODE_DAVX5_ENABLED') && CDavCompatibility::isFeatureAvailable('qrcode')) {
+	print '<h3>'.$langs->trans('URLForDavX5').'</h3><p>'.$langs->trans('URLForDavX5Tooltip').'</p>';
 	require_once DOL_DOCUMENT_ROOT.'/core/modules/barcode/doc/tcpdfbarcode.modules.php';
 	$qrmodule = new modTcpdfbarcode();
-	$tcpdfEncoding = $qrmodule->getTcpdfEncodingType('QRCODE');
 	require_once TCPDF_PATH.'tcpdf_barcodes_2d.php';
-	$davx = "davx5://" . $user->login . ":@";
-	$uri = str_replace(["http://", "https://"],[$davx, $davx],$cdavbaseurl);
-	$barcodeobj = new TCPDF2DBarcode($uri, $tcpdfEncoding);
-	$qrdata = $barcodeobj->getBarcodePngData();
-	print "<img src='data:image/png;base64," . base64_encode($qrdata) . "' /> <br />";
+	$davx = preg_replace('#^https?://#', 'davx5://'.rawurlencode($user->login).':@', $cdavserverurl.'/');
+	$barcode = new TCPDF2DBarcode($davx, $qrmodule->getTcpdfEncodingType('QRCODE'));
+	print '<img alt="'.dol_escape_htmltag($langs->trans('CDavQRCode')).'" src="data:image/png;base64,'.base64_encode($barcode->getBarcodePngData()).'">';
 }
-
-if($type=='CardDAV')
-{
-	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>';
-	if($cdaventity=='')
-		echo dol_buildpath('cdav', 2)."\n";
-	echo $cdavserverurl."\n";
-	echo $cdavserverurl."/principals/".$user->login."/";
-	echo '</PRE>';
-
-	echo '<h3>'.$langs->trans('URLforCardDAV', 2).'</h3>';
-	echo '<PRE>'.$cdavserverurl.'/addressbooks/'.$user->login.'/default/</PRE>';
-}
-elseif($type=='CalDAV')
-{
-	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>';
-	if($cdaventity=='')
-		echo dol_buildpath('cdav', 2)."\n";
-	echo $cdavserverurl."\n";
-	echo $cdavserverurl."/principals/".$user->login."/";
-	echo '</PRE>';
-
-	echo '<h3>'.$langs->trans('URLforCalDAV').'</h3>';
-
-	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
-	{
-		if (versioncompare(versiondolibarrarray(), array(3,7,9))>0)
-			$fk_soc_fieldname = 'fk_soc';
-		else
-			$fk_soc_fieldname = 'fk_societe';
-
-		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
-			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
-			AND u.fk_soc IS NULL AND u.statut = 1
-			AND u.entity IN ('.getEntity('user', 1).')
-			ORDER BY login';
-		$result = $db->query($sql);
-		while($row = $db->fetch_array($result))
-		{
-			if($row['rowid'] == $user->id)
-				echo '<strong>';
-			echo $row['firstname'].' '.$row['lastname'].' :';
-			echo '<PRE>'.$cdavserverurl.'/calendars/'.$user->login.'/'.$row['rowid'].'-cal-'.$row['login'].'</PRE><br/>';
-			if($row['rowid'] == $user->id)
-				echo '</strong>';
-		}
-	}
-	else
-	{
-		echo '<PRE>'.$cdavserverurl.'/calendars/'.$user->login.'/'.$user->id.'-cal-'.$user->login.'</PRE>';
-	}
-
-}
-elseif($type=='ICS')
-{
-
-	echo '<h3>'.$langs->trans('URLforICS').'</h3>';
-
-	if(isset($user->rights->agenda->allactions->read) && $user->rights->agenda->allactions->read)
-	{
-		if (versioncompare(versiondolibarrarray(), array(3,7,9))>0)
-			$fk_soc_fieldname = 'fk_soc';
-		else
-			$fk_soc_fieldname = 'fk_societe';
-
-		$sql = 'SELECT u.rowid, u.login, u.firstname, u.lastname
-			FROM '.MAIN_DB_PREFIX.'user u WHERE '.$fk_soc_fieldname.' IS NULL
-			AND u.fk_soc IS NULL  AND u.statut = 1
-			AND u.entity IN ('.getEntity('user', 1).')
-			ORDER BY login';
-		$result = $db->query($sql);
-		while($row = $db->fetch_array($result))
-		{
-			echo '<h4>'.$row['firstname'].' '.$row['lastname'].' :</h4>';
-
-			echo "<PRE>".$langs->trans('Full')." :\n".$cdavicsurl.'token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+full', 'aes-256-cbc', CDAV_URI_KEY, true))."\n\n";
-			echo $langs->trans('NoLabel')." :\n".$cdavicsurl.'token='.base64url_encode(openssl_encrypt($row['rowid'].'+ø+nolabel', 'aes-256-cbc', CDAV_URI_KEY, true)).'</PRE><br/>';
-
-		}
-	}
-	else
-	{
-		echo "<PRE>".$langs->trans('Full')." :\n".$cdavicsurl.'token='.base64url_encode(openssl_encrypt($user->id.'+ø+full', 'aes-256-cbc', CDAV_URI_KEY, true))."\n\n";
-		echo $langs->trans('NoLabel')." :\n".$cdavicsurl.'token='.base64url_encode(openssl_encrypt($user->id.'+ø+nolabel', 'aes-256-cbc', CDAV_URI_KEY, true)).'</PRE><br/>';
-	}
-
-}
-else
-{
-	echo '<h3>'.$langs->trans('URLGeneric').'</h3>';
-	echo '<PRE>'.$cdavbaseurl.'</PRE>';
-}
-
-// End of page
 llxFooter();
 $db->close();

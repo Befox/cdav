@@ -1,185 +1,129 @@
-# CDav module for Dolibarr
+# CDav 3.3.1 for Dolibarr
 
-## What is it ?
+CDav synchronizes native Dolibarr contacts, third parties, members, calendars, project tasks and interventions through CardDAV and CalDAV. It also provides read-only ICS subscriptions and controlled WebDAV access to native documents.
 
-This module for Dolibarr 16.0/24.0 adds CardDAV / CalDAV and ICS synchronisation. It uses Dolibarr [Sabre/DAV](http://sabre.io/dav/) server library.
+Original module: **Befox SARL**, module ID **562387**, GPL-3.0-or-later. This fork retains the CDav identity and existing configuration keys. Version 3.3.1 is under development on `fix/3.3.1-fix-contacts-permissions`; no release has been published.
 
-You can :
+## Compatibility
 
- * Read and edit calendars through CalDAV
- * Read and edit project tasks through CalDAV
- * Read and edit intervention cards through CalDAV
- * Read and edit address books through CardDAV
- * Read calendars through ICS Full version or only Free/Busy (hide details)
- * Access Dolibarr documents through WebDAV (if admin)
- * Generate project tasks from documents like proposals and/or orders
+The module minimum remains **Dolibarr 16.0 and PHP 8.0**. Source contracts have been checked for every major version from **16 through 24**. The PHP requirements of the installed Dolibarr core and its bundled libraries also apply.
 
-Each user can access his/her contacts and thirdparties address books (public and own private contacts), his/her own calendar and other users calendars according to his/her rights.
+The [source matrix](doc/core-contracts.md) records immutable core commits and API signatures. The [validation report](doc/validation-3.3.md) distinguishes source checks, simulations and real integration tests still to run. **A real Multicompany installation, including transverse mode, has not been tested.**
 
-Dolibarr contact informations fill personnal informations in client software cards (including contact photo).
+The [3.3.1 correction report](doc/correctifs-3.3.1.md) records the contact access and civility changes, their focused checks and remaining instance/client validation.
 
-Society (thirdparty) informations (to which contact is attached) fill professional informations in client software cards.
+The internal Compatibility tab reports the actual runtime, bundled Sabre, required PHP extensions, optional modules, document configuration and unavailable features. HTTPS, Authorization forwarding, PATH_INFO, filesystem permissions and client synchronization require checks on the real server.
 
-Three adress books are proposed to sync : Contacts, Thirdparties and Members. If you want to modify a thirdparty infomation, do it in thirdparties address book.
+| Feature | Dependencies in addition to the DAV runtime |
+|---|---|
+| Contacts and third parties | Third parties module; native contact/third-party permissions |
+| Members | Members module and member synchronization enabled |
+| Calendar events | Agenda module and native personal/other-calendar permissions |
+| Project tasks | Agenda, Projects, task display and synchronization enabled |
+| Interventions | Agenda, Interventions and synchronization enabled |
+| Task generation | Projects, Services, task display and generation enabled; document read permissions |
+| Contact photos | PHP GD and EXIF; configured document directory of the contact owner |
+| ICS | Agenda, OpenSSL and a configured synchronization key |
+| WebDAV uploads | PHP Fileinfo; native upload/write permissions and valid document access |
+| DAVx⁵ QR code | Native barcode generator and PHP GD |
 
-It is possible to select which contacts to sync with CDAV_CONTACT_TAG configuration value in Home / Setup / Other setup. Enter a contact tag value and then only contacts with this tag will be synced (empty value for all).
+No Composer installation or additional runtime library is required: CDav uses the Sabre version bundled with Dolibarr.
 
-Calendar records with "Status / Percentage" set to "Not applicable" are converted to events in CalDAV (VEVENT), others are converted to tasks (VTODO).
+## Install and upgrade
 
-Recurring events are partially handled (Dolibarr does not handle them fully), when a recurring event is created, it is duplicated automatically until the date specified (exculded) or the max synchronisation time range.
+1. Place the module directory, named `cdav`, in an external-module root recognized by your Dolibarr installation. Keep the module files directly inside that directory.
+2. Enable the native modules for the features you need, then enable CDav in the module list.
+3. Open its single settings entry and check Compatibility before configuring a DAV client.
 
-Automatic tasks generation in projects with services from linked Propositions and/or Orders 
-Module setup offer you to :
+For an upgrade, back up the database and documents, temporarily disable CDav, replace its module files and re-enable it **in each entity using CDav**. Activation creates missing structures and extrafields without overwriting configured values. Deactivation preserves the constants, filters, keys and native sharing settings. Do not change `CDAV_URI_KEY` during a routine upgrade: it participates in historical URLs and UIDs.
 
- * generate tasks from linked docuement(s) OR not
- * synchronize project tasks as calendar events AND/OR todo tasks 
- * set up 3 initial tasks that will appear before services coming from document(s)
- * set up 3 final tasks that will appear after services coming from document(s)
- * define user role in project to select user to attribute on generated tasks from document(s)
- * define user role on new project task creation
- * define start and end time of a working day
- * restrict services to be converted as task by specifying a tag
- * force generation of tasks for each service lines from attached documents with cdav duration if tag is missing
+Version 3.3 adds `cdav_card` for protocol URI/UID mappings, scoped by entity, kind and native object. Business data remains in native Dolibarr tables. The existing `actioncomm_cdav.sourceuid` migration is conditional. Native `cdav_duration` line extrafields are created only when missing; existing definitions are retained.
 
-Durations are retrieved from service's card if defined (minutes, hours, days or weeks only), otherwise from extrafield filled in documents
-All tasks are begining at the starting date of the project, at the begining of the working day
-Multi-day durations tasks are maintained as a single task, eg from 31/07/2018 at 8am to 02/08/2018 at 7pm
- 
-Usage :
+## Five native settings tabs
 
- * Manually create a project, link it to a third party, and set up the date ; leave it in draft status
- * Attach document(s) : proposals or orders including at least 1 concerned service.
- * Affect contact(s) with correct role
- * Validate project : all tasks are created ; use your ics client software to retrieve and drag-drop events if necessary
- 
-Notes :
+- **Settings**: synchronization key, DAVx⁵ QR-code option and links to your client configuration URLs.
+- **CardDAV**: contact category, optional contact civility synchronization, third-party synchronization mode and members.
+- **CalDAV**: synchronization period, project tasks, interventions, user roles, initial/final services, duration override and working hours.
+- **Compatibility**: detected prerequisites and feature availability, with reasons and version thresholds.
+- **About**: descriptor version, identity, license, original publisher, maintainer and useful links.
 
- * Description of services are useful to create subtasks if '- ' are detected at the begining of a line ; then, with DAVx⁵ (CalDAV/CardDAV Synchronization and Client) and Tasks (Keep track of your list of goals) you will be able to use checkboxes for these tasks
- * If you chose to synchronize project tasks as calendar events AND todo tasks, modifying a task will autoamticaly modify the corresponding event and reciprocally.
- * Tasks can be modified from client application but not cancelled : Dolibarr keep trace of last affectation
- * After generating tasks, you can modify/complete each of them or create more tasks manually (here too you can fill description zone with '- ' at the begining of lines to create subtasks)
+These pages use native FormSetup, Select2 selectors, switches, tables and messages. They are restricted to administrators and protected by the native CSRF mechanism. Saving a form validates only that tab and writes constants in the current entity. Invalid input remains visible; a successful save redirects to the tab. Native switches save their own value immediately, preserving `0` when disabled. The non-Ajax switch links are also handled with tokens.
 
+The interface and DAV labels are available in **English, French, German, Spanish and Italian**. Technical IDs, paths and UIDs do not depend on the language.
 
-## Help improvements
+## DAV accounts and URLs
 
-If you find the module is useful and want to finance improvements, consider to pay it on [Dolistore](https://www.dolistore.com/fr/modules/526-Synchronisation-CardDAV---CalDAV---ICS.html)
+Open the CDav URL pages from the Contacts or Agenda menus. They display URLs for the current entity and resources accessible to the current user. Configure the native Dolibarr login and password in the DAV client. Use HTTPS and keep ICS links confidential.
 
-## How to install
+`<module-url>` below means the actual URL of your installed `cdav` directory; it is not a fixed installation path.
 
-PHP 8.0+ is required.
+```text
+<module-url>/server.php/2/
+<module-url>/server.php/2/principals/<login>/
+<module-url>/server.php/2/calendars/<login>/<calendar-id>-cal-<calendar-login>
+<module-url>/server.php/2/addressbooks/<login>/default/
+<module-url>/ics.php?entity=2&token=<generated-token>
+```
 
-Dolibarr native calendar module must be activated *before* installing CDav module.
+Use **one DAV account per entity**. The path selects the entity before loading its configuration. Browser sessions and login-page parameters cannot change that context. Old DAV URLs without an entity and old ICS URLs without the `entity` parameter continue to target **entity 1**.
 
-* Clone repository _git clone https://github.com/Befox/cdav.git_ and install cdav directory in dolibarr/htdocs/
-* Or unzip [last release](https://github.com/Befox/cdav/archive/master.zip), rename _cdav-master_ to _cdav_ and copy it into dolibarr/htdocs/
+Authentication uses native Dolibarr mechanisms. Multicompany admission is checked separately before loading rights for the target entity, including centralized transverse accounts. Discovery includes the target entity's native user/group assignments. CDav relies on native object sharing and does not introduce competing CDav sharing settings.
 
-Enable CDav module in Interfaces Modules list.
+Creations belong to the target entity; shared objects keep their original owner. Contact photos use that owner's document directory. A missing directory configuration causes an explicit refusal, without falling back to another entity. Administrators still need the relevant native functional rights.
 
-It would add a link in Agenda left menu and in Contacts left menu to access DAV / ICS URLs.
+Contacts linked to a third party require access to that third party as well as contact read permission. Without the native extension to all third parties (`societe.client.voir`), only third parties assigned to the current user as a sales representative qualify. Parent and contact entity sharing, private contacts and the existing pure-supplier read restriction also apply. Unlinked contacts retain their own access rules; a missing or inaccessible parent does not make a linked contact public. Lists, discovery metadata, individual/multiple reads and checks before updates or archival use the same scope.
 
-Use these URLs in your CardDAV or CalDAV client software.
+The **Synchronize contact titles (civility)** switch (`CDAV_CONTACT_SYNC_CIVILITY`) is **off by default**, independently per entity. It controls the Dolibarr civility field (Mr, Ms…), carried in the vCard name prefix, in both directions. When off, CardDAV omits this prefix and ignores incoming prefixes, preserving an existing Dolibarr civility. Job titles (`poste` / vCard `TITLE`) remain synchronized. The optional company-name display remains in the formatted name without replacing civility.
 
-## How to upgrade
+Contact collection change tags include the visible membership and the civility option, so revoking an assignment or changing this switch prompts a new scan. CDav still requires a full rescan for unknown sync tokens; it does not maintain an incremental deletion history. Check removal of previously downloaded contacts with your deployed clients after upgrading. No database cleanup is performed by these changes.
 
-* Disable CDav module in Interfaces Modules list.
-* Unzip last version or _git pull_ in dolibarr/htdocs/cdav
-* Enable CDav module in Modules list.
+### Clients
 
+Clients supporting discovery can use the base DAV URL. Otherwise, use the precise calendar/address-book URL shown by CDav. DAVx⁵ configuration links and QR codes can be enabled from Settings. Existing iOS principal URLs and direct calendar URLs remain available. Actual synchronization must be checked with the client versions you deploy.
 
-## DAV URLs
+Calendar records with a non-applicable percentage are exposed as VEVENT; other records are VTODO. Project tasks can be exposed as events, tasks, or both. Both representations modify the same native task. Recurring events are expanded into native events within the configured period, with a maximum of 1,000 occurrences; full recurrence editing is outside this refactor.
 
-### Thunderbird
+DELETE preserves the historical synchronization behavior: CardDAV archives the native record, while CalDAV removes its calendar/user assignment rather than deleting the underlying project task or intervention. Native business methods and triggers handle mutations inside transactions. URI/UID mismatches and ambiguous legacy mappings are rejected.
 
-[Thunderbird](https://www.thunderbird.net) (with [Lightning](https://addons.mozilla.org/thunderbird/addon/lightning/), [TBSync](https://addons.thunderbird.net/thunderbird/addon/tbsync/) and its [Provider for CalDAV/CardDAV](https://addons.thunderbird.net/thunderbird/addon/dav-4-tbsync/) addons) needs a precise URL for each address book and calendar :
+ICS remains read-only and retains the historical link encryption format. Full subscriptions expose the authorized calendar content; the version without titles removes descriptions, locations, contacts and other detailed properties. Rotating the synchronization key invalidates the old links and changes historical resource identifiers.
 
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/calendars/<connected-user-login>/<calendar-user-id>-cal-<calendar-user-login>
+### WebDAV documents
 
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/addressbooks/<connected-user-login>/default/
+The administrative documents collection retains its historical name, derived from the document root in entity 1. In other entities it uses the entity number beneath the entity-scoped server URL. Only configured native module directories are mounted. The `public` collection uses native ECM rights.
 
-### DAVx⁵
+Every operation checks native rights and document access. Shared-owner document paths, missing configuration, symbolic links and path traversal are checked before file access. Uploads have size, extension and MIME controls; images are re-encoded without EXIF/GPS. A failed filesystem or indexing operation is reported. Document layout and sharing remain the responsibility of the native modules.
 
-[DAVx⁵](https://www.davx5.com/) can detect automatically address book and all existing calendars (if an event exists) with generic DAV URL :
+## Generate project tasks from services
 
-    https://server.example.com/dolibarr/htdocs/cdav/server.php
+Enable generation in CalDAV settings. Configure the project/task user roles and, optionally, up to three initial services, three final services and a service category. The selected native task numbering model supplies references.
 
-You can use a tasks application to manage Dolibarr tasks (VTODO) on Android. DAVx⁵ is compatible with [OpenTasks](https://github.com/dmfs/opentasks).
+1. Create a draft project in its owning entity and set its start date.
+2. Link proposals and/or orders containing the relevant service lines.
+3. Assign a project user with the configured role, or the validating user will be used.
+4. Validate the project. The native `PROJECT_VALIDATE` trigger generates the initial, source and final tasks in the validation transaction.
 
-In CDav configuration, you can activate a QRCode display to autoconfigure DAVx⁵.
+Existing tasks prevent another initial generation. An order's linked proposal is not generated a second time. Missing rights, inaccessible services, invalid roles/durations or failed task assignments cancel the whole validation. Validate shared projects from their owning entity, which also preserves compatibility with native Task creation in Dolibarr 16.
 
-Be carefull, if you use https, DAVx⁵ needs a valid SSL certificate, excluding auto-signed certificates.
+Durations use the native service value, or the configured `cdav_duration` override when enabled. Minutes, hours, days and weeks are accepted; an empty duration retains the historical one-hour default. All generated tasks start on the project start date. Multi-day durations remain a single task spanning the configured working days. Empty working hours use 07:00–19:00; an explicit starting hour of `0` is retained. No cron is needed.
 
-DAVx⁵ is also available on [F-Droid](https://f-droid.org/packages/at.bitfire.davdroid/).
+After generation, tasks can be edited through Dolibarr or CalDAV. Lines beginning with `- ` in task descriptions retain the historical checklist conversion.
 
-### iOS
+## Tests and troubleshooting
 
-iOS uses _principals_ url to grab list of CalDAV or CardDAV resources :
+```sh
+python scripts/run_checks.py --core-htdocs /path/to/dolibarr/htdocs
+python scripts/check_core_contracts.py --core /path/to/dolibarr-git
+```
 
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/principals/<connected-user-login>
+The first command lints the module, checks five-language parity and runs focused tests. Providing core sources also runs real Sabre parsers and the native CSRF block against simulated data/session services. The contact tests require **PDO SQLite for testing only** and evaluate the backend SQL with a documented adaptation of MySQL `GROUP_CONCAT`; production remains MySQL/MariaDB. If the extension is installed but not loaded, append `--php-arg=-d --php-arg=extension=pdo_sqlite`. The second command reads tags 16.0.0 through 24.0.0. Neither command installs Dolibarr or certifies Multicompany.
 
-### WebDAV
+[GitHub Actions](.github/workflows/checks.yml) runs the focused suite with Dolibarr 16 libraries/PHP 8.0 and Dolibarr 24 libraries/PHP 8.4 using [setup-php](https://github.com/shivammathur/setup-php). Its jobs explicitly identify the simulated ERP environment. PHPStan should additionally be run with the deployment's native core configuration when available.
 
-Admin users can also access Dolibarr documents through WebDAV with WebDAV URL :
+If authentication loops, first verify the actual Authorization header forwarding and PATH_INFO handling in the web server/reverse proxy. The endpoint accepts forwarded Basic headers and passwords containing colons. Do not weaken Dolibarr CSRF settings to fix a settings form. Check the Compatibility tab, server logs without sensitive payloads, and the [manual validation procedure](doc/validation-3.3.md).
 
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/documents/
+## Credits and support
 
-### Multicompany module compatibility
-
-When the [Multi-Company module](https://www.dolistore.com/product.php?id=1619) is enabled,
-CDav reads the entity (the company index) from the URL as the first path segment,
-right after `server.php`:
-
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/2/principals/<connected-user-login>/
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/2/calendars/<connected-user-login>/<calendar-user-id>-cal-<calendar-user-login>
-    https://server.example.com/dolibarr/htdocs/cdav/server.php/2/addressbooks/<connected-user-login>/default/
-
-The ICS export takes the entity as a plain url parameter instead:
-
-    https://server.example.com/dolibarr/htdocs/cdav/ics.php?entity=2&token=<token>
-
-When the entity is missing, entity 1 is used: URLs already configured in your clients keep
-working unchanged for entity 1. The DAV / ICS URLs pages of the module display the URLs of
-the entity you are logged in.
-
-## Troubleshooting
-
-To test cdav module, you can use DAVx⁵ url https://server.example.com/dolibarr/htdocs/cdav/ in a web browser. Error messages are clearer.
-
-### Apache web server
-
-Apache *rewrite* module is necessary if you use fcgi or php-fpm mode. In this case, .htacess file in cdav module has to be read by Apache or reported in your Apache configuration.
-
-    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
-
-or
-
-    <IfModule mod_fastcgi.c>
-    	<IfModule mod_rewrite.c>
-    		RewriteEngine on
-    		RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-    	</IfModule>
-    </IfModule>
-
-or (this is usefull on Plesk when nginx is proxying Apache)
-
-    FcgidPassHeader AUTHORIZATION
-
-It is recommanded to *disable* these Apache modules : *dav* / *dav_fs* / *dav_lock*
-
-### nginx web server
-
-To solve authentication loop, add these directives to your nginx "location" rubrique : 
-
-    fastcgi_param PHP_AUTH_USER $remote_user;
-    fastcgi_param PHP_AUTH_PW $http_authorization;
-
-or
-
-    fastcgi_pass_header Authorization;
-
-### nginx reverse proxy
-
-To solve authentication loop, add this directive to your nginx "location" rubrique :
-
-    proxy_pass_header Authorization;
-
-
+- Original publisher: [Befox](https://befox.fr/), [upstream repository](https://github.com/Befox/cdav).
+- This fork and issue tracker: [mapiolca/cdav](https://github.com/mapiolca/cdav).
+- Changes: [ChangeLog.md](ChangeLog.md).
+- License: [COPYING](COPYING); Sabre retains its own upstream license.

@@ -42,29 +42,13 @@ function debug_log($txt)
 	}
 }
 
-// HTTP auth workaround for php in fastcgi mode HTTP_AUTHORIZATION set by rewrite engine in .htaccess
-if( isset($_SERVER['HTTP_AUTHORIZATION']) && 
-	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
-{
-	$rAuth = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
-
-	if(count($rAuth)>1)
-	{
-		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
-		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
-	}
-}
-
-// HTTP auth workaround for php in fastcgi mode REDIRECT_HTTP_AUTHORIZATION set by rewrite engine in .htaccess
-if( isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && 
-	(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) )
-{
-	$rAuth = explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
-
-	if(count($rAuth)>1)
-	{
-		$_SERVER['PHP_AUTH_USER'] = $rAuth[0];
-		$_SERVER['PHP_AUTH_PW'] = $rAuth[1];
+// CGI may forward Basic credentials through either header. Preserve colons in passwords.
+foreach (array('HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION') as $header) {
+	if (!isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER[$header]) && preg_match('/^Basic\s+(.+)$/i', $_SERVER[$header], $match)) {
+		$decoded = base64_decode($match[1], true);
+		if (is_string($decoded) && strpos($decoded, ':') !== false) {
+			list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', $decoded, 2);
+		}
 	}
 }
 
@@ -80,32 +64,19 @@ if (! defined('NOSESSION')) define('NOSESSION','1');
 function llxHeader() { }
 function llxFooter() { }
 
-// Multicompany : the entity may be given as the first segment of the path,
-// ex: /cdav/server.php/2/calendars/login/2-cal-login
-// It has to be known before loading Dolibarr environment because master.inc.php
-// reads the DOLENTITY constant to set $conf->entity.
-$cdav_entity = 0;
-$cdav_pathinfo = '';
-if(isset($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO']!='')
-{
-	$cdav_pathinfo = $_SERVER['PATH_INFO'];
+require_once __DIR__.'/lib/cdav_request.lib.php';
+try {
+	$cdavRoute = cdavParseDavRoute($_SERVER);
+} catch (InvalidArgumentException $e) {
+	http_response_code(400);
+	exit;
 }
-elseif(!empty($_SERVER['REQUEST_URI']) && !empty($_SERVER['SCRIPT_NAME']))
-{
-	// PATH_INFO is not always set (fastcgi, rewrite rules...) so rebuild it from REQUEST_URI
-	$cdav_uri = $_SERVER['REQUEST_URI'];
-	$cdav_pos = strpos($cdav_uri, '?');
-	if($cdav_pos !== false)
-		$cdav_uri = substr($cdav_uri, 0, $cdav_pos);
-	$cdav_uri = rawurldecode($cdav_uri);
-	if(strpos($cdav_uri, $_SERVER['SCRIPT_NAME']) === 0)
-		$cdav_pathinfo = substr($cdav_uri, strlen($_SERVER['SCRIPT_NAME']));
-}
-// A numeric first segment can only be an entity : no dav collection is named with digits only
-if(preg_match('#^/(\d+)(/|$)#', $cdav_pathinfo, $cdav_reg))
-{
-	$cdav_entity = (int) $cdav_reg[1];
-	define('DOLENTITY', $cdav_entity);
+define('DOLENTITY', $cdavRoute['entity']);
+// This endpoint is not a login page; prevent native bootstrap entity overrides.
+if (isset($_GET['loginfunction']) || isset($_POST['loginfunction'])
+	|| (session_id() !== '' && !empty($_SESSION['dol_entity'])) || !empty($_ENV['dol_entity'])) {
+	http_response_code(400);
+	exit;
 }
 
 // Load Dolibarr environment
@@ -146,104 +117,14 @@ if(!defined('DOL_DOCUMENT_ROOT'))
 require DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';	// auth method
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 
-if(!$conf->cdav->enabled)
-	die('module CDav not enabled !');
-
-//set_error_handler("exception_error_handler", E_ERROR | E_USER_ERROR |
-//				E_CORE_ERROR | E_COMPILE_ERROR | E_RECOVERABLE_ERROR );
-
-
-require_once './lib/cdav.lib.php';
-
-// define CDAV_CONTACT_TAG if not
-if(!defined('CDAV_CONTACT_TAG'))
-{
-	if(isset($conf->global->CDAV_CONTACT_TAG))
-		define('CDAV_CONTACT_TAG', $conf->global->CDAV_CONTACT_TAG);
-	else
-		define('CDAV_CONTACT_TAG', '');
+require_once __DIR__.'/class/cdavcompatibility.class.php';
+require_once __DIR__.'/lib/cdav.lib.php';
+$langs->loadLangs(array('cdav@cdav', 'agenda', 'companies', 'projects', 'members', 'interventions'));
+if ((int) $conf->entity !== $cdavRoute['entity'] || !CDavCompatibility::isFeatureAvailable('dav')) {
+	http_response_code(503);
+	exit($langs->transnoentities('CDavRequiresDAV'));
 }
-
-// define CDAV_URI_KEY if not
-if(!defined('CDAV_URI_KEY'))
-{
-	if(isset($conf->global->CDAV_URI_KEY))
-		define('CDAV_URI_KEY', $conf->global->CDAV_URI_KEY);
-	else
-		define('CDAV_URI_KEY', substr(md5($_SERVER['HTTP_HOST']),0,8));
-}
-
-// define CDAV_TASK_USER_ROLE if not
-if(!defined('CDAV_TASK_USER_ROLE'))
-{
-	if(isset($conf->global->CDAV_TASK_USER_ROLE))
-		define('CDAV_TASK_USER_ROLE', $conf->global->CDAV_TASK_USER_ROLE);
-	else
-		die('Module CDav is not properly configured : Project user role not set !');
-}
-
-// define CDAV_SYNC_PAST if not
-if(!defined('CDAV_SYNC_PAST'))
-{
-	if(isset($conf->global->CDAV_SYNC_PAST))
-		define('CDAV_SYNC_PAST', $conf->global->CDAV_SYNC_PAST);
-	else
-		die('Module CDav is not properly configured : Period to sync not set !');
-}
-
-// define CDAV_SYNC_FUTURE if not
-if(!defined('CDAV_SYNC_FUTURE'))
-{
-	if(isset($conf->global->CDAV_SYNC_FUTURE))
-		define('CDAV_SYNC_FUTURE', $conf->global->CDAV_SYNC_FUTURE);
-	else
-		die('Module CDav is not properly configured : Period to sync not set !');
-}
-
-// define CDAV_TASK_SYNC if not
-if(!defined('CDAV_TASK_SYNC'))
-{
-	if(isset($conf->global->CDAV_TASK_SYNC))
-		define('CDAV_TASK_SYNC', $conf->global->CDAV_TASK_SYNC);
-	else
-		define('CDAV_TASK_SYNC', '0');
-}
-
-// define CDAV_INTERV_SYNC if not
-if(!defined('CDAV_INTERV_SYNC'))
-{
-	if(isset($conf->global->CDAV_INTERV_SYNC))
-		define('CDAV_INTERV_SYNC', $conf->global->CDAV_INTERV_SYNC);
-	else
-		define('CDAV_INTERV_SYNC', '0');
-}
-
-// define CDAV_INTERV_USER_ROLE if not
-if(!defined('CDAV_INTERV_USER_ROLE'))
-{
-	if(isset($conf->global->CDAV_INTERV_USER_ROLE))
-		define('CDAV_INTERV_USER_ROLE', $conf->global->CDAV_INTERV_USER_ROLE);
-	else
-		define('CDAV_INTERV_USER_ROLE', '0');
-}
-
-// define CDAV_THIRD_SYNC if not
-if(!defined('CDAV_THIRD_SYNC'))
-{
-	if(isset($conf->global->CDAV_THIRD_SYNC))
-		define('CDAV_THIRD_SYNC', $conf->global->CDAV_THIRD_SYNC);
-	else
-		define('CDAV_THIRD_SYNC', '0');
-}
-
-// define CDAV_MEMBER_SYNC if not
-if(!defined('CDAV_MEMBER_SYNC'))
-{
-	if(isset($conf->global->CDAV_MEMBER_SYNC))
-		define('CDAV_MEMBER_SYNC', $conf->global->CDAV_MEMBER_SYNC);
-	else
-		define('CDAV_MEMBER_SYNC', '0');
-}
+require __DIR__.'/lib/cdav_constants.php';
 
 // 0 < CDAV_ADDRESSBOOK_ID_SHIFT = Contacts
 // CDAV_ADDRESSBOOK_ID_SHIFT   < 2*CDAV_ADDRESSBOOK_ID_SHIFT = Thirdparties
@@ -257,77 +138,44 @@ use Sabre\DAVACL;
 
 // The autoloader
 require DOL_DOCUMENT_ROOT.'/includes/sabre/autoload.php';
-require './class/PrincipalsDolibarr.php';
-require './class/CardDAVDolibarr.php';
-require './class/CalDAVDolibarr.php';
+require __DIR__.'/class/PrincipalsDolibarr.php';
+require __DIR__.'/class/CardDAVDolibarr.php';
+require __DIR__.'/class/CalDAVDolibarr.php';
 
+// Authenticate before constructing any principal or opening any document directory.
+$username = isset($_SERVER['PHP_AUTH_USER']) ? (string) $_SERVER['PHP_AUTH_USER'] : '';
+$password = isset($_SERVER['PHP_AUTH_PW']) ? (string) $_SERVER['PHP_AUTH_PW'] : '';
+$authmodes = array_values(array_diff(array_map('trim', explode(',', $dolibarr_main_authentication ?: 'dolibarr')), array('googlerecaptcha')));
+$multicompanyActive = isModEnabled('multicompany');
+$transverseMode = $multicompanyActive && getDolGlobalInt('MULTICOMPANY_TRANSVERSE_MODE');
+$login = $username !== '' ? checkLoginPassEntity($username, $password, (int) $conf->entity, $authmodes, 'dav') : '';
 $user = new User($db);
-
-if(isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER']!='')
-{
-	// entity has to be forced : with the default -1, User::fetch searches in every entity
-	// and returns nothing (USERDUPLICATEFOUND) when the same login exists in several ones
-	$user->fetch('', $_SERVER['PHP_AUTH_USER'], '', 0, $conf->entity);
-	$user->getrights();
+$authenticated = false;
+if (is_string($login) && $login !== '') {
+	$accountEntity = $transverseMode ? 1 : (int) $conf->entity;
+	$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."user WHERE login='".$db->escape($login)."' AND entity IN (0,".$accountEntity.") AND statut=1";
+	$resql = $db->query($sql);
+	if ($resql && $db->num_rows($resql) === 1 && is_object($row = $db->fetch_object($resql)) && $user->fetch((int) $row->rowid) > 0) {
+		$authenticated = empty($user->socid) && empty($user->societe_id);
+		if ($multicompanyActive) {
+			// Authentication and entity admission are distinct, including centralized users.
+			$admission = isset($mc) && is_object($mc) && method_exists($mc, 'checkRight') ? $mc->checkRight((int) $user->id, (int) $conf->entity) : null;
+			$authenticated = $authenticated && is_int($admission) && $admission >= 0;
+		}
+	}
 }
-
+if (!$authenticated) {
+	header('WWW-Authenticate: Basic realm="Dolibarr"');
+	http_response_code(401);
+	exit;
+}
+if (version_compare(DOL_VERSION, '20.0.0', '>=')) $user->loadRights('', 1);
+else $user->getrights('', 1);
 $cdavLib = new CdavLib($user, $db, $langs);
-
-// Authentication
-$authBackend = new DAV\Auth\Backend\BasicCallBack(function ($username, $password)
-{
-	global $user;
-	global $conf;
-	global $dolibarr_main_authentication;
-	
-	
-	if ( ! isset($user->login) || $user->login=='')
-	{
-		debug_log("Authentication failed 1 for user $username with pass ".str_pad('', strlen($password), '*'));
-		return false;
-	}
-	if (!empty($user->societe_id) || !empty($user->socid)) // external user
-	{
-		debug_log("Authentication failed 2 for user $username with pass ".str_pad('', strlen($password), '*'));
-		return false;
-	}
-	if ($user->login!=$username)
-	{
-		debug_log("Authentication failed 3 for user $username with pass ".str_pad('', strlen($password), '*'));
-		return false;
-	}
-	/*if ($user->pass_indatabase_crypted == '' || dol_hash($password) != $user->pass_indatabase_crypted)
-		return false;*/
-	
-	// Authentication mode
-	// disable googlerecaptcha
-	$dolibarr_main_authentication = str_replace('googlerecaptcha','dolibarr', $dolibarr_main_authentication);
-	if (empty($dolibarr_main_authentication))
-		$dolibarr_main_authentication='http,dolibarr';
-	$authmode = explode(',',$dolibarr_main_authentication);
-	$entity = (GETPOST('entity','int') ? GETPOST('entity','int') : (!empty($conf->entity) ? $conf->entity : 1));
-	if( ((float) DOL_VERSION < 11.0) && checkLoginPassEntity($username,$password,$entity,$authmode)!=$username
-		||
-		((float) DOL_VERSION >= 11.0) && checkLoginPassEntity($username,$password,$entity,$authmode,'dav')!=$username )
-	{
-		debug_log("Authentication failed 4 for user $username with pass ".str_pad('', strlen($password), '*'));
-		return false;
-	}
-	debug_log("Authentication OK for user $username ");
-	return true;
+$authBackend = new DAV\Auth\Backend\BasicCallBack(function ($name, $pass) use ($username, $password) {
+	return hash_equals($username, $name) && hash_equals($password, $pass);
 });
-
 $authBackend->setRealm('Dolibarr');
-
-// The lock manager is reponsible for making sure users don't overwrite
-// each others changes.
-// Multicompany : dolibarr creates the module directories into DOL_DATA_ROOT/<entity> when entity > 1
-$cdav_data_root = $dolibarr_main_data_root.($conf->entity > 1 ? '/'.$conf->entity : '');
-// only when the entity data root exists, so that a bogus entity in the url creates nothing
-if(is_dir($cdav_data_root) && !is_dir($cdav_data_root.'/cdav/public'))
-	dol_mkdir($cdav_data_root.'/cdav/public', $dolibarr_main_data_root);
-
-$lockBackend = new DAV\Locks\Backend\File($cdav_data_root.'/cdav/.locks');
 
 // Principals Backend
 $principalBackend = new DAVACL\PrincipalBackend\Dolibarr($user,$db);
@@ -345,23 +193,64 @@ $nodes = array(
 	// /calendars
 	new \Sabre\CalDAV\CalendarRoot($principalBackend, $caldavBackend)
 );
-// / Public docs
-if(is_dir($cdav_data_root.'/cdav/public'))
-	$nodes[] = new DAV\FS\Directory($cdav_data_root.'/cdav/public');
-// admin can access all dolibarr documents of his entity
-if($user->admin && is_dir($cdav_data_root))
-	$nodes[] = new DAV\FS\Directory($cdav_data_root);
+// Expose only the entity's configured CDav public directory. Native ECM rights
+// are also enforced for every filesystem operation by the DAV node.
+$lockBackend = null;
+if (CDavCompatibility::isFeatureAvailable('directories')) {
+	require_once __DIR__.'/lib/cdav_documents.lib.php';
+	$directoryObject = new stdClass();
+	$directoryObject->entity = (int) $conf->entity;
+	try { $cdavDirectory = cdavDocumentRoot($directoryObject, 'cdav'); }
+	catch (RuntimeException $e) { http_response_code(503); exit($langs->transnoentities('CDavRequiresDirectories')); }
+	if (dol_mkdir($cdavDirectory) < 0) {
+		http_response_code(503);
+		exit($langs->transnoentities('CDavRequiresDirectories'));
+	}
+	if (is_link($cdavDirectory.'/.locks')) { http_response_code(503); exit; }
+	$lockBackend = new DAV\Locks\Backend\File($cdavDirectory.'/.locks');
+	require_once __DIR__.'/class/CDavDirectory.php';
+	if ($user->hasRight('ecm', 'read') && is_dir($cdavDirectory.'/public')) {
+		$nodes[] = new CDavDirectory($cdavDirectory.'/public', $user, '', '', (int) $conf->entity);
+	}
+}
+
+// Keep the legacy administrative documents collection, but mount only configured
+// native modules. In entity 1 this never exposes the other entities' directories.
+if ($user->admin) {
+	require_once __DIR__.'/class/CDavDirectory.php';
+	require_once __DIR__.'/lib/cdav_documents.lib.php';
+	$documentNodes = array();
+	foreach (array(
+		'societe' => array('societe', 'societe', 'lire', 'creer', 'supprimer'),
+		'facture' => array('facture', 'facture', 'lire', 'creer', 'supprimer'),
+		'commande' => array('commande', 'commande', 'lire', 'creer', 'supprimer'),
+		'propal' => array('propal', 'propal', 'lire', 'creer', 'supprimer'),
+		'projet' => array('project', 'projet', 'lire', 'creer', 'supprimer'),
+		'ficheinter' => array('ficheinter', 'ficheinter', 'lire', 'creer', 'supprimer'),
+		'ecm' => array('ecm', 'ecm', 'read', 'upload', 'setup'),
+	) as $modulepart => $definition) {
+		list($configModule, $rightModule, $read, $write, $delete) = $definition;
+		if (!isModEnabled($configModule) || !$user->hasRight($rightModule, $read)) continue;
+		$owner = new stdClass(); $owner->entity = (int) $conf->entity;
+		try { $directory = cdavDocumentRoot($owner, $configModule); }
+		catch (RuntimeException $e) { continue; }
+		if (is_dir($directory)) $documentNodes[] = new CDavDirectory($directory, $user, $directory, $modulepart, (int) $conf->entity,
+			array($rightModule, $read), array($rightModule, $write), array($rightModule, $delete));
+	}
+	$documentsName = (int) $conf->entity > 1 ? (string) $conf->entity : basename(DOL_DATA_ROOT);
+	$nodes[] = new DAV\SimpleCollection($documentsName, $documentNodes);
+}
 
 // The server object is responsible for making sense out of the WebDAV protocol
 $server = new DAV\Server($nodes);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
-$server->setBaseUri(dol_buildpath('cdav/server.php', 1).($cdav_entity ? '/'.$cdav_entity : '').'/');
+$server->setBaseUri(dol_buildpath('cdav/server.php', 1).$cdavRoute['segment'].'/');
 
 
 $server->addPlugin(new \Sabre\DAV\Auth\Plugin($authBackend));
-$server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
+if ($lockBackend !== null) $server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
 $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
 $server->addPlugin(new \Sabre\CardDAV\Plugin());
 $server->addPlugin(new \Sabre\CalDAV\Plugin());

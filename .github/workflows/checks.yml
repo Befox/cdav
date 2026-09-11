@@ -1,0 +1,45 @@
+name: CDav checks
+
+on:
+  push:
+    branches: [master, 'feat/**', 'fix/**']
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: Dolibarr ${{ matrix.dolibarr }} / PHP ${{ matrix.php }} (simulated ERP)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dolibarr: '16.0.0'
+            php: '8.0'
+          - dolibarr: '24.0.0'
+            php: '8.4'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: Dolibarr/dolibarr
+          ref: ${{ matrix.dolibarr }}
+          path: .test-cache/core
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /htdocs/includes/sabre/
+            /htdocs/core/lib/files.lib.php
+            /htdocs/main.inc.php
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, simplexml, mbstring, ctype, date, iconv, json, xml, xmlwriter, gd, exif, openssl, fileinfo, pdo_sqlite
+          coverage: none
+      - name: Lint, languages, simulated ERP and real bundled Sabre/CSRF
+        run: python3 scripts/run_checks.py --core-htdocs .test-cache/core/htdocs

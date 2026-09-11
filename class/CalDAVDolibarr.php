@@ -25,7 +25,11 @@ use Sabre\CalDAV;
 use Sabre\DAV;
 use Sabre\DAV\Exception\Forbidden;
 
+require_once __DIR__.'/CalDAVNativeOperations.php';
+
 class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport {
+	use CalDAVNativeOperations;
+
 
 	/**
 	 * We need to specify a max date, because we need to stop *somewhere*
@@ -141,17 +145,18 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return array
 	 */
 	function getCalendarsForUser($principalUri) {
+		if ($principalUri !== 'principals/'.$this->user->login) return array();
+
 
 		global $conf;
 
-		debug_log("getCalendarsForUser( $principalUri )");
 
 		$calendars = [];
 
-		if(! $this->user->rights->agenda->myactions->read)
+		if(!\CDavCompatibility::isFeatureAvailable('caldav') || !$this->user->hasRight('agenda', 'myactions', 'read'))
 			return $calendars;
 
-		if(!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read)
+		if(!$this->user->hasRight('agenda', 'allactions', 'read'))
 			$onlyme = true;
 		else
 			$onlyme = false;
@@ -166,7 +171,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						AND a.entity IN ('.getEntity('agenda', 1).')
 						AND a.code IN (SELECT cac.code FROM '.MAIN_DB_PREFIX.'c_actioncomm cac WHERE cac.type<>"systemauto")
 						AND ar.fk_element = u.rowid) as lastupd_ev, ';
-		if(!empty($conf->project->enabled) && (!isset($conf->global->PROJECT_HIDE_TASKS) || !$conf->global->PROJECT_HIDE_TASKS) && intval(CDAV_TASK_SYNC)>0)
+		if(isModEnabled('project') && (!isset($conf->global->PROJECT_HIDE_TASKS) || !$conf->global->PROJECT_HIDE_TASKS) && intval(CDAV_TASK_SYNC)>0)
 		{
 			$sql.='(SELECT MAX(pt.tms)
 						FROM '.MAIN_DB_PREFIX.'projet_task AS pt
@@ -179,7 +184,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			$sql.='"1970-01-01 00:00:00" as lastupd_p, ';
 		}
-		if(!empty($conf->ficheinter->enabled) && intval(CDAV_INTERV_SYNC)>0)
+		if(isModEnabled('ficheinter') && intval(CDAV_INTERV_SYNC)>0)
 		{
 			$sql.='(SELECT MAX(fi.tms)
 						FROM '.MAIN_DB_PREFIX.'fichinter AS fi
@@ -192,12 +197,12 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		{
 			$sql.='"1970-01-01 00:00:00" as lastupd_fi';
 		}
-		$sql.= ' FROM '.MAIN_DB_PREFIX.'user u WHERE u.statut>0';
+		$sql.= ' FROM '.MAIN_DB_PREFIX.'user u WHERE '.\cdavCalendarUserScope();
 		if($onlyme)
 			$sql .= ' AND u.rowid='.$this->user->id;
 
 		$result = $this->db->query($sql);
-		while($row = $this->db->fetch_array($result))
+		while($result && ($row = $this->db->fetch_array($result)))
 		{
 			$lastupd = strtotime(max($row['lastupd_ev'],$row['lastupd_p'],$row['lastupd_fi']));
 
@@ -238,7 +243,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function createCalendar($principalUri, $calendarUri, array $properties) {
 
-		debug_log("createCalendar( $principalUri )");
 
 		// not supported
 		return false;
@@ -262,7 +266,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function updateCalendar($calendarId, \Sabre\DAV\PropPatch $propPatch) {
 
-		debug_log("updateCalendar( $calendarId )");
 
 
 
@@ -278,7 +281,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function deleteCalendar($calendarId) {
 
-		debug_log("deleteCalendar( $calendarId )");
 
 		// not supported
 		return;
@@ -317,7 +319,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getCalendarObjects($calendarId) {
 
-		debug_log("getCalendarObjects( $calendarId )");
 
 		return $this->cdavLib->getFullCalendarObjects($calendarId, false);
 	}
@@ -339,25 +340,26 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return array|null
 	 */
 	function getCalendarObject($calendarId, $objectUri) {
+		if (!in_array((int) $calendarId, $this->_getCalendarsIdForUser(), true)) return null;
 
-		debug_log("getCalendarObject( $calendarId , $objectUri )");
+
 
 		$calid = intval($calendarId);
 		$elem_source = 'ev';
 		//objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
-		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		if (preg_match('/^[1-9][0-9]*-ev-'.preg_quote(CDAV_URI_KEY, '/').'$/D', $objectUri))
 			$oid = intval($objectUri);
-		else if (strpos($objectUri, '-pt-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		else if (preg_match('/^[1-9][0-9]*-pt-'.preg_quote(CDAV_URI_KEY, '/').'$/D', $objectUri))
 		{
 			$elem_source = 'pt';
 			$oid = intval($objectUri);
 		}
-		else if (strpos($objectUri, '-pe-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		else if (preg_match('/^[1-9][0-9]*-pe-'.preg_quote(CDAV_URI_KEY, '/').'$/D', $objectUri))
 		{
 			$elem_source = 'pe';
 			$oid = intval($objectUri);
 		}
-		else if (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
+		else if (preg_match('/^[1-9][0-9]*-fi-'.preg_quote(CDAV_URI_KEY, '/').'$/D', $objectUri))
 		{
 			$elem_source = 'fi';
 			$oid = intval($objectUri);
@@ -367,14 +369,14 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		$calevent = null ;
 
-		if(! $this->user->rights->agenda->myactions->read)
+		if(!\CDavCompatibility::isFeatureAvailable('caldav') || !$this->user->hasRight('agenda', 'myactions', 'read'))
 			return $calevent;
 
-		if($calid!=$this->user->id && (!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read))
+		if($calid!=$this->user->id && (!$this->user->hasRight('agenda', 'allactions', 'read')))
 			return $calevent;
 
 		if($elem_source=='ev') // Calendar Events
-			$sql = $this->cdavLib->getSqlCalEvents($calid, $oid, $objectUri);
+			$sql = $this->cdavLib->getSqlCalEvents($calid, $oid, $oid > 0 ? false : $objectUri);
 		elseif($elem_source=='fi') // Intervention card
 			$sql = $this->cdavLib->getSqlIntervEvents($calid, $oid);
 		else // Project Tasks
@@ -387,13 +389,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		if ($result)
 		{
-			if ($obj = $this->db->fetch_object($result))
+			if ($this->db->num_rows($result) > 1) throw new \Sabre\DAV\Exception\Conflict('Ambiguous DAV URI');
+			if (is_object($obj = $this->db->fetch_object($result)))
 			{
 				$calendardata = $this->cdavLib->toVCalendar($calid, $obj, true);
 
 				$calevent = [
 					'id' => $obj->id,
-					'uri' => $obj->id.'-'.$elem_source.'-'.CDAV_URI_KEY,
+					'source' => $elem_source,
+					'uri' => $objectUri,
 					'lastmodified' => strtotime($obj->lastupd),
 					'etag' => '"'.md5($calendardata).'"',
 					'calendarid'   => $calendarId,
@@ -404,7 +408,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			}
 		}
 
-		debug_log("getCalendarObject return: \n".print_r($calevent,true));
 
 		return $calevent;
 	}
@@ -423,7 +426,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getMultipleCalendarObjects($calendarId, array $uris) {
 
-		debug_log("getMultipleCalendarObjects( $calendarId , ".count($uris)." uris )");
 
 		$calevents = [];
 
@@ -457,182 +459,24 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return string|null
 	 */
 	function createCalendarObject($calendarId, $objectUri, $calendarData) {
-
-		global $conf;
-
-
-		debug_log("createCalendarObject( $calendarId , $objectUri )");
-
-		//Check right on $calendarId for current user
-		if ( ! in_array($calendarId, $this->_getCalendarsIdForUser()))
-		{
-			// not authorized
-			return;
+		if (!in_array((int) $calendarId, $this->_getCalendarsIdForUser(), true)) throw new \Sabre\DAV\Exception\Forbidden();
+		$data = $this->_parseData($calendarData);
+		$existing = $this->getCalendarObject($calendarId, $objectUri);
+		if (!$existing) {
+			// A MOVE/COPY can attach an accessible native object to another calendar.
+			foreach ($this->_getCalendarsIdForUser() as $sourceCalendar) {
+				$existing = $this->getCalendarObject($sourceCalendar, $objectUri);
+				if ($existing) break;
+			}
 		}
-		$origCalendarData = $calendarData;
-		$calendarData = $this->_parseData($calendarData);
-
-		if (! $calendarData || empty($calendarData))
-		{
-			return;
+		if (!$existing && preg_match('/^[1-9][0-9]*-(ev|pe|pt|fi)-/', $objectUri)) throw new \Sabre\DAV\Exception\NotFound();
+		if ($existing) {
+			$stored = VObject\Reader::read($existing['calendardata']);
+			foreach ($stored->getComponents() as $component) {
+				if (isset($component->UID) && (string) $component->UID !== $data['uid']) throw new \Sabre\DAV\Exception\Conflict('UID cannot be changed');
+			}
 		}
-
-		// Loop on occurences
-		foreach($calendarData['occurences'] as $iOccur => $occurence)
-		{
-			$oid = false;
-			$elem_source = 'ev';
-			// check if it is existing event (if caldav client move it from a calendar to an other)
-			// objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
-			if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
-			{
-				$oid = intval($objectUri);
-				$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid;
-				$result = $this->db->query($sql);
-				if ($result===false ||  $this->db->fetch_object($result)===false)
-					$oid = false;
-			}
-			elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
-			{
-				$oid = intval($objectUri);
-				$elem_source = 'p?';
-				$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid;
-				$result = $this->db->query($sql);
-				if ($result===false ||  $this->db->fetch_object($result)===false)
-				{
-					$oid = false;
-					$elem_source = 'ev';
-				}
-			}
-			elseif (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
-			{
-				$oid = intval($objectUri);
-				$elem_source = 'fi';
-				$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid;
-				$result = $this->db->query($sql);
-				if ($result===false || ($row = $this->db->fetch_object($result))===false)
-				{
-					// fichinterdet no longer exists, skip (don't create a new actioncomm)
-					return;
-				}
-				$fi_oid = intval($row->fk_fichinter);
-			}
-			else
-			{
-				$sql = "SELECT fk_object FROM ".MAIN_DB_PREFIX."actioncomm_cdav WHERE uuidext = '".$this->db->escape($objectUri)."'";
-				$result = $this->db->query($sql);
-				if ($result!==false && ($row=$this->db->fetch_object($result))!==false)
-					$oid = intval($row->fk_object??0);
-			}
-
-			if(!$oid || $iOccur>0)	// new event 
-			{
-				if((float) DOL_VERSION >= 14.0)
-				{
-					$reffield='ref,';
-					$refvalue='NOW(),';
-				}
-				else
-				{
-					$reffield='';
-					$refvalue='';
-				}
-
-				debug_log("    creating event");
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (".$reffield."entity,datep, datep2, fk_action, code, label, datec, tms, fk_user_author, fk_parent, fk_user_action, priority, transparency, fulldayevent, percent, location, durationp, note)
-							VALUES (".$refvalue."
-								".((int) $conf->entity).",
-								'".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $occurence->start) : date('Y-m-d H:i:s', $occurence->start))."',
-								'".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $occurence->end-1) : date('Y-m-d H:i:s', $occurence->end))."',
-								5,
-								'AC_RDV',
-								'".$this->db->escape($calendarData['label'])."',
-								NOW(),
-								NOW(),
-								".(int)$this->user->id.",
-								0,
-								".(int)$calendarId.",
-								".(int)$calendarData['priority'].",
-								".(int)$calendarData['transparency'].",
-								".(int)$calendarData['fullday'].",
-								".(int)$calendarData['percent'].",
-								'".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
-								".($occurence->end - $calendarData['fullday'] - $occurence->start).",
-								'".$this->db->escape($calendarData['note'])."'
-							)";
-				$res = $this->db->query($sql);
-				if ( ! $res)
-				{
-					debug_log("    Error inserting : ".$sql);
-					return;
-				}
-
-				//Récupérer l'ID de l'event créer et faire une insertion dans actioncomm_resources
-				$oid = $this->db->last_insert_id(MAIN_DB_PREFIX.'actioncomm');
-				if ( ! $oid)
-				{
-					debug_log("    Error getting last_insert_id");
-					return;
-				}
-				debug_log("    event $oid created");
-				if((float) DOL_VERSION >= 14.0)
-				{
-					$sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET ref=id WHERE id=".$oid;
-					$this->db->query($sql);
-				}
-				//Insérer l'UUID externe
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_cdav (`fk_object`, `uuidext`, `sourceuid`)
-						VALUES (
-							".$oid.",
-							'".$this->db->escape($objectUri)."',
-							'".$this->db->escape($calendarData['uid'])."'
-						)";
-				$this->db->query($sql);
-			}
-
-			if($elem_source == 'ev')
-			{
-				debug_log("    add user $calendarId to event $oid");
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm_resources (`fk_actioncomm`, `element_type`, `fk_element`, `transparency` )
-						VALUES (
-							".$oid.",
-							'user',
-							".(int)$calendarId.",
-							'".$this->db->escape($calendarData['transparency'])."'
-						)";
-				$this->db->query($sql);
-			}
-			elseif($elem_source == 'fi')
-			{
-				debug_log("    add user $calendarId to fichinter $fi_oid (via fichinterdet $oid)");
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
-						VALUES (
-							NOW(),
-							4,
-							".(int)$fi_oid.",
-							".(int)CDAV_INTERV_USER_ROLE.",
-							".(int)$calendarId."
-						)";
-				debug_log($sql);
-				$this->db->query($sql);
-			}
-			else
-			{
-				debug_log("    add user $calendarId to project task $oid");
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."element_contact (`datecreate`, `statut`, `element_id`, `fk_c_type_contact`, `fk_socpeople` )
-						VALUES (
-							NOW(),
-							4,
-							".(int)$oid.",
-							".(int)CDAV_TASK_USER_ROLE.",
-							".(int)$calendarId."
-						)";
-				debug_log($sql);
-				$this->db->query($sql);
-			}
-		} // loop occurences
-
-		return;
+		return $this->persistCalendarObject((int) $calendarId, $objectUri, $data, $existing, true);
 	}
 
 	/**
@@ -654,106 +498,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return string|null
 	 */
 	function updateCalendarObject($calendarId, $objectUri, $calendarData) {
-
-		debug_log("updateCalendarObject( $calendarId , $objectUri )");
-
-		//Check right on $calendarId for current user
-		if ( ! in_array($calendarId, $this->_getCalendarsIdForUser()))
-		{
-            debug_log('User '.$this->user->id.' not authorized to update calendar '.$calendarId);
-            debug_log(print_r($this->user->rights, true));
-			// not authorized
-			return;
+		$existing = $this->getCalendarObject($calendarId, $objectUri);
+		if (!$existing) throw new \Sabre\DAV\Exception\NotFound();
+		$data = $this->_parseData($calendarData);
+		// The request URI selects the object. A UID in an untrusted body never selects a row.
+		$stored = VObject\Reader::read($existing['calendardata']);
+		foreach ($stored->getComponents() as $component) {
+			if (isset($component->UID) && (string) $component->UID !== $data['uid']) throw new \Sabre\DAV\Exception\Conflict('UID cannot be changed');
 		}
-
-		$origCalendarData = $calendarData;
-		$calendarData = $this->_parseData($calendarData);
-
-		if (! $calendarData || empty($calendarData))
-		{
-			return;
-		}
-
-		if($calendarData['elem_source']=='ev')
-		{
-			$sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm
-						SET
-							label 			= '".$this->db->escape($calendarData['label'])."',
-							datep			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
-							datep2			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
-							fulldayevent	= ".(int)$calendarData['fullday'].",
-							location 		= '".$this->db->escape(trim(str_replace(array("\r","\t","\n"),' ',$calendarData['location'])))."',
-							priority 		= '".$this->db->escape($calendarData['priority'])."',
-							transparency 	= '".$this->db->escape($calendarData['transparency'])."',
-							note 			= '".$this->db->escape($calendarData['note'])."',
-							percent 		= ".(int)$calendarData['percent'].",
-							fk_user_mod		= '".(int)$this->user->id."',
-							durationp		= ".($calendarData['end'] - $calendarData['fullday'] - $calendarData['start']).",
-							tms				= NOW()
-						WHERE id = ".(int)$calendarData['id']."
-						AND entity IN (".getEntity('agenda', 1).")";
-		}
-		elseif($calendarData['elem_source']=='pe')	// event
-		{
-			$sql = "UPDATE ".MAIN_DB_PREFIX."projet_task
-						SET
-							label 			= '".$this->db->escape($calendarData['label'])."',
-							dateo			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
-							datee			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
-							priority 		= '".$this->db->escape($calendarData['priority'])."',
-							description 	= '".$this->db->escape($calendarData['note'])."',
-							fk_user_modif	= '".(int)$this->user->id."',
-							note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-							tms				= NOW()
-						WHERE rowid = ".(int)$calendarData['id']."
-						AND entity IN (".getEntity('project', 1).")";
-		}
-		elseif($calendarData['elem_source']=='pt') // todo
-		{
-			$sql = "UPDATE ".MAIN_DB_PREFIX."projet_task
-						SET
-							label 			= '".$this->db->escape($calendarData['label'])."',
-							dateo			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 00:00:00', $calendarData['start']) : date('Y-m-d H:i:s', $calendarData['start']))."',
-							datee			= '".($calendarData['fullday'] == 1 ? date('Y-m-d 23:59:59', $calendarData['end']-1) : date('Y-m-d H:i:s', $calendarData['end']))."',
-							priority 		= '".$this->db->escape($calendarData['priority'])."',
-							description 	= '".$this->db->escape($calendarData['note'])."',
-							progress 		= ".(int)$calendarData['percent'].",
-							fk_user_modif	= '".(int)$this->user->id."',
-							note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-							tms				= NOW()
-						WHERE rowid = ".(int)$calendarData['id']."
-						AND entity IN (".getEntity('project', 1).")";
-		}
-		elseif($calendarData['elem_source']=='fi') // fichinter line (fichinterdet)
-		{
-			// fichinterdet.date is DATETIME, fichinterdet.duree is in seconds
-			$duree = max(0, intval($calendarData['end']) - intval($calendarData['start']));
-			$sql = "UPDATE ".MAIN_DB_PREFIX."fichinterdet
-						SET
-							date			= '".date('Y-m-d H:i:s', $calendarData['start'])."',
-							duree			= ".$duree.",
-							description		= '".$this->db->escape($calendarData['note'])."'
-						WHERE rowid = ".(int)$calendarData['id']."
-						AND fk_fichinter IN (SELECT rowid FROM ".MAIN_DB_PREFIX."fichinter WHERE entity IN (".getEntity('intervention', 1)."))";
-			// bump parent fichinter mtime + audit trace
-			$bumpSql = "UPDATE ".MAIN_DB_PREFIX."fichinter f
-						INNER JOIN ".MAIN_DB_PREFIX."fichinterdet fd ON fd.fk_fichinter = f.rowid
-						SET
-							f.fk_user_modif	= '".(int)$this->user->id."',
-							f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-							f.tms			= NOW()
-						WHERE fd.rowid = ".(int)$calendarData['id']."
-						AND f.entity IN (".getEntity('intervention', 1).")";
-			$this->db->query($bumpSql);
-		}
-
-		$this->db->query($sql);
-
-		// if reccurse, create other occurences
-		if(count($calendarData['occurences'])>1)
-			return $this->createCalendarObject($calendarId, $objectUri, $origCalendarData);
-
-		return;
+		return $this->persistCalendarObject((int) $calendarId, $objectUri, $data, $existing, false);
 	}
 
 	/**
@@ -773,7 +526,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	protected function getDenormalizedData($calendarData) {
 
-		debug_log("getDenormalizedData( ... )");
 
 		$vObject = VObject\Reader::read($calendarData);
 		$componentType = null;
@@ -792,6 +544,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			throw new \Sabre\DAV\Exception\BadRequest('Calendar objects must have a VJOURNAL, VEVENT or VTODO component');
 		}
 		if ($componentType === 'VEVENT') {
+			if (!isset($component->DTSTART)) throw new \Sabre\DAV\Exception\BadRequest('DTSTART is required');
 			$firstOccurence = $component->DTSTART->getDateTime()->getTimeStamp();
 			// Finding the last occurence is a bit harder
 			if (!isset($component->RRULE)) {
@@ -843,28 +596,27 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function _getCalendarsIdForUser() {
 
-		debug_log("_getCalendarsIdForUser()");
 
 		$calendars = [];
 
-		if(! $this->user->rights->agenda->myactions->read)
+		if(!\CDavCompatibility::isFeatureAvailable('caldav') || !$this->user->hasRight('agenda', 'myactions', 'read'))
 			return $calendars;
 
-		if(!isset($this->user->rights->agenda->allactions->read) || !$this->user->rights->agenda->allactions->read)
+		if(!$this->user->hasRight('agenda', 'allactions', 'read'))
 			$onlyme = true;
 		else
 			$onlyme = false;
 
 		$sql = 'SELECT
 					u.rowid
-				FROM '.MAIN_DB_PREFIX.'user u WHERE u.statut>0';
+				FROM '.MAIN_DB_PREFIX.'user u WHERE '.\cdavCalendarUserScope();
 		if($onlyme)
 			$sql .= ' AND u.rowid='.$this->user->id;
 
 		$result = $this->db->query($sql);
-		while($row = $this->db->fetch_array($result))
+		while($result && ($row = $this->db->fetch_array($result)))
 		{
-			$calendars[] = $row['rowid'];
+			$calendars[] = (int) $row['rowid'];
 		}
 
 		return $calendars;
@@ -896,11 +648,9 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	protected function _parseData($calendarData) {
 
-		debug_log("_parseData( $calendarData )");
 
 		$vObject = VObject\Reader::read($calendarData);
 		$vObject->validate(VObject\Node::REPAIR | VObject\Node::PROFILE_CALDAV);
-		debug_log("VObject( ".print_r($vObject,true)." )");
 		$componentType = null;
 		$component = null;
 		$firstOccurence = null;
@@ -941,14 +691,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 				{
 					$elem_source='fi';
 					$id = intval($uid);
-				}
-				else
-				{
-					$sql = "SELECT `fk_object` FROM ".MAIN_DB_PREFIX."actioncomm_cdav
-							WHERE `sourceuid`= '".$this->db->escape($uid)."'"; // uid comes from external apps
-					$result = $this->db->query($sql);
-					if($result!==false && ($row = $this->db->fetch_array($result))!==false)
-						$id = intval($row['fk_object']??0);
 				}
 				if (in_array($componentType, array('VEVENT', 'VTODO')))
 				{
@@ -992,23 +734,23 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 						elseif(isset($component->DUE))
 							$end 	= $component->DUE->getDateTime()->getTimeStamp();
 						else
-							$end 	= $start+60*60;//date de fin = date début +1H par défaut
+							$end 	= $start+60*60;//date de fin = date dÃ©but +1H par dÃ©faut
 					}
 					$location 		= isset($component->LOCATION) ? trim(str_replace(array("\r","\t","\n"),' ',(string)$component->LOCATION)) : '';
 					$priority 		= isset($component->PRIORITY) ? (string)$component->PRIORITY : '5';
-					$transparency 	= isset($component->TRANSP) ? (string)$component->TRANSP : '0';
+					$transparency 	= isset($component->TRANSP) ? (string)$component->TRANSP : 'OPAQUE';
 					if ($transparency == 'OPAQUE')
 						$transparency = 0;
 					else
 						$transparency = 1;
-					//TODO clear note special comment 💼
+					//TODO clear note special comment ðŸ’¼
 					$tmp 			= isset($component->DESCRIPTION) ? (string)$component->DESCRIPTION : '';
 					$arrNote = array();
 					$arrTmp = explode("\n", $tmp);
 					foreach($arrTmp as $line)
 					{
-						if (mb_strpos($line, '💼', 0, 'UTF-8')!==0
-							&& mb_strpos($line, '??', 0, 'UTF-8')!==0				// 💼 could be converted in ?? if utf8 char is truncated on 2 VCal lines
+						if (mb_strpos($line, 'ðŸ’¼', 0, 'UTF-8')!==0
+							&& mb_strpos($line, '??', 0, 'UTF-8')!==0				// ðŸ’¼ could be converted in ?? if utf8 char is truncated on 2 VCal lines
 							&& mb_strpos($line, '*DOLIBARR-', 0, 'UTF-8')===false)
 						{
 							$noteline = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",$line); // remove utf8mb4 chars
@@ -1033,9 +775,10 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 		if (!$componentType) {
 			throw new \Sabre\DAV\Exception\BadRequest('Calendar objects must have a VJOURNAL, VEVENT or VTODO component');
 		}
-		/* Gestion de la récurrence */
+		/* Gestion de la rÃ©currence */
 		$occurences=array();
 		if ($componentType === 'VEVENT') {
+			if (!isset($component->DTSTART)) throw new \Sabre\DAV\Exception\BadRequest('DTSTART is required');
 			$firstOccurence = $component->DTSTART->getDateTime()->getTimeStamp();
 			// Finding the last occurence is a bit harder
 			if (!isset($component->RRULE)) {
@@ -1067,15 +810,15 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 					$occur->start = $itDtStart->getTimeStamp();
 					$occur->end = $itDtEnd->getTimeStamp();
 					$occurences[] = $occur;
+					if (count($occurences) > 1000) throw new \Sabre\DAV\Exception\BadRequest('Too many occurrences');
 					$lastOccurence = $itDtEnd->getTimeStamp();
-					debug_log("   recur date : ".$itDtStart->format('Y-m-d H:i')." / ".$itDtEnd->format('Y-m-d H:i'));
 					$it->next();
 				}
 			}
 		}
-		
-		
-		
+
+
+
 		$ret = array(
 			'etag'           	=> md5($calendarData),
 			'size'           	=> strlen($calendarData),
@@ -1097,7 +840,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 			'status'			=> $status,
 			'elem_source'		=> $elem_source,
 		);
-		debug_log("   parsed data : ".print_r($ret, true));
 		return $ret;
 	}
 
@@ -1111,116 +853,31 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return void
 	 */
 	function deleteCalendarObject($calendarId, $objectUri) {
-
-		debug_log("deleteCalendarObject( $calendarId , $objectUri) ");
-
-		//Check right on $calendarId for current user
-		if ( ! in_array($calendarId, $this->_getCalendarsIdForUser()))
-		{
-			// not authorized
-			debug_log("    not authorized to delete ".$objectUri);
-			return;
-		}
-
-
-
-		//objectUri Dolibarr sinon utilisation de $objectUri en tant que ref externe
-		if (strpos($objectUri, '-ev-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
-		{
-			$oid = intval($objectUri);
-			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."actioncomm WHERE id = ".$oid."
-					AND entity IN (".getEntity('agenda', 1).")";
-			$result = $this->db->query($sql);
-			if ($result===false ||  $this->db->fetch_object($result)===false)
-			{
-				debug_log("    not found event $oid for".$objectUri);
-				return;
+		$existing = $this->getCalendarObject($calendarId, $objectUri);
+		if (!$existing) throw new \Sabre\DAV\Exception\NotFound();
+		list($source, $object, $line) = $this->loadCalendarTarget($existing);
+		if ($source === 'ev' && !$this->user->hasRight('agenda', (int) $object->userownerid === (int) $this->user->id ? 'myactions' : 'allactions', 'delete')) throw new \Sabre\DAV\Exception\Forbidden();
+		if (($source === 'pe' || $source === 'pt') && !$this->user->hasRight('projet', 'creer')) throw new \Sabre\DAV\Exception\Forbidden();
+		if ($source === 'fi' && !$this->user->hasRight('ficheinter', 'creer')) throw new \Sabre\DAV\Exception\Forbidden();
+		$this->db->begin();
+		try {
+			$object->oldcopy = clone $object;
+			if ($source === 'ev') {
+				unset($object->userassigned[(int) $calendarId]);
+				if ((int) $object->userownerid === (int) $calendarId) $object->userownerid = $object->userassigned ? (int) array_key_first($object->userassigned) : 0;
+			} else {
+				$contacts = $object->liste_contact(-1, 'internal');
+				if (!is_array($contacts)) throw new \Sabre\DAV\Exception('Contact lookup failed');
+				foreach ($contacts as $contact) {
+					if ((int) $contact['id'] === (int) $calendarId && $object->delete_contact((int) $contact['rowid']) < 0) throw new \Sabre\DAV\Exception('Contact removal failed');
+				}
 			}
-
-			debug_log("    remove user ".intval($calendarId)." from resources of event ".$oid);
-			$this->db->query("DELETE FROM ".MAIN_DB_PREFIX."actioncomm_resources
-							WHERE fk_actioncomm = ".$oid."
-							AND element_type = 'user'
-							AND fk_element = ".intval($calendarId)."
-							AND fk_actioncomm IN (SELECT id FROM ".MAIN_DB_PREFIX."actioncomm WHERE entity IN (".getEntity('agenda', 1)."))");
-
-			// change owner if other resource
-			$this->db->query("UPDATE ".MAIN_DB_PREFIX."actioncomm
-							SET fk_user_action=(SELECT fk_element FROM ".MAIN_DB_PREFIX."actioncomm_resources
-								WHERE fk_actioncomm = ".$oid."
-								AND element_type = 'user'
-								AND fk_element <> ".intval($calendarId)."
-								ORDER BY rowid DESC
-								LIMIT 1)
-							WHERE id= ".$oid."
-							AND entity IN (".getEntity('agenda', 1).")");
+			// CDav DELETE removes the calendar assignment and retains the business object.
+			if ($object->update($this->user) < 0) throw new \Sabre\DAV\Exception('Calendar update failed');
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollback(); throw $e;
 		}
-		elseif ( (strpos($objectUri, '-pe-')!==false || strpos($objectUri, '-pt-')!==false) && strpos($objectUri,CDAV_URI_KEY)!==false)
-		{
-			$oid = intval($objectUri);
-			$elem_source = 'p?';
-			$sql = "SELECT count(*) FROM ".MAIN_DB_PREFIX."projet_task WHERE rowid = ".$oid."
-					AND entity IN (".getEntity('project', 1).")";
-			$result = $this->db->query($sql);
-			if ($result===false ||  $this->db->fetch_object($result)===false)
-			{
-				debug_log("    not found task $oid for".$objectUri);
-				return;
-			}
-			debug_log("    remove user ".intval($calendarId)." from resources of task ".$oid);
-			$this->db->query("UPDATE ".MAIN_DB_PREFIX."projet_task
-							SET
-								fk_user_modif	= '".(int)$this->user->id."',
-								note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',note_private)>0 , note_private ,  CONCAT( COALESCE(note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-								tms				= NOW()
-							WHERE rowid = ".$oid."
-							AND entity IN (".getEntity('project', 1).")");
-			$this->db->query("DELETE ec
-							FROM ".MAIN_DB_PREFIX."element_contact as ec
-							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='project_task' AND tc.source='internal')
-							WHERE ec.element_id = ".$oid."
-							AND tc.element='project_task' AND tc.source='internal'
-							AND ec.fk_socpeople = ".intval($calendarId)."
-							AND ec.element_id IN (SELECT rowid FROM ".MAIN_DB_PREFIX."projet_task WHERE entity IN (".getEntity('project', 1)."))");
-		}
-		elseif (strpos($objectUri, '-fi-')!==false && strpos($objectUri,CDAV_URI_KEY)!==false)
-		{
-			$oid = intval($objectUri);
-			$sql = "SELECT fk_fichinter FROM ".MAIN_DB_PREFIX."fichinterdet WHERE rowid = ".$oid."
-					AND fk_fichinter IN (SELECT rowid FROM ".MAIN_DB_PREFIX."fichinter WHERE entity IN (".getEntity('intervention', 1)."))";
-			$result = $this->db->query($sql);
-			if ($result===false || ($row = $this->db->fetch_object($result))===false)
-			{
-				debug_log("    not found fichinterdet $oid for".$objectUri);
-				return;
-			}
-			$fi_oid = intval($row->fk_fichinter);
-			debug_log("    remove user ".intval($calendarId)." from resources of fichinter ".$fi_oid." (via fichinterdet ".$oid.")");
-			$this->db->query("UPDATE ".MAIN_DB_PREFIX."fichinter f
-							SET
-								f.fk_user_modif	= '".(int)$this->user->id."',
-								f.note_private	= IF( LOCATE('".date("Y-m-d H:i")." ".$this->user->login."',f.note_private)>0 , f.note_private ,  CONCAT( COALESCE(f.note_private,''), '"."\r\n".date("Y-m-d H:i")." ".$this->user->login."') ),
-								f.tms			= NOW()
-							WHERE f.rowid = ".$fi_oid."
-							AND f.entity IN (".getEntity('intervention', 1).")");
-			$this->db->query("DELETE ec
-							FROM ".MAIN_DB_PREFIX."element_contact as ec
-							LEFT JOIN ".MAIN_DB_PREFIX."c_type_contact as tc ON (tc.rowid=ec.fk_c_type_contact AND tc.element='fichinter' AND tc.source='internal')
-							WHERE ec.element_id = ".$fi_oid."
-							AND tc.element='fichinter' AND tc.source='internal'
-							AND ec.fk_socpeople = ".intval($calendarId)."
-							AND ec.element_id IN (SELECT rowid FROM ".MAIN_DB_PREFIX."fichinter WHERE entity IN (".getEntity('intervention', 1)."))");
-		}
-		else
-		{
-			// not found
-			debug_log("    not found ".$objectUri);
-			return;
-		}
-
-
-
-		return;
 	}
 
 	/**
@@ -1277,7 +934,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function calendarQuery($calendarId, array $filters) {
 
-		debug_log("calendarQuery($calendarId, ".print_r($filters, true)." ) ");
 
 		$result = [];
 		$objects = $this->getCalendarObjects($calendarId);
@@ -1290,7 +946,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 
 		}
 
-		debug_log("calendarQuery return x ".count($result));
 
 		return $result;
 	}
@@ -1315,28 +970,11 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 * @return string|null
 	 */
 	function getCalendarObjectByUID($principalUri, $uid) {
-
-		debug_log("getCalendarObjectByUID( $principalUri , $uid)");
-
-		if(strpos($uid, '-ev-')>0)
-		{
-			// "UID:".$obj->id.'-ev-'.CDAV_URI_KEY
-
-			$oid =  intval($uid);
-			$calid = $this->user->id;
-
-			/*
-			$calpos = strpos($uid, '-ev-');
-			if($calpos>0)
-				$calid = substr($uid,intval($calpos)+1)*1;
-			*/
-
-			return $calid.'-cal-'.$this->user->login . '/' . $oid.'-ev-'.CDAV_URI_KEY;
+		foreach ($this->getCalendarsForUser($principalUri) as $calendar) {
+			$object = $this->getCalendarObject($calendar['id'], $uid);
+			if ($object) return $calendar['uri'].'/'.$object['uri'];
 		}
-		else
-		{
-			return null; // not found
-		}
+		return null;
 	}
 
 	/**
@@ -1397,7 +1035,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getChangesForCalendar($calendarId, $syncToken, $syncLevel, $limit = null) {
 
-		debug_log("getChangesForCalendar( $calendarId , $syncToken , $syncLevel , $limit )");
 
 		// not supported
 		return null;
@@ -1437,7 +1074,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getSubscriptionsForUser($principalUri) {
 
-		debug_log("getSubscriptionsForUser( $principalUri )");
 
 		// Not supported
 		return [];
@@ -1456,7 +1092,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function createSubscription($principalUri, $uri, array $properties) {
 
-		debug_log("createSubscription( $$principalUri , $uri )");
 
 		// Not supported
 		return null;
@@ -1513,7 +1148,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function updateSubscription($subscriptionId, DAV\PropPatch $propPatch) {
 
-		debug_log("updateSubscription( $subscriptionId ... )");
 
 		// not supported
 		return;
@@ -1527,7 +1161,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function deleteSubscription($subscriptionId) {
 
-		debug_log("deleteSubscription( $subscriptionId ... )");
 
 		// not supported
 		return;
@@ -1551,7 +1184,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getSchedulingObject($principalUri, $objectUri) {
 
-		debug_log("getSchedulingObject( $principalUri , $objectUri )");
 
 		// not supported
 		return null;
@@ -1570,7 +1202,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function getSchedulingObjects($principalUri) {
 
-		debug_log("getSchedulingObjects( $principalUri )");
 
 		// not supported
 		return [];
@@ -1585,7 +1216,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function deleteSchedulingObject($principalUri, $objectUri) {
 
-		debug_log("deleteSchedulingObject( $principalUri , $objectUri )");
 
 		// not supported
 		return;
@@ -1601,7 +1231,6 @@ class Dolibarr extends AbstractBackend implements SyncSupport, SubscriptionSuppo
 	 */
 	function createSchedulingObject($principalUri, $objectUri, $objectData) {
 
-		debug_log("createSchedulingObject( $principalUri , $objectUri)");
 
 		// not supported
 		return;
