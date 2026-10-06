@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 3.3.2 — Non publiée
+
+- Nouveau réglage CardDAV par entité « Ajouter les coordonnées du tiers aux contacts synchronisés », désactivé par défaut. Seules les coordonnées propres au contact sont exportées ; l’adresse professionnelle, le téléphone de secours, le fax, l’email et le site web du tiers deviennent facultatifs. Le nom de l’organisation et les carnets Tiers et Adhérents sont conservés.
+- Les changements du réglage modifient l’indicateur du carnet Contacts et les ETags des vCards concernées pour permettre leur actualisation par les clients. Interrupteur natif, configuration conservée à la réactivation et traductions dans les cinq langues.
+- Aucun changement de schéma ni nettoyage des données existantes. Synchroniser les clients après mise à jour et vérifier le retrait des anciennes coordonnées ajoutées ; une actualisation complète peut être nécessaire. Les essais sur instance et clients restent à exécuter ; voir `doc/correctifs-3.3.2.md`.
+
 ## 3.3.1 — Non publiée
 
 - CardDAV exclut les contacts dont le tiers est inaccessible : affectation commerciale ou extension d’accès native, permissions, confidentialité et partages d’entité cumulés. Les contacts sans tiers restent soumis à leurs propres règles. Le contrôle couvre les listes, les lectures directes ou multiples et les modifications/suppressions.

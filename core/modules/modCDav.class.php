@@ -66,7 +66,7 @@ class modCDav extends DolibarrModules
 		$this->editor_name = 'BEFOX SARL';
 		$this->editor_url = 'https://befox.fr/';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '3.3.1';
+		$this->version = '3.3.2';
 		$this->module_position = '90';
 		$this->license = 'GPL-3.0-or-later';
 		$this->maintainer_name = 'Pierre Ardoin';
@@ -150,6 +150,7 @@ class modCDav extends DolibarrModules
 			21 => array('CDAV_INTERV_SYNC', 'chaine', '0', 'How to sync interventions',0,'current',0),
 			22 => array('CDAV_INTERV_USER_ROLE', 'chaine', '', 'Intervention user role when attaching a user to an intervention',0,'current',0),
 			23 => array('CDAV_CONTACT_SYNC_CIVILITY', 'chaine', '0', 'Synchronize contact civility',0,'current',0),
+			24 => array('CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS', 'chaine', '0', 'Add third-party contact details to synchronized contacts',0,'current',0),
 		);
 
 		// Array to add new pages in new tabs

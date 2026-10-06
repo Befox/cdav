@@ -1,8 +1,8 @@
-# CDav 3.3.1 for Dolibarr
+# CDav 3.3.2 for Dolibarr
 
 CDav synchronizes native Dolibarr contacts, third parties, members, calendars, project tasks and interventions through CardDAV and CalDAV. It also provides read-only ICS subscriptions and controlled WebDAV access to native documents.
 
-Original module: **Befox SARL**, module ID **562387**, GPL-3.0-or-later. This fork retains the CDav identity and existing configuration keys. Version 3.3.1 is under development on `fix/3.3.1-fix-contacts-permissions`; no release has been published.
+Original module: **Befox SARL**, module ID **562387**, GPL-3.0-or-later. This fork retains the CDav identity and existing configuration keys. Version 3.3.2 is under development on `fix/3.3.2-contact-thirdparty-details`; no release has been published.
 
 ## Compatibility
 
@@ -74,6 +74,8 @@ Creations belong to the target entity; shared objects keep their original owner.
 Contacts linked to a third party require access to that third party as well as contact read permission. Without the native extension to all third parties (`societe.client.voir`), only third parties assigned to the current user as a sales representative qualify. Parent and contact entity sharing, private contacts and the existing pure-supplier read restriction also apply. Unlinked contacts retain their own access rules; a missing or inaccessible parent does not make a linked contact public. Lists, discovery metadata, individual/multiple reads and checks before updates or archival use the same scope.
 
 The **Synchronize contact titles (civility)** switch (`CDAV_CONTACT_SYNC_CIVILITY`) is **off by default**, independently per entity. It controls the Dolibarr civility field (Mr, Ms…), carried in the vCard name prefix, in both directions. When off, CardDAV omits this prefix and ignores incoming prefixes, preserving an existing Dolibarr civility. Job titles (`poste` / vCard `TITLE`) remain synchronized. The optional company-name display remains in the formatted name without replacing civility.
+
+The **Add third-party contact details to synchronized contacts** switch (`CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS`) is **off by default**, independently per entity. Contacts then export only their own postal address, phone numbers, fax and email. When enabled, the previous behavior is restored: add the third party’s work address, fax, email and website, and use its phone only when the contact’s work phone is empty. The organization name remains exported; the separate Third parties and Members address books are unaffected. The switch changes the Contacts collection indicator and card ETags so clients can detect the new content. It does not modify ERP contact data or remove information already saved in ERP contacts or manually retained by clients. After upgrading, synchronize and verify the result on each client; force a full rescan if the client keeps old details. See the [3.3.2 validation report](doc/correctifs-3.3.2.md).
 
 Contact collection change tags include the visible membership and the civility option, so revoking an assignment or changing this switch prompts a new scan. CDav still requires a full rescan for unknown sync tokens; it does not maintain an incremental deletion history. Check removal of previously downloaded contacts with your deployed clients after upgrading. No database cleanup is performed by these changes.
 

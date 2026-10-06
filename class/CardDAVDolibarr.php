@@ -78,7 +78,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 			$result = $this->db->query($this->_getSqlContacts('', true).' ORDER BY p.rowid');
 			if (!$result) throw new DAV\Exception\ServiceUnavailable($this->langs->transnoentities('CDavContactsUnavailable'));
 			$state = hash_init('sha256');
-			hash_update($state, getDolGlobalInt('CDAV_CONTACT_SYNC_CIVILITY').':'.getDolGlobalInt('CDAV_CONCAT_SOCNAME_FOR_PHONE').':'.(int) $this->user->hasRight('categorie', 'lire').':'.(int) isModEnabled('categorie'));
+			hash_update($state, getDolGlobalInt('CDAV_CONTACT_SYNC_CIVILITY').':'.getDolGlobalInt('CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS').':'.getDolGlobalInt('CDAV_CONCAT_SOCNAME_FOR_PHONE').':'.(int) $this->user->hasRight('categorie', 'lire').':'.(int) isModEnabled('categorie'));
 			while (is_object($row = $this->db->fetch_object($result))) {
 				hash_update($state, serialize($row));
 			}
@@ -655,6 +655,7 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 	protected function _contactToVCard($obj)
 	{
 		global $conf;
+		$syncThirdpartyDetails = getDolGlobalInt('CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS') === 1;
 		$nick = [];
 		$categ = [];
 		if($obj->soc_client)
@@ -723,22 +724,25 @@ class Dolibarr extends AbstractBackend implements SyncSupport {
 		$carddata.="CLASS:".($obj->priv?'PRIVATE':'PUBLIC')."\n";
 		$carddata.="ADR;TYPE=HOME;CHARSET=UTF-8:;".str_replace(';','\;',$address[1]).";".str_replace(';','\;',$address[0]).";";
 		$carddata.=	 str_replace(';','\;',(string) $obj->town).";;".str_replace(';','\;',(string) $obj->zip).";".str_replace(';','\;',(string) $obj->country_label)."\n";
-		$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$soc_address[1]).";".str_replace(';','\;',$soc_address[0]).";";
-		$carddata.=	 str_replace(';','\;',(string) $obj->soc_town).";;".str_replace(';','\;',(string) $obj->soc_zip).";".str_replace(';','\;',(string) $obj->soc_country_label)."\n";
-		$carddata.="TEL;TYPE=WORK,VOICE:".str_replace(';','\;',(string) (trim((string) $obj->phone)==''?$obj->soc_phone:$obj->phone))."\n";
+		if ($syncThirdpartyDetails) {
+			$carddata.="ADR;TYPE=WORK;CHARSET=UTF-8:;".str_replace(';','\;',$soc_address[1]).";".str_replace(';','\;',$soc_address[0]).";";
+			$carddata.=	 str_replace(';','\;',(string) $obj->soc_town).";;".str_replace(';','\;',(string) $obj->soc_zip).";".str_replace(';','\;',(string) $obj->soc_country_label)."\n";
+		}
+		$phone = trim((string) $obj->phone) === '' && $syncThirdpartyDetails ? $obj->soc_phone : $obj->phone;
+		$carddata.="TEL;TYPE=WORK,VOICE:".str_replace(';','\;',(string) $phone)."\n";
 		if(!empty($obj->phone_perso))
 			$carddata.="TEL;TYPE=HOME,VOICE:".str_replace(';','\;',$obj->phone_perso)."\n";
 		if(!empty($obj->phone_mobile))
 			$carddata.="TEL;TYPE=CELL:".str_replace(';','\;',$obj->phone_mobile)."\n";
-		if(!empty($obj->soc_fax))
+		if($syncThirdpartyDetails && !empty($obj->soc_fax))
 			$carddata.="TEL;TYPE=WORK,FAX:".str_replace(';','\;',$obj->soc_fax)."\n";
 		if(!empty($obj->fax))
 			$carddata.="TEL;TYPE=HOME,FAX:".str_replace(';','\;',$obj->fax)."\n";
 		if(!empty($obj->email))
 			$carddata.="EMAIL;PREF=1:".str_replace(';','\;',$obj->email)."\n";
-		if(!empty($obj->soc_email) && $obj->soc_email!=$obj->email)
+		if($syncThirdpartyDetails && !empty($obj->soc_email) && $obj->soc_email!=$obj->email)
 			$carddata.="EMAIL".(empty($obj->email)?";PREF=1":"").":".str_replace(';','\;',$obj->soc_email)."\n";
-		if(!empty($obj->soc_url))
+		if($syncThirdpartyDetails && !empty($obj->soc_url))
 		{
 			if(strpos($obj->soc_url,'://')===false)
 				$carddata.="URL:http://".trim((string) $obj->soc_url)."\n";

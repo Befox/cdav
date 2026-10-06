@@ -28,6 +28,7 @@ function cdavSettingsDefinition($tab)
 		return array(
 			'CDAV_CONTACT_TAG' => array('type' => 'contactcategory', 'module' => 'categorie'),
 			'CDAV_CONTACT_SYNC_CIVILITY' => array('type' => 'bool', 'module' => 'societe'),
+			'CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS' => array('type' => 'bool', 'module' => 'societe'),
 			'CDAV_THIRD_SYNC' => array('type' => 'select', 'choices' => array(0, 1, 2), 'module' => 'societe'),
 			'CDAV_MEMBER_SYNC' => array('type' => 'bool', 'module' => 'adherent'),
 		);
