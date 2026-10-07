@@ -170,6 +170,45 @@ refusedCard(static function () use ($cards) { token($cards); }, \Sabre\DAV\Excep
 refusedCard(static function () use ($cards) { $cards->getCards(7); }, \Sabre\DAV\Exception\ServiceUnavailable::class);
 refusedCard(static function () use ($cards) { $cards->getCard(7, '1-ct-stable'); }, \Sabre\DAV\Exception\ServiceUnavailable::class);
 $db->failContacts = false;
+$db->pdo->exec("UPDATE test_societe SET address='Company street', town='Company town', zip='75001', phone='company-phone', fax='company-fax', email='company@example.test', url='https://company.example.test' WHERE rowid=1");
+$db->pdo->exec("UPDATE test_socpeople SET address='Contact street', town='Contact town', zip='69001', phone_perso='personal-phone', phone_mobile='mobile-phone', fax='contact-fax', email='contact@example.test' WHERE rowid=1");
+$original = $cards->getCard(7, '1-ct-stable');
+foreach (array('Company street', 'Company town', '75001', 'company-phone', 'company-fax', 'company@example.test', 'company.example.test') as $value) {
+	verifyCard(strpos($original['carddata'], $value) === false, 'Default never adds third-party details: '.$value);
+}
+foreach (array('Contact street', 'Contact town', '69001', 'personal-phone', 'mobile-phone', 'contact-fax', 'contact@example.test', 'Company 1') as $value) {
+	verifyCard(strpos($original['carddata'], $value) !== false, 'Contact data and organization retained: '.$value);
+}
+verifyCard(strpos($original['carddata'], 'ADR;TYPE=WORK') === false, 'Default omits third-party work address');
+$before = token($cards);
+$settings[1]['CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS'] = 1;
+verifyCard(token($cards) !== $before, 'Third-party details switch changes collection ctag');
+$enabled = $cards->getCard(7, '1-ct-stable');
+verifyCard($enabled['etag'] !== $original['etag'], 'Third-party details switch changes card ETag');
+foreach (array('Company street', 'Company town', '75001', 'company-phone', 'company-fax', 'company@example.test', 'company.example.test') as $value) {
+	verifyCard(strpos($enabled['carddata'], $value) !== false, 'Enabled exports third-party details: '.$value);
+}
+$db->pdo->exec("UPDATE test_socpeople SET phone='contact-phone' WHERE rowid=1");
+verifyCard(strpos($cards->getCard(7, '1-ct-stable')['carddata'], 'company-phone') === false, 'Contact work phone takes precedence when enabled');
+$settings[1]['CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS'] = 0;
+$disabled = $cards->getCard(7, '1-ct-stable');
+verifyCard(strpos($disabled['carddata'], 'contact-phone') !== false, 'Own work phone retained when disabled');
+verifyCard(strpos($disabled['carddata'], 'Company street') === false, 'Explicit zero disables inheritance');
+$listed = array_column($cards->getCards(7), null, 'uri');
+verifyCard($listed['1-ct-stable']['etag'] === $disabled['etag'], 'List and direct read use the same details policy');
+verifyCard($cards->getMultipleCards(7, array('1-ct-stable'))[0]['carddata'] === $disabled['carddata'], 'Multiget uses the same details policy');
+$parsed = $cards->parse($disabled['carddata']);
+verifyCard($parsed['address'] === 'Contact street' && $parsed['phone'] === 'contact-phone' && $parsed['email'] === 'contact@example.test', 'Default round trip contains only the contact coordinates');
+$db->pdo->exec("UPDATE test_socpeople SET phone=NULL, email=NULL WHERE rowid=1");
+$empty = $cards->getCard(7, '1-ct-stable')['carddata'];
+verifyCard(strpos($empty, 'company-phone') === false && strpos($empty, 'company@example.test') === false, 'Empty contact fields never trigger default phone or email fallback');
+$db->pdo->exec("UPDATE test_socpeople SET phone='contact-phone', email='contact@example.test' WHERE rowid=1");
+$settings[2]['CDAV_CONTACT_SYNC_THIRDPARTY_DETAILS'] = 1;
+$conf->entity = 2;
+verifyCard(strpos($cards->getCard(7, '1-ct-stable')['carddata'], 'Company street') !== false, 'Consulting entity independently enables details for a shared contact');
+$conf->entity = 1;
+verifyCard($cards->getCard(7, '1-ct-stable')['etag'] === $disabled['etag'], 'Original entity retains disabled details');
+verifyCard($db->query('SELECT phone FROM test_socpeople WHERE rowid=1')->fetchColumn() === 'contact-phone', 'Export never changes ERP contact coordinates');
 $before = token($cards);
 $original = $cards->getCard(7, '1-ct-stable');
 $vcard = \Sabre\VObject\Reader::read($original['carddata']);
